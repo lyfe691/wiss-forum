@@ -1,3 +1,5 @@
+// temprary to test connection to mongoDB and frontend
+
 const express = require('express');
 const { MongoClient } = require('mongodb');
 const cors = require('cors');
@@ -11,7 +13,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 app.use(cors());
 app.use(express.json());
 
-let db;
+let db: any;
 
 // MongoDB Connection
 async function connectToMongoDB() {
@@ -28,17 +30,17 @@ async function connectToMongoDB() {
 }
 
 // Routes
-app.get('/', (req, res) => {
+app.get('/', (req: any, res: any) => {
     res.send('Hello, Node.js Backend!');
 });
 
 // Test connection endpoint
-app.get('/api/test-connection', (req, res) => {
+app.get('/api/test-connection', (req: any, res: any) => {
     res.json({ message: 'Backend connection successful!' });
 });
 
 // Create test document endpoint
-app.post('/api/create-test-document', async (req, res) => {
+app.post('/api/create-test-document', async (req: any, res: any) => {
     try {
         if (!db) {
             return res.status(500).json({ error: 'Database not connected' });
@@ -64,7 +66,7 @@ app.post('/api/create-test-document', async (req, res) => {
 });
 
 // Get all test documents endpoint
-app.get('/api/test-documents', async (req, res) => {
+app.get('/api/test-documents', async (req: any, res: any) => {
     try {
         if (!db) {
             return res.status(500).json({ error: 'Database not connected' });
