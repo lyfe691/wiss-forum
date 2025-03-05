@@ -121,8 +121,8 @@
   body {
     @apply bg-background text-foreground;
   }
+  button {
+    @apply hover:cursor-pointer;
+  }
 }
 
-button {
-  @apply hover:cursor-pointer;
-}
