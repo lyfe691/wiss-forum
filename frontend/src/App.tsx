@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button"
+import { TestConnection } from "@/components/TestConnection"
 
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh">
-      <Button>Click me</Button>
+    <div className="min-h-svh bg-gray-50 py-8">
+      <TestConnection />
     </div>
   )
 }
