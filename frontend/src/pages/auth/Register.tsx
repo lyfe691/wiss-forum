@@ -21,8 +21,9 @@ export function Register() {
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,14 +46,16 @@ export function Register() {
       return;
     }
     
-    setError('');
     setIsSubmitting(true);
     
     try {
       await register(username, email, password, displayName);
       navigate('/');
-    } catch (err) {
-      // Error handling is done in the register function with toast
+    } catch (err: any) {
+      // Extract error message from the API response
+      const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -78,6 +81,7 @@ export function Register() {
               <Label htmlFor="displayName">Display Name</Label>
               <Input
                 id="displayName"
+                name="displayName"
                 placeholder="Enter your full name"
                 value={formData.displayName}
                 onChange={handleChange}
@@ -88,6 +92,7 @@ export function Register() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
+                name="username"
                 placeholder="Choose a unique username"
                 value={formData.username}
                 onChange={handleChange}
@@ -98,6 +103,7 @@ export function Register() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="Enter your email address"
                 value={formData.email}
@@ -109,6 +115,7 @@ export function Register() {
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="Create a password"
                 value={formData.password}
@@ -120,6 +127,7 @@ export function Register() {
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
+                name="confirmPassword"
                 type="password"
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}

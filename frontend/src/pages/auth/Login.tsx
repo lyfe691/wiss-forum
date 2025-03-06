@@ -8,8 +8,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle } from 'lucide-react';
 
 export function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
@@ -19,23 +21,32 @@ export function Login() {
   // Get the redirect path from location state or default to home
   const from = location.state?.from?.pathname || '/';
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (error) setError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const { username, password } = formData;
     
     if (!username || !password) {
       setError('Please enter both username and password');
       return;
     }
     
-    setError('');
     setIsSubmitting(true);
     
     try {
       await login(username, password);
       // Redirect to the page they were trying to access, or home
       navigate(from, { replace: true });
-    } catch (err) {
-      // Error handling is done in the login function with toast
+    } catch (err: any) {
+      // Extract error message from the API response
+      const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -61,9 +72,10 @@ export function Login() {
               <Label htmlFor="username">Username or Email</Label>
               <Input
                 id="username"
+                name="username"
                 placeholder="Enter your username or email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={formData.username}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -79,10 +91,11 @@ export function Login() {
               </div>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
                 required
               />
             </div>

@@ -8,31 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { ArrowLeft, Send } from 'lucide-react';
-
-// Create a simple breadcrumb component
-const Breadcrumb = ({ children }: { children: React.ReactNode }) => (
-  <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
-    {children}
-  </nav>
-);
-
-const BreadcrumbItem = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex items-center">{children}</div>
-);
-
-const BreadcrumbLink = ({ 
-  children, 
-  as: Component = 'span', 
-  ...props 
-}: { 
-  children: React.ReactNode, 
-  as?: any 
-} & any) => (
-  <Component className="hover:text-foreground" {...props}>{children}</Component>
-);
-
-const BreadcrumbSeparator = () => <span>/</span>;
 
 interface Category {
   _id: string;
