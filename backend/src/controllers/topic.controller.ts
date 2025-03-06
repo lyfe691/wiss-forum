@@ -6,74 +6,85 @@ import { AuthRequest } from '../lib/auth';
 
 // Create a new topic
 export async function createTopic(req: AuthRequest, res: Response) {
-  try {
-    const { title, content, categoryId, tags } = req.body;
-    const authorId = new ObjectId(req.user?.userId);
-    
-    // Validate input
-    if (!title || !content || !categoryId) {
-      return res.status(400).json({ message: 'Title, content, and category are required' });
-    }
-    
-    // Validate category exists
-    if (!ObjectId.isValid(categoryId)) {
-      return res.status(400).json({ message: 'Invalid category ID' });
-    }
-    
-    const category = await collections.categories?.findOne({ _id: new ObjectId(categoryId) });
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
-    
-    // Create a slug from the title
-    const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
-    
-    // Create new topic
-    const newTopic: Topic = {
-      title,
-      content,
-      slug,
-      categoryId: new ObjectId(categoryId),
-      authorId,
-      isPinned: false,
-      isLocked: false,
-      viewCount: 0,
-      tags: tags || [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    // Insert topic into database
-    const result = await collections.topics?.insertOne(newTopic);
-    
-    if (!result?.insertedId) {
-      return res.status(500).json({ message: 'Failed to create topic' });
-    }
-    
-    // Update the topic with its own ID as the lastPostId
-    await collections.topics?.updateOne(
-      { _id: result.insertedId },
-      { $set: { lastPostId: result.insertedId, lastPostAt: new Date() } }
-    );
-    
-    // Get author information
-    const author = await collections.users?.findOne(
-      { _id: authorId },
-      { projection: { password: 0 } }
-    );
-    
-    res.status(201).json({
-      message: 'Topic created successfully',
-      topic: { 
-        ...newTopic, 
-        _id: result.insertedId,
-        author
-      }
-    });
-  } catch (error) {
-    console.error('Create topic error:', error);
-    res.status(500).json({ message: 'Server error' });
+  const { title, content, categoryId, tags } = req.body;
+  const authorId = new ObjectId(req.user?.userId);
+  
+  // Validate input
+  if (!title || !content || !categoryId) {
+    return res.status(400).json({ message: 'Title, content, and category are required' });
   }
+  
+  // Validate category exists
+  if (!ObjectId.isValid(categoryId)) {
+    return res.status(400).json({ message: 'Invalid category ID' });
+  }
+  
+  const category = await collections.categories?.findOne({ _id: new ObjectId(categoryId) });
+  if (!category) {
+    return res.status(404).json({ message: 'Category not found' });
+  }
+  
+  // Create a slug from the title
+  const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+  
+  // Create the topic
+  const newTopic: Topic = {
+    title,
+    content: content,
+    slug,
+    categoryId: new ObjectId(categoryId),
+    authorId,
+    tags: tags || [],
+    viewCount: 0,
+    isLocked: false,
+    isPinned: false,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  
+  // Insert the topic into the database
+  const topicResult = await collections.topics?.insertOne(newTopic);
+  
+  if (!topicResult?.insertedId) {
+    return res.status(500).json({ message: 'Failed to create topic' });
+  }
+  
+  // Create the first post in the topic
+  const firstPost: Post = {
+    content,
+    topicId: topicResult.insertedId,
+    authorId,
+    isEdited: false,
+    likes: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  
+  const postResult = await collections.posts?.insertOne(firstPost);
+  
+  if (!postResult?.insertedId) {
+    // Rollback topic creation if post creation fails
+    await collections.topics?.deleteOne({ _id: topicResult.insertedId });
+    return res.status(500).json({ message: 'Failed to create initial post' });
+  }
+  
+  // Update the topic with the first post ID
+  await collections.topics?.updateOne(
+    { _id: topicResult.insertedId },
+    { $set: { lastPostId: postResult.insertedId, lastPostAt: new Date() } }
+  );
+  
+  // Get the author information
+  const author = await collections.users?.findOne(
+    { _id: authorId },
+    { projection: { password: 0 } }
+  );
+  
+  return res.status(201).json({
+    message: 'Topic created successfully',
+    topic: { ...newTopic, _id: topicResult.insertedId, author },
+    post: { ...firstPost, _id: postResult.insertedId, author }
+  });
 }
 
 // Get topics by category

@@ -6,246 +6,296 @@ import { AuthRequest } from '../lib/auth';
 
 // Create a new category
 export async function createCategory(req: AuthRequest, res: Response) {
-  try {
-    const { name, description, order, parentCategory } = req.body;
-    
-    // Validate input
-    if (!name || !description) {
-      return res.status(400).json({ message: 'Name and description are required' });
-    }
-    
-    // Create slug from name (URL-friendly version)
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    
-    // Check if category with the same slug already exists
-    const existingCategory = await collections.categories?.findOne({ slug });
-    if (existingCategory) {
-      return res.status(400).json({ message: 'A category with this name already exists' });
-    }
-    
-    // Create category object
-    const newCategory: Category = {
-      name,
-      description,
-      slug,
-      order: order || 0,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: new ObjectId(req.user?.userId)
-    };
-    
-    // Add parent category if provided
-    if (parentCategory) {
-      // Verify parent category exists
-      const parent = await collections.categories?.findOne({ _id: new ObjectId(parentCategory) });
-      if (!parent) {
-        return res.status(400).json({ message: 'Parent category not found' });
-      }
-      newCategory.parentCategory = new ObjectId(parentCategory);
-    }
-    
-    // Insert category into database
-    const result = await collections.categories?.insertOne(newCategory);
-    
-    if (!result?.insertedId) {
-      return res.status(500).json({ message: 'Failed to create category' });
-    }
-    
-    res.status(201).json({
-      message: 'Category created successfully',
-      category: { ...newCategory, _id: result.insertedId }
-    });
-  } catch (error) {
-    console.error('Create category error:', error);
-    res.status(500).json({ message: 'Server error' });
+  const { name, description, order, parentCategory } = req.body;
+  
+  // Validate input
+  if (!name || !description) {
+    return res.status(400).json({ message: 'Name and description are required' });
   }
+  
+  // Create slug from name (URL-friendly version)
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  
+  // Check if category with the same slug already exists
+  const existingCategory = await collections.categories?.findOne({ slug });
+  if (existingCategory) {
+    return res.status(400).json({ message: 'A category with this name already exists' });
+  }
+  
+  // Create category object
+  const newCategory: Category = {
+    name,
+    description,
+    slug,
+    order: order || 0,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    createdBy: new ObjectId(req.user?.userId)
+  };
+  
+  // Add parent category reference if provided
+  if (parentCategory && ObjectId.isValid(parentCategory)) {
+    // Check if parent category exists
+    const parent = await collections.categories?.findOne({ _id: new ObjectId(parentCategory) });
+    if (!parent) {
+      return res.status(404).json({ message: 'Parent category not found' });
+    }
+    
+    newCategory.parentCategory = new ObjectId(parentCategory);
+  }
+  
+  // Insert category into database
+  const result = await collections.categories?.insertOne(newCategory);
+  
+  if (!result?.insertedId) {
+    return res.status(500).json({ message: 'Failed to create category' });
+  }
+  
+  return res.status(201).json({
+    message: 'Category created successfully',
+    category: { ...newCategory, _id: result.insertedId }
+  });
 }
 
 // Get all categories
 export async function getAllCategories(req: Request, res: Response) {
-  try {
-    const categories = await collections.categories?.find({}).toArray();
-    
-    // Organize categories into a hierarchy
-    const rootCategories = categories?.filter(cat => !cat.parentCategory);
-    const childCategories = categories?.filter(cat => cat.parentCategory);
-    
-    // Create a structured hierarchical response
-    const structuredCategories = rootCategories?.map(root => {
-      const children = childCategories?.filter(
-        child => child.parentCategory?.toString() === root._id?.toString()
-      );
-      return { ...root, children: children || [] };
-    });
-    
-    res.json({ categories: structuredCategories });
-  } catch (error) {
-    console.error('Get categories error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
+  const categories = await collections.categories?.find({}).toArray();
+  
+  // Group categories by parent
+  const categoryMap = new Map<string, any>();
+  const rootCategories: any[] = [];
+  
+  // First pass: store all categories in a map
+  categories?.forEach(category => {
+    categoryMap.set(category._id.toString(), { ...category, subcategories: [] });
+  });
+  
+  // Second pass: organize into hierarchy
+  categories?.forEach(category => {
+    if (category.parentCategory) {
+      const parentId = category.parentCategory.toString();
+      const parent = categoryMap.get(parentId);
+      if (parent) {
+        parent.subcategories.push(categoryMap.get(category._id.toString()));
+      }
+    } else {
+      rootCategories.push(categoryMap.get(category._id.toString()));
+    }
+  });
+  
+  return res.json(rootCategories);
 }
 
-// Get a single category by ID or slug
+// Get category by ID or slug
 export async function getCategoryByIdOrSlug(req: Request, res: Response) {
-  try {
-    const { idOrSlug } = req.params;
-    
-    let query = {};
-    
-    // Check if the parameter is an ObjectId or a slug
-    if (ObjectId.isValid(idOrSlug)) {
-      query = { _id: new ObjectId(idOrSlug) };
-    } else {
-      query = { slug: idOrSlug };
-    }
-    
-    const category = await collections.categories?.findOne(query);
-    
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
-    
-    // Get child categories if any
-    const childCategories = await collections.categories?.find({ parentCategory: category._id }).toArray();
-    
-    // Get topics count
-    const topicsCount = await collections.topics?.countDocuments({ categoryId: category._id });
-    
-    res.json({ 
-      category: { 
-        ...category, 
-        children: childCategories || [], 
-        topicsCount: topicsCount || 0
-      } 
-    });
-  } catch (error) {
-    console.error('Get category error:', error);
-    res.status(500).json({ message: 'Server error' });
+  const { idOrSlug } = req.params;
+  
+  let category;
+  
+  // Try to find by ID first
+  if (ObjectId.isValid(idOrSlug)) {
+    category = await collections.categories?.findOne({ _id: new ObjectId(idOrSlug) });
   }
+  
+  // If not found by ID, try to find by slug
+  if (!category) {
+    category = await collections.categories?.findOne({ slug: idOrSlug });
+  }
+  
+  if (!category) {
+    return res.status(404).json({ message: 'Category not found' });
+  }
+  
+  // Get subcategories
+  const subcategories = await collections.categories?.find({ 
+    parentCategory: category._id 
+  }).toArray();
+  
+  // Get topics
+  const topics = await collections.topics?.find({ 
+    categoryId: category._id 
+  }).toArray();
+  
+  // Count posts for each topic
+  const topicsWithCounts = await Promise.all(
+    topics?.map(async (topic) => {
+      const postCount = await collections.posts?.countDocuments({ 
+        topicId: topic._id 
+      });
+      
+      // Get latest post if available
+      let lastPost = null;
+      if (topic.lastPostId) {
+        const post = await collections.posts?.findOne({ _id: topic.lastPostId });
+        if (post) {
+          const author = await collections.users?.findOne(
+            { _id: post.authorId },
+            { projection: { password: 0 } }
+          );
+          lastPost = { ...post, author };
+        }
+      }
+      
+      return { ...topic, postCount, lastPost };
+    }) || []
+  );
+  
+  return res.json({
+    ...category,
+    subcategories,
+    topics: topicsWithCounts
+  });
 }
 
 // Update a category
 export async function updateCategory(req: AuthRequest, res: Response) {
-  try {
-    const { id } = req.params;
-    const { name, description, order, isActive, parentCategory } = req.body;
+  const { id } = req.params;
+  const { name, description, order, parentCategory, isActive } = req.body;
+  
+  // Validate ID
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid category ID' });
+  }
+  
+  // Find the category
+  const category = await collections.categories?.findOne({ _id: new ObjectId(id) });
+  
+  if (!category) {
+    return res.status(404).json({ message: 'Category not found' });
+  }
+  
+  // Build update object
+  const updateFields: Partial<Category> = { updatedAt: new Date() };
+  
+  if (name !== undefined) {
+    updateFields.name = name;
     
-    // Validate ID
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid category ID' });
+    // Update slug if name changes
+    if (name !== category.name) {
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      
+      // Check if slug conflicts with existing category
+      const existingCategory = await collections.categories?.findOne({ 
+        slug, 
+        _id: { $ne: new ObjectId(id) } 
+      });
+      
+      if (existingCategory) {
+        return res.status(400).json({ message: 'A category with this name already exists' });
+      }
+      
+      updateFields.slug = slug;
     }
-    
-    // Find the category
-    const category = await collections.categories?.findOne({ _id: new ObjectId(id) });
-    
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
-    
-    // Create update object
-    const updateData: Partial<Category> = {
-      updatedAt: new Date()
-    };
-    
-    // Add fields to update if provided
-    if (name) {
-      updateData.name = name;
-      // Update slug if name changes
-      updateData.slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    }
-    
-    if (description) updateData.description = description;
-    if (typeof order === 'number') updateData.order = order;
-    if (typeof isActive === 'boolean') updateData.isActive = isActive;
-    
-    // Handle parent category update
-    if (parentCategory === null) {
+  }
+  
+  if (description !== undefined) {
+    updateFields.description = description;
+  }
+  
+  if (order !== undefined) {
+    updateFields.order = order;
+  }
+  
+  if (isActive !== undefined) {
+    updateFields.isActive = isActive;
+  }
+  
+  // Handle parent category updates
+  if (parentCategory !== undefined) {
+    if (parentCategory === null || parentCategory === '') {
       // Remove parent category
-      updateData.parentCategory = undefined;
-    } else if (parentCategory && parentCategory !== category.parentCategory?.toString()) {
-      // Change parent category
-      // Verify parent category exists and is not the same as this category
+      updateFields.parentCategory = undefined;
+    } else if (ObjectId.isValid(parentCategory)) {
+      // Verify parent exists and is not the category itself
       if (parentCategory === id) {
         return res.status(400).json({ message: 'A category cannot be its own parent' });
       }
       
-      const parent = await collections.categories?.findOne({ _id: new ObjectId(parentCategory) });
-      if (!parent) {
-        return res.status(400).json({ message: 'Parent category not found' });
+      // Check for circular reference
+      let currentParent = parentCategory;
+      let depthCheck = 0;
+      const maxDepth = 10; // Prevent infinite loops
+      
+      while (currentParent && depthCheck < maxDepth) {
+        const parent = await collections.categories?.findOne({ _id: new ObjectId(currentParent) });
+        if (!parent) {
+          return res.status(404).json({ message: 'Parent category not found' });
+        }
+        
+        if (parent.parentCategory?.toString() === id) {
+          return res.status(400).json({ message: 'Circular reference detected in category hierarchy' });
+        }
+        
+        currentParent = parent.parentCategory?.toString();
+        depthCheck++;
       }
       
-      updateData.parentCategory = new ObjectId(parentCategory);
+      updateFields.parentCategory = new ObjectId(parentCategory);
+    } else {
+      return res.status(400).json({ message: 'Invalid parent category ID' });
     }
-    
-    // Update the category
-    const result = await collections.categories?.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
-    
-    if (!result?.matchedCount) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
-    
-    // Get the updated category
-    const updatedCategory = await collections.categories?.findOne({ _id: new ObjectId(id) });
-    
-    res.json({
-      message: 'Category updated successfully',
-      category: updatedCategory
-    });
-  } catch (error) {
-    console.error('Update category error:', error);
-    res.status(500).json({ message: 'Server error' });
   }
+  
+  // Update category
+  const result = await collections.categories?.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: updateFields }
+  );
+  
+  if (!result?.matchedCount) {
+    return res.status(404).json({ message: 'Category not found' });
+  }
+  
+  // Get updated category
+  const updatedCategory = await collections.categories?.findOne({ _id: new ObjectId(id) });
+  
+  return res.json({
+    message: 'Category updated successfully',
+    category: updatedCategory
+  });
 }
 
 // Delete a category
 export async function deleteCategory(req: AuthRequest, res: Response) {
-  try {
-    const { id } = req.params;
-    
-    // Validate ID
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid category ID' });
-    }
-    
-    // Check if category exists
-    const category = await collections.categories?.findOne({ _id: new ObjectId(id) });
-    
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
-    
-    // Check if there are subcategories
-    const childCategories = await collections.categories?.countDocuments({ parentCategory: new ObjectId(id) });
-    
-    if (childCategories && childCategories > 0) {
-      return res.status(400).json({ 
-        message: 'Cannot delete category with subcategories. Delete or reassign subcategories first.' 
-      });
-    }
-    
-    // Check if there are topics in this category
-    const topicsCount = await collections.topics?.countDocuments({ categoryId: new ObjectId(id) });
-    
-    if (topicsCount && topicsCount > 0) {
-      return res.status(400).json({ 
-        message: 'Cannot delete category with topics. Delete or move topics first.' 
-      });
-    }
-    
-    // Delete the category
-    const result = await collections.categories?.deleteOne({ _id: new ObjectId(id) });
-    
-    if (!result?.deletedCount) {
-      return res.status(500).json({ message: 'Failed to delete category' });
-    }
-    
-    res.json({ message: 'Category deleted successfully' });
-  } catch (error) {
-    console.error('Delete category error:', error);
-    res.status(500).json({ message: 'Server error' });
+  const { id } = req.params;
+  
+  // Validate ID
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid category ID' });
   }
+  
+  // Check if category exists
+  const category = await collections.categories?.findOne({ _id: new ObjectId(id) });
+  
+  if (!category) {
+    return res.status(404).json({ message: 'Category not found' });
+  }
+  
+  // Check for subcategories
+  const subcategories = await collections.categories?.countDocuments({ parentCategory: new ObjectId(id) });
+  
+  if (subcategories && subcategories > 0) {
+    return res.status(400).json({ 
+      message: 'Cannot delete category with subcategories. Remove or reassign subcategories first.'
+    });
+  }
+  
+  // Check for topics
+  const topics = await collections.topics?.countDocuments({ categoryId: new ObjectId(id) });
+  
+  if (topics && topics > 0) {
+    return res.status(400).json({ 
+      message: 'Cannot delete category with topics. Move or delete topics first.'
+    });
+  }
+  
+  // Delete category
+  const result = await collections.categories?.deleteOne({ _id: new ObjectId(id) });
+  
+  if (!result?.deletedCount) {
+    return res.status(500).json({ message: 'Failed to delete category' });
+  }
+  
+  return res.json({ message: 'Category deleted successfully' });
 } 
