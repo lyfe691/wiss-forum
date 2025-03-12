@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -12,12 +13,36 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, X, User, LogOut, Settings, Book, Users } from 'lucide-react';
+import { 
+  Menu, 
+  X, 
+  User, 
+  LogOut, 
+  Settings, 
+  Book, 
+  Users, 
+  Bell,
+  MessageSquare,
+  Home,
+  LayoutGrid
+} from 'lucide-react';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Detect scroll for navbar appearance change
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
@@ -34,99 +59,194 @@ export function Navbar() {
       .toUpperCase();
   };
 
+  const isActivePath = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/'
+    }
+    return location.pathname.startsWith(path);
+  }
+
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className={cn(
+      "bg-white border-b border-gray-200 transition-all duration-200",
+      scrolled ? "shadow-md" : "shadow-sm"
+    )}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-primary">WISS Forum</span>
+            <Link to="/" className="flex-shrink-0 flex items-center gap-2 relative group">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-200">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+              <span className="text-xl font-bold group-hover:text-primary transition-colors duration-200">WISS Forum</span>
             </Link>
-            <nav className="hidden md:ml-8 md:flex md:space-x-8">
+            
+            <nav className="hidden md:ml-10 md:flex md:items-center md:space-x-1">
               <Link
                 to="/"
-                className="text-gray-900 hover:text-primary px-3 py-2 text-sm font-medium"
+                className={cn(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                  isActivePath('/') 
+                    ? "text-primary bg-primary/10"
+                    : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                )}
               >
-                Home
+                <Home className="h-4 w-4" />
+                <span>Home</span>
               </Link>
               <Link
                 to="/categories"
-                className="text-gray-900 hover:text-primary px-3 py-2 text-sm font-medium"
+                className={cn(
+                  "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                  isActivePath('/categories') 
+                    ? "text-primary bg-primary/10"
+                    : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                )}
               >
-                Categories
+                <LayoutGrid className="h-4 w-4" />
+                <span>Categories</span>
               </Link>
               {isAuthenticated && user?.role === 'admin' && (
                 <Link
                   to="/admin"
-                  className="text-gray-900 hover:text-primary px-3 py-2 text-sm font-medium"
+                  className={cn(
+                    "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                    isActivePath('/admin') 
+                      ? "text-primary bg-primary/10"
+                      : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                  )}
                 >
-                  Admin
+                  <Settings className="h-4 w-4" />
+                  <span>Admin</span>
                 </Link>
               )}
             </nav>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center space-x-3">
             {isAuthenticated ? (
-              <div className="hidden md:flex items-center">
+              <div className="hidden md:flex md:items-center md:space-x-3">
+                {/* Notifications - example UI only */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-9 h-9 rounded-full relative p-0"
+                  onClick={() => navigate('/notifications')}
+                >
+                  <Bell className="h-5 w-5 text-gray-600" />
+                  <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-primary"></span>
+                </Button>
+                
+                {/* User profile dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                      <Avatar>
+                    <Button 
+                      variant="ghost" 
+                      className="relative h-10 rounded-full flex items-center gap-2 pl-1 pr-3 transition-all duration-200 hover:bg-primary/5"
+                    >
+                      <Avatar className="h-8 w-8 border border-primary/20">
                         <AvatarImage src={user?.avatar} alt={user?.displayName} />
-                        <AvatarFallback>{user?.displayName ? getInitials(user.displayName) : 'U'}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                          {user?.displayName ? getInitials(user.displayName) : 'U'}
+                        </AvatarFallback>
                       </Avatar>
+                      <span className="text-sm font-medium max-w-[100px] truncate hidden sm:block">
+                        {user?.displayName || user?.username}
+                      </span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>
+                  <DropdownMenuContent align="end" className="w-64 p-2">
+                    <div className="flex items-start gap-4 p-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user?.avatar} alt={user?.displayName} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                          {user?.displayName ? getInitials(user.displayName) : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium">{user?.displayName}</p>
-                        <p className="text-xs text-gray-500">@{user?.username}</p>
+                        <p className="text-xs text-muted-foreground">@{user?.username}</p>
+                        <div className="inline-flex mt-1">
+                          <span className="text-xs font-medium px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary">
+                            {user?.role}
+                          </span>
+                        </div>
                       </div>
-                    </DropdownMenuLabel>
+                    </div>
+
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </DropdownMenuItem>
-                    {(user?.role === 'admin' || user?.role === 'teacher') && (
-                      <>
-                        <DropdownMenuItem onClick={() => navigate('/admin/categories')}>
-                          <Book className="mr-2 h-4 w-4" />
-                          <span>Manage Categories</span>
-                        </DropdownMenuItem>
-                        {user?.role === 'admin' && (
-                          <DropdownMenuItem onClick={() => navigate('/admin/users')}>
-                            <Users className="mr-2 h-4 w-4" />
-                            <span>Manage Users</span>
+                    
+                    <div className="p-1">
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/profile')}
+                        className="cursor-pointer flex items-center gap-2 py-2"
+                      >
+                        <User className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                      
+                      {(user?.role === 'admin' || user?.role === 'teacher') && (
+                        <>
+                          <DropdownMenuItem 
+                            onClick={() => navigate('/admin/categories')}
+                            className="cursor-pointer flex items-center gap-2 py-2"
+                          >
+                            <Book className="mr-2 h-4 w-4 text-muted-foreground" />
+                            <span>Manage Categories</span>
                           </DropdownMenuItem>
-                        )}
-                      </>
-                    )}
-                    <DropdownMenuItem onClick={() => navigate('/settings')}>
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </DropdownMenuItem>
+                          
+                          {user?.role === 'admin' && (
+                            <DropdownMenuItem 
+                              onClick={() => navigate('/admin/users')}
+                              className="cursor-pointer flex items-center gap-2 py-2"
+                            >
+                              <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                              <span>Manage Users</span>
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
+                      
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/settings')}
+                        className="cursor-pointer flex items-center gap-2 py-2"
+                      >
+                        <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <span>Settings</span>
+                      </DropdownMenuItem>
+                    </div>
+                    
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
+                    
+                    <div className="p-1">
+                      <DropdownMenuItem 
+                        onClick={handleLogout}
+                        className="cursor-pointer flex items-center gap-2 py-2 text-destructive"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             ) : (
               <div className="hidden md:flex md:items-center md:space-x-4">
-                <Button variant="outline" onClick={() => navigate('/login')}>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate('/login')}
+                  className="text-gray-700 hover:text-primary hover:bg-primary/5"
+                >
                   Log in
                 </Button>
-                <Button onClick={() => navigate('/register')}>Sign up</Button>
+                <Button onClick={() => navigate('/register')}>
+                  Sign up
+                </Button>
               </div>
             )}
 
             {/* Mobile menu button */}
-            <div className="md:hidden flex items-center ml-4">
+            <div className="md:hidden flex items-center">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
@@ -145,28 +265,48 @@ export function Navbar() {
                     <span className="sr-only">Close menu</span>
                   </Button>
                   
-                  <div className="flex flex-col space-y-4">
+                  <div className="flex flex-col space-y-1 mt-2">
                     <Link 
                       to="/" 
-                      className="text-lg font-medium py-2"
+                      className={cn(
+                        "px-3 py-3 rounded-md text-base font-medium transition-all duration-200 flex items-center gap-3",
+                        isActivePath('/') 
+                          ? "text-primary bg-primary/10"
+                          : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                      )}
                       onClick={closeMobileMenu}
                     >
-                      Home
+                      <Home className="h-5 w-5" />
+                      <span>Home</span>
                     </Link>
+                    
                     <Link 
                       to="/categories" 
-                      className="text-lg font-medium py-2"
+                      className={cn(
+                        "px-3 py-3 rounded-md text-base font-medium transition-all duration-200 flex items-center gap-3",
+                        isActivePath('/categories') 
+                          ? "text-primary bg-primary/10"
+                          : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                      )}
                       onClick={closeMobileMenu}
                     >
-                      Categories
+                      <LayoutGrid className="h-5 w-5" />
+                      <span>Categories</span>
                     </Link>
+                    
                     {isAuthenticated && user?.role === 'admin' && (
                       <Link 
                         to="/admin" 
-                        className="text-lg font-medium py-2"
+                        className={cn(
+                          "px-3 py-3 rounded-md text-base font-medium transition-all duration-200 flex items-center gap-3",
+                          isActivePath('/admin') 
+                            ? "text-primary bg-primary/10"
+                            : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                        )}
                         onClick={closeMobileMenu}
                       >
-                        Admin
+                        <Settings className="h-5 w-5" />
+                        <span>Admin</span>
                       </Link>
                     )}
                   </div>
@@ -174,62 +314,69 @@ export function Navbar() {
                   <div className="mt-auto">
                     {isAuthenticated ? (
                       <div className="border-t border-gray-200 pt-4 mt-4">
-                        <div className="flex items-center mb-4">
-                          <Avatar className="h-10 w-10 mr-4">
+                        <div className="flex items-center px-3 mb-6">
+                          <Avatar className="h-12 w-12 mr-4 border border-primary/20">
                             <AvatarImage src={user?.avatar} alt={user?.displayName} />
-                            <AvatarFallback>
+                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
                               {user?.displayName ? getInitials(user.displayName) : 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{user?.displayName}</p>
-                            <p className="text-sm text-gray-500">@{user?.username}</p>
+                            <p className="font-medium text-base">{user?.displayName}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm text-muted-foreground">@{user?.username}</p>
+                              <span className="text-xs px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary font-medium">
+                                {user?.role}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex flex-col space-y-3">
+                        
+                        <div className="flex flex-col space-y-1">
                           <Button 
                             variant="ghost" 
-                            className="justify-start"
+                            className="justify-start rounded-md py-3 h-auto"
                             onClick={() => {
                               navigate('/profile');
                               closeMobileMenu();
                             }}
                           >
-                            <User className="mr-2 h-4 w-4" />
+                            <User className="mr-3 h-5 w-5 text-muted-foreground" />
                             Profile
                           </Button>
                           <Button 
                             variant="ghost" 
-                            className="justify-start"
+                            className="justify-start rounded-md py-3 h-auto"
                             onClick={() => {
                               navigate('/settings');
                               closeMobileMenu();
                             }}
                           >
-                            <Settings className="mr-2 h-4 w-4" />
+                            <Settings className="mr-3 h-5 w-5 text-muted-foreground" />
                             Settings
                           </Button>
                           <Button 
                             variant="ghost" 
-                            className="justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                            className="justify-start rounded-md py-3 h-auto text-destructive hover:bg-destructive/10 hover:text-destructive"
                             onClick={() => {
                               handleLogout();
                               closeMobileMenu();
                             }}
                           >
-                            <LogOut className="mr-2 h-4 w-4" />
+                            <LogOut className="mr-3 h-5 w-5" />
                             Log out
                           </Button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col space-y-3 border-t border-gray-200 pt-4 mt-4">
+                      <div className="flex flex-col space-y-3 border-t border-gray-200 pt-4 mt-4 px-3">
                         <Button 
                           variant="outline" 
                           onClick={() => {
                             navigate('/login');
                             closeMobileMenu();
                           }}
+                          className="w-full"
                         >
                           Log in
                         </Button>
@@ -238,6 +385,7 @@ export function Navbar() {
                             navigate('/register');
                             closeMobileMenu();
                           }}
+                          className="w-full"
                         >
                           Sign up
                         </Button>
