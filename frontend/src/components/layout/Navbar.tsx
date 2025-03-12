@@ -129,7 +129,7 @@ export function Navbar() {
             <div className="md:hidden flex items-center ml-4">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Open menu</span>
                   </Button>
@@ -137,8 +137,8 @@ export function Navbar() {
                 <SheetContent className="flex flex-col pt-16">
                   <Button 
                     variant="ghost" 
-                    size="icon" 
-                    className="absolute right-4 top-4"
+                    size="sm" 
+                    className="absolute right-4 top-4 w-8 h-8 p-0"
                     onClick={closeMobileMenu}
                   >
                     <X className="h-6 w-6" />

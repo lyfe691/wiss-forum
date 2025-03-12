@@ -4,7 +4,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-white border-t border-gray-200 py-8">
+    <footer className="bg-white border-t border-gray-200 py-8 relative">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="md:flex md:justify-between">
           <div className="mb-6 md:mb-0">
@@ -15,7 +15,7 @@ export function Footer() {
               A forum for WISS students and teachers to discuss topics, share knowledge, and collaborate.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div>
               <h2 className="mb-4 text-sm font-semibold text-gray-900 uppercase">Resources</h2>
               <ul className="text-gray-600">
