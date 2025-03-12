@@ -86,8 +86,8 @@ export function SideNav() {
     },
     {
       icon: <Users className="h-5 w-5" />,
-      label: "Community",
-      href: "/community"
+      label: "Users",
+      href: "/users"
     }
   ];
   

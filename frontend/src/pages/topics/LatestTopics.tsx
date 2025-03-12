@@ -3,12 +3,9 @@ import { Link } from 'react-router-dom';
 import { topicsAPI } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Clock, 
-  MessageCircle, 
   User, 
   ArrowRight, 
   Eye, 
@@ -16,7 +13,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Pagination } from '@/components/ui/pagination';
+import { Pagination } from '../../components/ui/pagination';
 
 interface Author {
   _id: string;

@@ -5,6 +5,9 @@ import { asyncHandler, authAsyncHandler } from '../types/express-route-handlers'
 
 const router = Router();
 
+// Public routes
+router.get('/public', asyncHandler(userController.getPublicUsersList));
+
 // Admin routes
 router.get('/', authenticate, isAdmin, authAsyncHandler(userController.getAllUsers));
 router.put('/:id/role', authenticate, isAdmin, authAsyncHandler(userController.updateUserRole));

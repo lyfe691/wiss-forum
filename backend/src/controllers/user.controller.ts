@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { collections } from '../lib/database';
 import { AuthRequest } from '../lib/auth';
 import { User } from '../models';
+import { Request } from 'express';
 
 // Get all users (admin only)
 export async function getAllUsers(req: AuthRequest, res: Response) {
@@ -165,4 +166,32 @@ export async function changePassword(req: AuthRequest, res: Response) {
   }
   
   return res.json({ message: 'Password updated successfully' });
+}
+
+// Get public user list (accessible to all)
+export async function getPublicUsersList(req: Request, res: Response) {
+  try {
+    // Simple approach to avoid potential MongoDB projection issues
+    const allUsers = await collections.users?.find().toArray();
+    
+    if (!allUsers) {
+      return res.json([]);
+    }
+    
+    // Filter sensitive information manually
+    const publicUsers = allUsers.map(user => ({
+      _id: user._id,
+      username: user.username,
+      displayName: user.displayName,
+      avatar: user.avatar,
+      role: user.role,
+      bio: user.bio,
+      createdAt: user.createdAt
+    }));
+    
+    return res.json(publicUsers);
+  } catch (error) {
+    console.error('Error fetching public users list:', error);
+    return res.status(500).json({ message: 'Server error while fetching users' });
+  }
 } 
