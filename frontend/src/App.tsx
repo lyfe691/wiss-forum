@@ -12,6 +12,7 @@ import { Categories } from '@/pages/categories/Categories';
 import { CategoryDetail } from '@/pages/categories/CategoryDetail';
 import { CreateTopic } from '@/pages/topics/CreateTopic';
 import { TopicDetail } from '@/pages/topics/TopicDetail';
+import { Profile } from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
 
 function App() {
@@ -37,6 +38,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreateTopic />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               } 
             />
