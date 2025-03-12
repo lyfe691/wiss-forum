@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pagination } from '../../components/ui/pagination';
 import { formatDistanceToNow } from 'date-fns';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface User {
   _id: string;
@@ -129,36 +131,44 @@ export function Users() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {getCurrentPageUsers().map((user) => (
               <Card key={user._id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-12 w-12 border">
-                      {user.avatar ? (
-                        <AvatarImage src={user.avatar} alt={user.displayName || user.username} />
-                      ) : (
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {getInitials(user.displayName || user.username)}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-base font-medium">{user.displayName || user.username}</CardTitle>
-                      <p className="text-sm text-muted-foreground">@{user.username}</p>
-                      <Badge className={`mt-1.5 font-normal px-1.5 py-0.5 text-xs ${getRoleBadgeColor(user.role)}`}>
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                      </Badge>
+                <Link to={`/users/${user.username}`} className="block h-full">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-12 w-12 border">
+                        {user.avatar ? (
+                          <AvatarImage src={user.avatar} alt={user.displayName || user.username} />
+                        ) : (
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {getInitials(user.displayName || user.username)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-base font-medium hover:text-primary transition-colors">{user.displayName || user.username}</CardTitle>
+                        <p className="text-sm text-muted-foreground">@{user.username}</p>
+                        <Badge className={`mt-1.5 font-normal px-1.5 py-0.5 text-xs ${getRoleBadgeColor(user.role)}`}>
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  {user.bio ? (
-                    <p className="text-sm text-muted-foreground line-clamp-2">{user.bio}</p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">No bio provided</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Member since {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
-                  </p>
-                </CardContent>
+                  </CardHeader>
+                  <CardContent className="pt-2">
+                    {user.bio ? (
+                      <p className="text-sm text-muted-foreground line-clamp-2">{user.bio}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">No bio provided</p>
+                    )}
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-muted-foreground">
+                        Member since {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
+                      </p>
+                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs hover:bg-primary/5 hover:text-primary">
+                        View Profile
+                        <ArrowRight className="ml-1 h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Link>
               </Card>
             ))}
           </div>

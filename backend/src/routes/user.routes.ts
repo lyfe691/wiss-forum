@@ -7,6 +7,7 @@ const router = Router();
 
 // Public routes
 router.get('/public', asyncHandler(userController.getPublicUsersList));
+router.get('/profile/:idOrUsername', asyncHandler(userController.getPublicUserProfile));
 
 // Admin routes
 router.get('/', authenticate, isAdmin, authAsyncHandler(userController.getAllUsers));

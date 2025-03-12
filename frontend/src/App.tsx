@@ -14,6 +14,7 @@ import { CreateTopic } from '@/pages/topics/CreateTopic';
 import { TopicDetail } from '@/pages/topics/TopicDetail';
 import { LatestTopics } from '@/pages/topics/LatestTopics';
 import { Users } from '@/pages/users/Users';
+import { UserProfile } from '@/pages/users/UserProfile';
 import { Profile } from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="/topics/latest" element={<LatestTopics />} />
             <Route path="/topics/:slug" element={<TopicDetail />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/users/:idOrUsername" element={<UserProfile />} />
             
             {/* Protected Routes */}
             <Route 

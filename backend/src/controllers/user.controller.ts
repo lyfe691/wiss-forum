@@ -194,4 +194,41 @@ export async function getPublicUsersList(req: Request, res: Response) {
     console.error('Error fetching public users list:', error);
     return res.status(500).json({ message: 'Server error while fetching users' });
   }
+}
+
+// Get public profile of a specific user by ID or username
+export async function getPublicUserProfile(req: Request, res: Response) {
+  try {
+    const { idOrUsername } = req.params;
+    let query = {};
+    
+    // Check if the parameter is an ObjectId or a username
+    if (ObjectId.isValid(idOrUsername)) {
+      query = { _id: new ObjectId(idOrUsername) };
+    } else {
+      query = { username: idOrUsername };
+    }
+    
+    const user = await collections.users?.findOne(query);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Return only public information
+    const publicProfile = {
+      _id: user._id,
+      username: user.username,
+      displayName: user.displayName,
+      avatar: user.avatar,
+      role: user.role,
+      bio: user.bio,
+      createdAt: user.createdAt
+    };
+    
+    return res.json(publicProfile);
+  } catch (error) {
+    console.error('Error fetching public user profile:', error);
+    return res.status(500).json({ message: 'Server error while fetching user profile' });
+  }
 } 

@@ -68,6 +68,11 @@ export const userAPI = {
     return response.data;
   },
   
+  getPublicUserProfile: async (idOrUsername: string) => {
+    const response = await api.get(`/users/profile/${idOrUsername}`);
+    return response.data;
+  },
+  
   updateUserRole: async (userId: string, role: 'student' | 'teacher' | 'admin') => {
     const response = await api.put(`/users/${userId}/role`, { role });
     return response.data;
