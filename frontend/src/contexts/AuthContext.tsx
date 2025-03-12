@@ -9,6 +9,8 @@ interface User {
   displayName: string;
   role: 'student' | 'teacher' | 'admin';
   avatar?: string;
+  bio?: string;
+  createdAt?: string;
 }
 
 interface AuthContextType {
@@ -19,6 +21,7 @@ interface AuthContextType {
   register: (username: string, email: string, password: string, displayName: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,6 +68,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('user');
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  // Refresh user data from the server
+  const refreshUser = async () => {
+    try {
+      const { user } = await authAPI.getCurrentUser();
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
+      return user;
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+      throw error;
     }
   };
   
@@ -148,6 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         checkAuth,
+        refreshUser,
       }}
     >
       {children}

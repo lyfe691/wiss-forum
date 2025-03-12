@@ -68,7 +68,7 @@ export function Navbar() {
 
   return (
     <header className={cn(
-      "bg-white border-b border-gray-200 transition-all duration-200",
+      "bg-background border-b border-border transition-all duration-200",
       scrolled ? "shadow-md" : "shadow-sm"
     )}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,7 +88,7 @@ export function Navbar() {
                   "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
                   isActivePath('/') 
                     ? "text-primary bg-primary/10"
-                    : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                    : "text-foreground hover:text-primary hover:bg-primary/5"
                 )}
               >
                 <Home className="h-4 w-4" />
@@ -100,7 +100,7 @@ export function Navbar() {
                   "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
                   isActivePath('/categories') 
                     ? "text-primary bg-primary/10"
-                    : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                    : "text-foreground hover:text-primary hover:bg-primary/5"
                 )}
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -113,7 +113,7 @@ export function Navbar() {
                     "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
                     isActivePath('/admin') 
                       ? "text-primary bg-primary/10"
-                      : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                      : "text-foreground hover:text-primary hover:bg-primary/5"
                   )}
                 >
                   <Settings className="h-4 w-4" />
@@ -133,7 +133,7 @@ export function Navbar() {
                   className="w-9 h-9 rounded-full relative p-0"
                   onClick={() => navigate('/notifications')}
                 >
-                  <Bell className="h-5 w-5 text-gray-600" />
+                  <Bell className="h-5 w-5 text-muted-foreground" />
                   <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-primary"></span>
                 </Button>
                 
@@ -249,148 +249,156 @@ export function Navbar() {
             <div className="md:hidden flex items-center">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
-                    <Menu className="h-6 w-6" />
-                    <span className="sr-only">Open menu</span>
+                  <Button
+                    variant="ghost"
+                    className="h-10 w-10 p-0 border-0"
+                    onClick={() => setIsMobileMenuOpen(true)}
+                  >
+                    <Menu className="h-5 w-5 text-foreground" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="flex flex-col pt-16">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="absolute right-4 top-4 w-8 h-8 p-0"
-                    onClick={closeMobileMenu}
-                  >
-                    <X className="h-6 w-6" />
-                    <span className="sr-only">Close menu</span>
-                  </Button>
-                  
-                  <div className="flex flex-col space-y-1 mt-2">
-                    <Link 
-                      to="/" 
-                      className={cn(
-                        "px-3 py-3 rounded-md text-base font-medium transition-all duration-200 flex items-center gap-3",
-                        isActivePath('/') 
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-700 hover:text-primary hover:bg-primary/5"
-                      )}
-                      onClick={closeMobileMenu}
-                    >
-                      <Home className="h-5 w-5" />
-                      <span>Home</span>
-                    </Link>
-                    
-                    <Link 
-                      to="/categories" 
-                      className={cn(
-                        "px-3 py-3 rounded-md text-base font-medium transition-all duration-200 flex items-center gap-3",
-                        isActivePath('/categories') 
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-700 hover:text-primary hover:bg-primary/5"
-                      )}
-                      onClick={closeMobileMenu}
-                    >
-                      <LayoutGrid className="h-5 w-5" />
-                      <span>Categories</span>
-                    </Link>
-                    
-                    {isAuthenticated && user?.role === 'admin' && (
-                      <Link 
-                        to="/admin" 
-                        className={cn(
-                          "px-3 py-3 rounded-md text-base font-medium transition-all duration-200 flex items-center gap-3",
-                          isActivePath('/admin') 
-                            ? "text-primary bg-primary/10"
-                            : "text-gray-700 hover:text-primary hover:bg-primary/5"
-                        )}
-                        onClick={closeMobileMenu}
-                      >
-                        <Settings className="h-5 w-5" />
-                        <span>Admin</span>
+                <SheetContent className="border-l border-border">
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between py-4 border-b border-border">
+                      <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                          <MessageSquare className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold">WISS Forum</span>
                       </Link>
-                    )}
-                  </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <X className="h-5 w-5 text-foreground" />
+                      </Button>
+                    </div>
 
-                  <div className="mt-auto">
-                    {isAuthenticated ? (
-                      <div className="border-t border-gray-200 pt-4 mt-4">
-                        <div className="flex items-center px-3 mb-6">
-                          <Avatar className="h-12 w-12 mr-4 border border-primary/20">
-                            <AvatarImage src={user?.avatar} alt={user?.displayName} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                              {user?.displayName ? getInitials(user.displayName) : 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-base">{user?.displayName}</p>
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm text-muted-foreground">@{user?.username}</p>
-                              <span className="text-xs px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary font-medium">
-                                {user?.role}
-                              </span>
+                    <nav className="flex-1 py-6">
+                      <div className="flex flex-col space-y-1">
+                        <Link
+                          to="/"
+                          className={cn(
+                            "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                            isActivePath('/') 
+                              ? "text-primary bg-primary/10"
+                              : "text-foreground hover:text-primary hover:bg-primary/5"
+                          )}
+                          onClick={closeMobileMenu}
+                        >
+                          <Home className="h-4 w-4" />
+                          <span>Home</span>
+                        </Link>
+                        <Link
+                          to="/categories"
+                          className={cn(
+                            "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                            isActivePath('/categories') 
+                              ? "text-primary bg-primary/10"
+                              : "text-foreground hover:text-primary hover:bg-primary/5"
+                          )}
+                          onClick={closeMobileMenu}
+                        >
+                          <LayoutGrid className="h-4 w-4" />
+                          <span>Categories</span>
+                        </Link>
+                        {isAuthenticated && user?.role === 'admin' && (
+                          <Link
+                            to="/admin"
+                            className={cn(
+                              "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                              isActivePath('/admin') 
+                                ? "text-primary bg-primary/10"
+                                : "text-foreground hover:text-primary hover:bg-primary/5"
+                            )}
+                            onClick={closeMobileMenu}
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span>Admin</span>
+                          </Link>
+                        )}
+                      </div>
+                    </nav>
+
+                    <div className="border-t border-border py-4">
+                      {isAuthenticated ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border border-primary/20">
+                              <AvatarImage src={user?.avatar} alt={user?.displayName} />
+                              <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                {user?.displayName ? getInitials(user.displayName) : 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-medium">{user?.displayName || user?.username}</p>
+                              <div className="inline-flex mt-1">
+                                <span className="text-xs font-medium px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary">
+                                  {user?.role}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="flex flex-col space-y-2">
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start"
+                              onClick={() => {
+                                navigate('/profile');
+                                closeMobileMenu();
+                              }}
+                            >
+                              <User className="mr-2 h-4 w-4 text-primary" />
+                              Profile
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start"
+                              onClick={() => {
+                                navigate('/settings');
+                                closeMobileMenu();
+                              }}
+                            >
+                              <Settings className="mr-2 h-4 w-4 text-primary" />
+                              Settings
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-destructive hover:text-destructive"
+                              onClick={() => {
+                                handleLogout();
+                                closeMobileMenu();
+                              }}
+                            >
+                              <LogOut className="mr-2 h-4 w-4" />
+                              Log out
+                            </Button>
+                          </div>
                         </div>
-                        
-                        <div className="flex flex-col space-y-1">
-                          <Button 
-                            variant="ghost" 
-                            className="justify-start rounded-md py-3 h-auto"
+                      ) : (
+                        <div className="flex flex-col space-y-2">
+                          <Button
                             onClick={() => {
-                              navigate('/profile');
+                              navigate('/login');
                               closeMobileMenu();
                             }}
                           >
-                            <User className="mr-3 h-5 w-5 text-muted-foreground" />
-                            Profile
+                            Log in
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            className="justify-start rounded-md py-3 h-auto"
+                          <Button
+                            variant="outline"
                             onClick={() => {
-                              navigate('/settings');
+                              navigate('/register');
                               closeMobileMenu();
                             }}
                           >
-                            <Settings className="mr-3 h-5 w-5 text-muted-foreground" />
-                            Settings
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            className="justify-start rounded-md py-3 h-auto text-destructive hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => {
-                              handleLogout();
-                              closeMobileMenu();
-                            }}
-                          >
-                            <LogOut className="mr-3 h-5 w-5" />
-                            Log out
+                            Sign up
                           </Button>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col space-y-3 border-t border-gray-200 pt-4 mt-4 px-3">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => {
-                            navigate('/login');
-                            closeMobileMenu();
-                          }}
-                          className="w-full"
-                        >
-                          Log in
-                        </Button>
-                        <Button 
-                          onClick={() => {
-                            navigate('/register');
-                            closeMobileMenu();
-                          }}
-                          className="w-full"
-                        >
-                          Sign up
-                        </Button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>

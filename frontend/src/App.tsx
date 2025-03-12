@@ -16,6 +16,7 @@ import { LatestTopics } from '@/pages/topics/LatestTopics';
 import { Users } from '@/pages/users/Users';
 import { UserProfile } from '@/pages/users/UserProfile';
 import { Profile } from '@/pages/Profile';
+import { Settings } from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 
 function App() {
@@ -53,6 +54,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               } 
             />
