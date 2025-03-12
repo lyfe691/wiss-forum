@@ -3,6 +3,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { themeUtils } from '@/lib/theme';
+import { useEffect } from 'react';
 
 // Pages
 import { Home } from '@/pages/Home';
@@ -20,6 +22,11 @@ import { Settings } from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 
 function App() {
+  // Initialize theme only once when the app loads
+  useEffect(() => {
+    themeUtils.initialize();
+  }, []);
+
   return (
     <Router>
       <AuthProvider>

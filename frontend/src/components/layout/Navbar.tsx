@@ -235,7 +235,7 @@ export function Navbar() {
                 <Button 
                   variant="ghost" 
                   onClick={() => navigate('/login')}
-                  className="text-gray-700 hover:text-primary hover:bg-primary/5"
+                  className="text-foreground hover:text-primary hover:bg-primary/5"
                 >
                   Log in
                 </Button>

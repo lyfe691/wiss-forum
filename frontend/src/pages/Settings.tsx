@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +31,7 @@ import {
   Brush
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { themeUtils } from '@/lib/theme';
 
 export function Settings() {
   const { user, refreshUser, logout } = useAuth();
@@ -47,7 +48,7 @@ export function Settings() {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    darkMode: localStorage.getItem('theme') === 'dark',
+    darkMode: themeUtils.getTheme() === 'dark',
     emailNotifications: true,
     siteNotifications: true
   });
@@ -63,13 +64,7 @@ export function Settings() {
     
     // Handle theme switching
     if (name === 'darkMode') {
-      if (checked) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      }
+      themeUtils.setTheme(checked ? 'dark' : 'light');
     }
   };
 
