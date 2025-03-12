@@ -331,4 +331,65 @@ export async function deleteTopic(req: AuthRequest, res: Response) {
     console.error('Delete topic error:', error);
     res.status(500).json({ message: 'Server error' });
   }
+}
+
+// Get latest topics
+export async function getLatestTopics(req: Request, res: Response) {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Get latest topics with pagination
+    const topics = await collections.topics?.find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+    
+    // Get total count of topics
+    const totalTopics = await collections.topics?.countDocuments({});
+    
+    // Get author information for each topic
+    const topicsWithAuthors = await Promise.all(
+      topics?.map(async (topic) => {
+        const author = await collections.users?.findOne(
+          { _id: topic.authorId },
+          { projection: { password: 0 } }
+        );
+        
+        // Get category information
+        const category = await collections.categories?.findOne({ _id: topic.categoryId });
+        
+        // Get last post if it exists
+        let lastPost = null;
+        if (topic.lastPostId) {
+          lastPost = await collections.posts?.findOne({ _id: topic.lastPostId });
+          
+          if (lastPost) {
+            const lastPostAuthor = await collections.users?.findOne(
+              { _id: lastPost.authorId },
+              { projection: { password: 0 } }
+            );
+            lastPost = { ...lastPost, author: lastPostAuthor };
+          }
+        }
+        
+        return { ...topic, author, category, lastPost };
+      }) || []
+    );
+    
+    res.json({
+      topics: topicsWithAuthors,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil((totalTopics || 0) / limit),
+        totalTopics: totalTopics,
+        hasMore: skip + limit < (totalTopics || 0)
+      }
+    });
+  } catch (error) {
+    console.error('Get latest topics error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 } 

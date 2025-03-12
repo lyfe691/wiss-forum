@@ -128,6 +128,11 @@ export const topicsAPI = {
     return response.data;
   },
   
+  getLatestTopics: async (page = 1, limit = 10) => {
+    const response = await api.get(`/topics/latest?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+  
   getTopicByIdOrSlug: async (idOrSlug: string) => {
     const response = await api.get(`/topics/${idOrSlug}`);
     return response.data;

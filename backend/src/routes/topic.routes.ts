@@ -6,6 +6,7 @@ import { asyncHandler, authAsyncHandler } from '../types/express-route-handlers'
 const router = Router();
 
 // Public routes
+router.get('/latest', asyncHandler(topicController.getLatestTopics));
 router.get('/category/:categoryId', asyncHandler(topicController.getTopicsByCategory));
 router.get('/:idOrSlug', asyncHandler(topicController.getTopicByIdOrSlug));
 

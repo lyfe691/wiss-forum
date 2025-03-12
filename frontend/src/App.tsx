@@ -12,6 +12,7 @@ import { Categories } from '@/pages/categories/Categories';
 import { CategoryDetail } from '@/pages/categories/CategoryDetail';
 import { CreateTopic } from '@/pages/topics/CreateTopic';
 import { TopicDetail } from '@/pages/topics/TopicDetail';
+import { LatestTopics } from '@/pages/topics/LatestTopics';
 import { Profile } from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
 
@@ -30,6 +31,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/categories/:slug" element={<CategoryDetail />} />
+            <Route path="/topics/latest" element={<LatestTopics />} />
             <Route path="/topics/:slug" element={<TopicDetail />} />
             
             {/* Protected Routes */}
