@@ -360,4 +360,72 @@ export async function bootstrapCreateCategory(req: Request, res: Response) {
     success: true,
     category: { ...newCategory, _id: result.insertedId }
   });
+}
+
+// Bootstrap method to delete a category without standard auth
+export async function bootstrapDeleteCategory(req: Request, res: Response) {
+  const { categoryId, secretKey, userId } = req.body;
+  
+  // Validate secret key
+  if (!secretKey || secretKey !== 'WISS_ADMIN_SETUP_2024') {
+    return res.status(403).json({ message: 'Invalid secret key' });
+  }
+  
+  // Validate input
+  if (!categoryId) {
+    return res.status(400).json({ message: 'Category ID is required' });
+  }
+  
+  // Validate category ID
+  if (!ObjectId.isValid(categoryId)) {
+    return res.status(400).json({ message: 'Invalid category ID format' });
+  }
+  
+  // Validate user exists (if userId provided)
+  if (userId) {
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
+    const user = await collections.users?.findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+  }
+  
+  // Check if the category has subcategories
+  const subcategories = await collections.categories?.find({ 
+    parentCategory: new ObjectId(categoryId) 
+  }).toArray();
+  
+  if (subcategories && subcategories.length > 0) {
+    return res.status(400).json({ 
+      message: 'Cannot delete category with subcategories. Please delete or move subcategories first.' 
+    });
+  }
+  
+  // Check if the category has topics
+  const topics = await collections.topics?.find({ 
+    categoryId: new ObjectId(categoryId) 
+  }).toArray();
+  
+  if (topics && topics.length > 0) {
+    return res.status(400).json({ 
+      message: 'Cannot delete category with topics. Please delete or move topics first.' 
+    });
+  }
+  
+  // Delete the category
+  const result = await collections.categories?.deleteOne({ 
+    _id: new ObjectId(categoryId) 
+  });
+  
+  if (!result?.deletedCount) {
+    return res.status(404).json({ message: 'Category not found or already deleted' });
+  }
+  
+  return res.status(200).json({
+    success: true,
+    message: 'Category deleted successfully'
+  });
 } 

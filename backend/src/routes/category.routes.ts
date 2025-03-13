@@ -9,8 +9,9 @@ const router = Router();
 router.get('/', asyncHandler(categoryController.getAllCategories));
 router.get('/:idOrSlug', asyncHandler(categoryController.getCategoryByIdOrSlug));
 
-// Temporary bootstrap category route (REMOVE IN PRODUCTION)
+// Temporary bootstrap category routes (REMOVE IN PRODUCTION)
 router.post('/bootstrap-create', asyncHandler(categoryController.bootstrapCreateCategory));
+router.post('/bootstrap-delete', asyncHandler(categoryController.bootstrapDeleteCategory));
 
 // Protected routes (require authentication & proper role)
 router.post('/', authenticate, isTeacherOrAdmin, authAsyncHandler(categoryController.createCategory));

@@ -15,7 +15,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, MoreVertical, Trash, Check, X } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Category {
   _id: string;
@@ -67,6 +84,11 @@ export function CategoryDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent'); // 'recent', 'activity', 'popular'
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [topicToDelete, setTopicToDelete] = useState<Topic | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -131,6 +153,31 @@ export function CategoryDetail() {
       return date.toLocaleDateString();
     }
   };
+
+  const handleDeleteTopic = async () => {
+    if (!topicToDelete) return;
+    
+    try {
+      setIsDeleting(true);
+      setError(null);
+      
+      await topicsAPI.deleteTopic(topicToDelete._id);
+      
+      // Update local state
+      setTopics(prevTopics => prevTopics.filter(topic => topic._id !== topicToDelete._id));
+      
+      setSuccess(`Topic "${topicToDelete.title}" deleted successfully`);
+      setDeleteDialogOpen(false);
+      setTopicToDelete(null);
+    } catch (err: any) {
+      console.error('Failed to delete topic:', err);
+      setError(err?.response?.data?.message || 'Failed to delete topic. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'teacher';
 
   if (isLoading) {
     return (
@@ -214,6 +261,23 @@ export function CategoryDetail() {
         <p className="text-muted-foreground">{category.description}</p>
       </div>
 
+      {/* Alert Messages */}
+      {error && (
+        <Alert variant="destructive" className="mt-4">
+          <X className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {success && (
+        <Alert className="mt-4 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300 border-green-200 dark:border-green-800/30">
+          <Check className="h-4 w-4" />
+          <AlertTitle>Success</AlertTitle>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Subcategories if any */}
       {category.subcategories && category.subcategories.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -290,11 +354,35 @@ export function CategoryDetail() {
             {sortedTopics.map((topic) => (
               <Card key={topic._id}>
                 <CardHeader className="pb-2">
-                  <Link to={`/topics/${topic.slug}`}>
-                    <CardTitle className="text-xl hover:text-primary transition-colors">
-                      {topic.title}
-                    </CardTitle>
-                  </Link>
+                  <div className="flex justify-between items-start">
+                    <Link to={`/topics/${topic.slug}`}>
+                      <CardTitle className="text-xl hover:text-primary transition-colors">
+                        {topic.title}
+                      </CardTitle>
+                    </Link>
+                    {isAdmin && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">More</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            className="text-destructive" 
+                            onClick={() => {
+                              setTopicToDelete(topic);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete Topic
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="pb-2">
                   <p className="line-clamp-2 text-muted-foreground">
@@ -329,6 +417,36 @@ export function CategoryDetail() {
           </div>
         )}
       </div>
+
+      {/* Delete Topic Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Topic</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this topic? This action cannot be undone and will remove all posts within this topic.
+              {topicToDelete && (
+                <div className="mt-2 p-2 bg-muted rounded-md">
+                  <p className="font-medium">{topicToDelete.title}</p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteTopic();
+              }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

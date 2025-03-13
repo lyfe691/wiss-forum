@@ -95,15 +95,24 @@ export function TopicDetail() {
     const fetchTopicAndPosts = async () => {
       setIsLoading(true);
       try {
-        if (!slug) return;
+        if (!slug) {
+          console.error('Topic slug is undefined');
+          return;
+        }
         
         // Fetch topic details
         const topicData = await topicsAPI.getTopicByIdOrSlug(slug);
-        setTopic(topicData);
+        if (!topicData || !topicData.topic) {
+          console.error('Invalid topic data returned from API:', topicData);
+          return;
+        }
+        setTopic(topicData.topic);
         
         // Fetch posts for the topic
-        const postsData = await postsAPI.getPostsByTopic(topicData._id);
-        setPosts(postsData);
+        if (topicData.topic._id) {
+          const postsData = await postsAPI.getPostsByTopic(topicData.topic._id);
+          setPosts(postsData);
+        }
       } catch (error) {
         console.error('Failed to fetch topic details:', error);
       } finally {
@@ -267,14 +276,18 @@ export function TopicDetail() {
         <BreadcrumbItem>
           <BreadcrumbLink as={Link} to="/categories">Categories</BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to={`/categories/${topic.category.slug}`}>{topic.category.name}</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink>{topic.title}</BreadcrumbLink>
-        </BreadcrumbItem>
+        {topic && topic.category && (
+          <>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink as={Link} to={`/categories/${topic.category.slug}`}>{topic.category.name}</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink>{topic.title}</BreadcrumbLink>
+            </BreadcrumbItem>
+          </>
+        )}
       </Breadcrumb>
       
       {/* Topic Header */}

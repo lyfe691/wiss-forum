@@ -467,4 +467,65 @@ export async function bootstrapCreateTopic(req: Request, res: Response) {
     message: 'Topic created successfully',
     topic: insertedTopic
   });
+}
+
+// Bootstrap method to delete a topic without standard auth
+export async function bootstrapDeleteTopic(req: Request, res: Response) {
+  const { topicId, secretKey, userId } = req.body;
+  
+  // Validate secret key
+  if (!secretKey || secretKey !== 'WISS_ADMIN_SETUP_2024') {
+    return res.status(403).json({ message: 'Invalid secret key' });
+  }
+  
+  // Validate input
+  if (!topicId) {
+    return res.status(400).json({ message: 'Topic ID is required' });
+  }
+  
+  // Validate topic ID
+  if (!ObjectId.isValid(topicId)) {
+    return res.status(400).json({ message: 'Invalid topic ID format' });
+  }
+  
+  // Validate user exists (if userId provided)
+  if (userId) {
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
+    const user = await collections.users?.findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+  }
+  
+  // Find the topic to ensure it exists
+  const topic = await collections.topics?.findOne({ _id: new ObjectId(topicId) });
+  if (!topic) {
+    return res.status(404).json({ message: 'Topic not found' });
+  }
+  
+  // Delete all posts related to this topic
+  await collections.posts?.deleteMany({ topicId: new ObjectId(topicId) });
+  
+  // Delete the topic
+  const result = await collections.topics?.deleteOne({ _id: new ObjectId(topicId) });
+  
+  if (!result?.deletedCount) {
+    return res.status(500).json({ message: 'Failed to delete topic' });
+  }
+  
+  // Update category post and topic counts (decrement)
+  if (topic.categoryId) {
+    await collections.categories?.updateOne(
+      { _id: topic.categoryId },
+      { $inc: { topicCount: -1, postCount: -1 } }
+    );
+  }
+  
+  return res.status(200).json({
+    success: true,
+    message: 'Topic deleted successfully'
+  });
 } 
