@@ -201,4 +201,40 @@ export const postsAPI = {
   },
 };
 
+// Statistics API
+export const statsAPI = {
+  getStats: async () => {
+    try {
+      // Make a direct API request to get all public users
+      const directUsersResponse = await fetch('http://localhost:3000/api/users/public');
+      const users = await directUsersResponse.json();
+      
+      // Also get categories
+      const directCategoriesResponse = await fetch('http://localhost:3000/api/categories');
+      const categories = await directCategoriesResponse.json();
+      
+      // Use our existing topic API for topics
+      const topicsData = await topicsAPI.getLatestTopics(1, 1);
+      
+      // Get the actual count of users
+      const userCount = Array.isArray(users) ? users.length : 0;
+      
+      return {
+        userCount: userCount,
+        categoryCount: Array.isArray(categories) ? categories.length : 0,
+        topicCount: topicsData.totalItems || 0,
+        postCount: 0 // Simplified
+      };
+    } catch (error) {
+      console.error("Error getting stats:", error);
+      return {
+        userCount: 0,
+        categoryCount: 0,
+        topicCount: 0,
+        postCount: 0
+      };
+    }
+  }
+};
+
 export default api; 

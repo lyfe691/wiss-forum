@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { categoriesAPI } from '@/lib/api';
+import { categoriesAPI, statsAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,24 +19,56 @@ interface Category {
   subcategories?: Category[];
 }
 
+interface Stats {
+  userCount: number;
+  categoryCount: number;
+  topicCount: number;
+  postCount: number;
+}
+
 export function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [stats, setStats] = useState<Stats>({
+    userCount: 0,
+    categoryCount: 0,
+    topicCount: 0,
+    postCount: 0
+  });
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated, user } = useAuth();
 
+  // For debugging purposes
   useEffect(() => {
-    const fetchCategories = async () => {
+    console.log("Stats updated:", stats);
+  }, [stats]);
+
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const data = await categoriesAPI.getAllCategories();
-        setCategories(data);
+        setIsLoading(true);
+        console.log("Home: Starting to fetch data...");
+        
+        // Fetch both categories and stats concurrently
+        const [categoriesData, statsData] = await Promise.all([
+          categoriesAPI.getAllCategories(),
+          statsAPI.getStats()
+        ]);
+        
+        console.log("Home: Received categories:", categoriesData);
+        console.log("Home: Received stats:", statsData);
+        
+        setCategories(categoriesData);
+        setStats(statsData);
+        
+        console.log("Home: Updated state with new data");
       } catch (error) {
-        console.error('Failed to fetch categories:', error);
+        console.error('Home: Failed to fetch data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchCategories();
+    fetchData();
   }, []);
 
   // Animation variants for staggered children
@@ -122,7 +154,13 @@ export function Home() {
               <MessageSquare className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{isLoading ? '...' : categories.length}</div>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {isLoading ? (
+                  <Skeleton className="h-9 w-16 rounded-md" />
+                ) : (
+                  stats.categoryCount
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Discuss various topics organized by categories
               </p>
@@ -137,7 +175,13 @@ export function Home() {
               <Users className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">100+</div>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                {isLoading ? (
+                  <Skeleton className="h-9 w-16 rounded-md" />
+                ) : (
+                  stats.userCount !== undefined ? stats.userCount : 'N/A'
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Students and teachers engaged in discussions
               </p>
@@ -148,11 +192,17 @@ export function Home() {
         <motion.div variants={itemVariants}>
           <Card className="border-none shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background/80">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Learning Resources</CardTitle>
+              <CardTitle className="text-sm font-medium">Topics Created</CardTitle>
               <BookOpen className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">50+</div>
+              <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                {isLoading ? (
+                  <Skeleton className="h-9 w-16 rounded-md" />
+                ) : (
+                  stats.topicCount
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Educational topics to enhance your learning
               </p>
@@ -260,7 +310,11 @@ export function Home() {
           <div className="relative">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Join our Academic Community Today</h2>
             <p className="mb-8 max-w-2xl mx-auto text-muted-foreground">
-              Connect with fellow students and teachers, participate in discussions, and enhance your learning experience.
+              Connect with {stats.userCount > 0 ? 
+                stats.userCount : 
+                (isLoading ? '...' : 'other')
+              } students and teachers, 
+              participate in discussions, and enhance your learning experience.
             </p>
             <Link to="/register">
               <Button size="lg" className="group">
