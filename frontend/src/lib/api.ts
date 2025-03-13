@@ -134,8 +134,28 @@ export const categoriesAPI = {
 // Topics API
 export const topicsAPI = {
   getTopicsByCategory: async (categoryId: string, page = 1, limit = 10) => {
-    const response = await api.get(`/topics/category/${categoryId}?page=${page}&limit=${limit}`);
-    return response.data;
+    try {
+      const response = await api.get(`/topics/category/${categoryId}?page=${page}&limit=${limit}`);
+      
+      // Handle different response structures
+      if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data && Array.isArray(response.data.topics)) {
+        return response.data.topics;
+      } else if (response.data && typeof response.data === 'object') {
+        console.warn('Unexpected topics response structure:', response.data);
+        // Try to extract topics from common response patterns
+        const possibleTopicsArray = response.data.topics || response.data.data || response.data.items || [];
+        return Array.isArray(possibleTopicsArray) ? possibleTopicsArray : [];
+      }
+      
+      // Default to empty array if we can't find topics
+      console.warn('Could not extract topics array from response:', response.data);
+      return [];
+    } catch (error) {
+      console.error(`Error fetching topics for category ${categoryId}:`, error);
+      return [];
+    }
   },
   
   getLatestTopics: async (page = 1, limit = 10) => {

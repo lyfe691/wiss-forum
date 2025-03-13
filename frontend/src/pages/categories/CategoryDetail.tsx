@@ -102,8 +102,23 @@ export function CategoryDetail() {
         setCategory(categoryData);
         
         // Fetch topics for the category
-        const topicsData = await topicsAPI.getTopicsByCategory(categoryData._id);
-        setTopics(Array.isArray(topicsData) ? topicsData : []);
+        try {
+          console.log('Fetching topics for category:', categoryData._id);
+          const topicsData = await topicsAPI.getTopicsByCategory(categoryData._id);
+          console.log('Topics data received:', topicsData);
+          
+          if (Array.isArray(topicsData)) {
+            setTopics(topicsData);
+          } else if (topicsData && Array.isArray(topicsData.topics)) {
+            setTopics(topicsData.topics);
+          } else {
+            console.warn('Unexpected topics data structure:', topicsData);
+            setTopics([]);
+          }
+        } catch (topicsError) {
+          console.error('Failed to fetch topics:', topicsError);
+          setTopics([]);
+        }
       } catch (error) {
         console.error('Failed to fetch category details:', error);
       } finally {
@@ -112,7 +127,43 @@ export function CategoryDetail() {
     };
 
     fetchCategoryAndTopics();
+    
+    // Add a call to refetch data when the component is focused
+    const handleFocus = () => {
+      fetchCategoryAndTopics();
+    };
+    
+    // Add event listener for when the window regains focus
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [slug]);
+
+  // Add a manual refresh button
+  const refreshTopics = async () => {
+    if (!category) return;
+    
+    try {
+      setIsLoading(true);
+      const topicsData = await topicsAPI.getTopicsByCategory(category._id);
+      console.log('Refreshed topics data:', topicsData);
+      
+      if (Array.isArray(topicsData)) {
+        setTopics(topicsData);
+      } else if (topicsData && Array.isArray(topicsData.topics)) {
+        setTopics(topicsData.topics);
+      } else {
+        console.warn('Unexpected topics data structure during refresh:', topicsData);
+        setTopics([]);
+      }
+    } catch (error) {
+      console.error('Failed to refresh topics:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredTopics = Array.isArray(topics) ? topics.filter(topic => 
     topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -320,6 +371,12 @@ export function CategoryDetail() {
                 <SelectItem value="popular">Most Popular</SelectItem>
               </SelectContent>
             </Select>
+            <Button variant="outline" onClick={refreshTopics} className="flex gap-1 items-center">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Refresh</span>
+            </Button>
             {isAuthenticated && (
               <Link to={`/categories/${category.slug}/create-topic`}>
                 <Button>
