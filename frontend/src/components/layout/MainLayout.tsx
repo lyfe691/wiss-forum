@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { SideNav } from './SideNav';
+import { NewPostButton } from '@/components/NewPostButton';
 
 export function MainLayout() {
   return (
@@ -18,6 +19,7 @@ export function MainLayout() {
       <div className="mt-auto w-full lg:pl-64">
         <Footer />
       </div>
+      <NewPostButton />
     </div>
   );
 } 
