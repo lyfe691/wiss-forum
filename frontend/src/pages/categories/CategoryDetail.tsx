@@ -81,7 +81,7 @@ export function CategoryDetail() {
         
         // Fetch topics for the category
         const topicsData = await topicsAPI.getTopicsByCategory(categoryData._id);
-        setTopics(topicsData);
+        setTopics(Array.isArray(topicsData) ? topicsData : []);
       } catch (error) {
         console.error('Failed to fetch category details:', error);
       } finally {
@@ -92,10 +92,10 @@ export function CategoryDetail() {
     fetchCategoryAndTopics();
   }, [slug]);
 
-  const filteredTopics = topics.filter(topic => 
+  const filteredTopics = Array.isArray(topics) ? topics.filter(topic => 
     topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     topic.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : [];
 
   const sortedTopics = [...filteredTopics].sort((a, b) => {
     if (sortBy === 'recent') {

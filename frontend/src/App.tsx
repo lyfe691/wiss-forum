@@ -20,6 +20,9 @@ import { UserProfile } from '@/pages/users/UserProfile';
 import { Profile } from '@/pages/Profile';
 import { Settings } from '@/pages/Settings';
 import { AdminTool } from '@/pages/AdminTool';
+import { AdminDashboard } from '@/pages/admin/AdminDashboard';
+import { UserManagement } from '@/pages/admin/UserManagement';
+import { CategoryManagement } from '@/pages/admin/CategoryManagement';
 import NotFound from '@/pages/NotFound';
 
 function App() {
@@ -78,13 +81,30 @@ function App() {
             
             {/* Admin Routes */}
             <Route 
-              path="/admin/*" 
+              path="/admin" 
               element={
                 <ProtectedRoute requiredRole="admin">
-                  {/* Admin pages will be added later */}
-                  <div>Admin Dashboard</div>
+                  <AdminDashboard />
                 </ProtectedRoute>
               } 
+            />
+            
+            <Route 
+              path="/admin/users" 
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <UserManagement />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/categories" 
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <CategoryManagement />
+                </ProtectedRoute>
+              }
             />
             
             {/* 404 Route */}

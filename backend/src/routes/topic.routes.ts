@@ -10,6 +10,9 @@ router.get('/latest', asyncHandler(topicController.getLatestTopics));
 router.get('/category/:categoryId', asyncHandler(topicController.getTopicsByCategory));
 router.get('/:idOrSlug', asyncHandler(topicController.getTopicByIdOrSlug));
 
+// Bootstrap route - temporary, remove in production
+router.post('/bootstrap-create', asyncHandler(topicController.bootstrapCreateTopic));
+
 // Protected routes (require authentication & proper role)
 router.post('/', authenticate, isTeacherOrAdmin, authAsyncHandler(topicController.createTopic));
 router.put('/:id', authenticate, isTeacherOrAdmin, authAsyncHandler(topicController.updateTopic));

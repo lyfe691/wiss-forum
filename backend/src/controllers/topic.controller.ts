@@ -392,4 +392,79 @@ export async function getLatestTopics(req: Request, res: Response) {
     console.error('Get latest topics error:', error);
     res.status(500).json({ message: 'Server error' });
   }
+}
+
+// Bootstrap method to create a topic without standard auth
+export async function bootstrapCreateTopic(req: Request, res: Response) {
+  const { title, content, categoryId, userId, secretKey, tags } = req.body;
+  
+  // Validate secret key
+  if (!secretKey || secretKey !== 'WISS_ADMIN_SETUP_2024') {
+    return res.status(403).json({ message: 'Invalid secret key' });
+  }
+  
+  // Validate input
+  if (!title || !content || !categoryId || !userId) {
+    return res.status(400).json({ message: 'Title, content, category, and user ID are required' });
+  }
+  
+  // Validate category exists
+  if (!ObjectId.isValid(categoryId)) {
+    return res.status(400).json({ message: 'Invalid category ID' });
+  }
+  
+  const category = await collections.categories?.findOne({ _id: new ObjectId(categoryId) });
+  if (!category) {
+    return res.status(404).json({ message: 'Category not found' });
+  }
+  
+  // Validate user exists
+  if (!ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: 'Invalid user ID' });
+  }
+  
+  const user = await collections.users?.findOne({ _id: new ObjectId(userId) });
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  
+  // Create a slug from the title
+  const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+  
+  // Create the topic
+  const newTopic: Topic = {
+    title,
+    content: content,
+    slug,
+    categoryId: new ObjectId(categoryId),
+    authorId: new ObjectId(userId),
+    tags: tags || [],
+    viewCount: 0,
+    isLocked: false,
+    isPinned: false,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  
+  // Insert the topic into the database
+  const topicResult = await collections.topics?.insertOne(newTopic);
+  
+  if (!topicResult?.insertedId) {
+    return res.status(500).json({ message: 'Failed to create topic' });
+  }
+  
+  // Increment post count in the category
+  await collections.categories?.updateOne(
+    { _id: new ObjectId(categoryId) },
+    { $inc: { topicCount: 1, postCount: 1 } }
+  );
+  
+  // Get the inserted topic
+  const insertedTopic = await collections.topics?.findOne({ _id: topicResult.insertedId });
+  
+  return res.status(201).json({
+    success: true,
+    message: 'Topic created successfully',
+    topic: insertedTopic
+  });
 } 

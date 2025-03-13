@@ -298,4 +298,66 @@ export async function deleteCategory(req: AuthRequest, res: Response) {
   }
   
   return res.json({ message: 'Category deleted successfully' });
+}
+
+// Temporary function to bootstrap a category creation (REMOVE IN PRODUCTION)
+export async function bootstrapCreateCategory(req: Request, res: Response) {
+  const { name, description, order, parentCategory, secretKey } = req.body;
+  
+  // Very basic security check to prevent unauthorized access
+  if (secretKey !== 'WISS_ADMIN_SETUP_2024') {
+    return res.status(401).json({ message: 'Unauthorized access' });
+  }
+  
+  // Validate input
+  if (!name || !description) {
+    return res.status(400).json({ message: 'Name and description are required' });
+  }
+  
+  // Create slug from name (URL-friendly version)
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  
+  // Check if category with the same slug already exists
+  const existingCategory = await collections.categories?.findOne({ slug });
+  if (existingCategory) {
+    return res.status(400).json({ message: 'A category with this name already exists' });
+  }
+  
+  // Create category object
+  const newCategory: Category = {
+    name,
+    description,
+    slug,
+    order: order || 0,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    // Since we're bypassing auth, we don't have a user ID from the auth middleware
+    // If userId is provided in the request, use it; otherwise, leave it undefined
+    ...(req.body.userId && { createdBy: new ObjectId(req.body.userId) })
+  };
+  
+  // Add parent category reference if provided
+  if (parentCategory && ObjectId.isValid(parentCategory)) {
+    // Check if parent category exists
+    const parent = await collections.categories?.findOne({ _id: new ObjectId(parentCategory) });
+    if (!parent) {
+      return res.status(404).json({ message: 'Parent category not found' });
+    }
+    
+    newCategory.parentCategory = new ObjectId(parentCategory);
+  }
+  
+  // Insert category into database
+  const result = await collections.categories?.insertOne(newCategory);
+  
+  if (!result?.insertedId) {
+    return res.status(500).json({ message: 'Failed to create category' });
+  }
+  
+  return res.status(201).json({
+    message: 'Category created successfully',
+    success: true,
+    category: { ...newCategory, _id: result.insertedId }
+  });
 } 

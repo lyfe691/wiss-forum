@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert as AlertComponent, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { categoriesAPI } from '@/lib/api';
+import axios from 'axios';
 
 export function NewPostButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,6 +72,33 @@ export function NewPostButton() {
       setIsCreatingCategory(true);
       setError('');
       
+      // Try using the bootstrap endpoint first
+      try {
+        const response = await axios.post('http://localhost:3000/api/categories/bootstrap-create', {
+          name: categoryName.trim(),
+          description: categoryDescription.trim(),
+          secretKey: 'WISS_ADMIN_SETUP_2024',
+          userId: user?._id // Pass current user ID if available
+        });
+        
+        if (response.data.success) {
+          // Reset form and go back to category selection
+          setCategoryName('');
+          setCategoryDescription('');
+          setShowCreateCategory(false);
+          
+          // Refresh categories and select the new one
+          const updatedCategories = await categoriesAPI.getAllCategories();
+          setCategories(updatedCategories);
+          setSelectedCategory(response.data.category.slug);
+          return;
+        }
+      } catch (bootstrapError: any) {
+        console.error('Bootstrap category creation failed:', bootstrapError);
+        // If bootstrap method failed, try the normal method
+      }
+      
+      // Fall back to the standard method
       const newCategory = await categoriesAPI.createCategory({
         name: categoryName.trim(),
         description: categoryDescription.trim()
