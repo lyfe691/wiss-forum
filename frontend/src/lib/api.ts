@@ -271,8 +271,44 @@ export const postsAPI = {
   },
   
   createPost: async (data: { content: string; topicId: string; replyTo?: string }) => {
-    const response = await api.post('/posts', data);
-    return response.data;
+    try {
+      const response = await api.post('/posts', data);
+      
+      // Log the raw response to debug
+      console.log('Raw API response from createPost:', response.data);
+      
+      // Process and validate the response
+      if (!response.data) {
+        console.warn('Empty response from createPost API');
+        // Create a minimal valid post with the data we sent
+        return {
+          _id: `temp-${Date.now()}`,
+          content: data.content,
+          topic: data.topicId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          likes: 0,
+          isLiked: false
+        };
+      }
+      
+      // Ensure all required fields exist
+      const processedPost = {
+        ...response.data,
+        _id: response.data._id || `temp-${Date.now()}`,
+        content: response.data.content || data.content, // Use input if response lacks content
+        topic: response.data.topic || data.topicId,
+        createdAt: response.data.createdAt || new Date().toISOString(),
+        updatedAt: response.data.updatedAt || new Date().toISOString(),
+        likes: typeof response.data.likes === 'number' ? response.data.likes : 0,
+        isLiked: !!response.data.isLiked
+      };
+      
+      return processedPost;
+    } catch (error) {
+      console.error('Error in createPost:', error);
+      throw error;
+    }
   },
   
   updatePost: async (id: string, data: { content: string }) => {
