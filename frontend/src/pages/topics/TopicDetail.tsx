@@ -91,27 +91,41 @@ export function TopicDetail() {
   const { isAuthenticated, user } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Early check for missing slug parameter
+  useEffect(() => {
+    if (!slug) {
+      setIsLoading(false);
+    }
+  }, [slug]);
+
   useEffect(() => {
     const fetchTopicAndPosts = async () => {
+      if (!slug) {
+        setIsLoading(false);
+        return;
+      }
+      
       setIsLoading(true);
       try {
-        if (!slug) {
-          console.error('Topic slug is undefined');
-          return;
-        }
-        
         // Fetch topic details
         const topicData = await topicsAPI.getTopicByIdOrSlug(slug);
         if (!topicData || !topicData.topic) {
           console.error('Invalid topic data returned from API:', topicData);
+          setIsLoading(false);
           return;
         }
         setTopic(topicData.topic);
         
         // Fetch posts for the topic
         if (topicData.topic._id) {
-          const postsData = await postsAPI.getPostsByTopic(topicData.topic._id);
-          setPosts(postsData);
+          try {
+            const postsData = await postsAPI.getPostsByTopic(topicData.topic._id);
+            // Ensure postsData is an array before setting state
+            setPosts(Array.isArray(postsData) ? postsData : []);
+          } catch (postError) {
+            console.error('Failed to fetch posts:', postError);
+            setPosts([]);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch topic details:', error);
@@ -236,7 +250,7 @@ export function TopicDetail() {
     );
   }
 
-  if (!topic) {
+  if (!slug || !topic) {
     return (
       <div className="text-center py-12">
         <AlertCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -250,7 +264,7 @@ export function TopicDetail() {
     );
   }
 
-  // Combine the topic's first post with the remaining posts
+  // Update the allPosts declaration to ensure posts is always treated as an array
   const allPosts = [
     {
       _id: 'topic-content',
@@ -262,7 +276,7 @@ export function TopicDetail() {
       likes: 0,
       isLiked: false
     } as Post,
-    ...posts
+    ...(Array.isArray(posts) ? posts : [])
   ];
 
   return (
@@ -276,15 +290,17 @@ export function TopicDetail() {
         <BreadcrumbItem>
           <BreadcrumbLink as={Link} to="/categories">Categories</BreadcrumbLink>
         </BreadcrumbItem>
-        {topic && topic.category && (
+        {topic?.category && (
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink as={Link} to={`/categories/${topic.category.slug}`}>{topic.category.name}</BreadcrumbLink>
+              <BreadcrumbLink as={Link} to={`/categories/${topic.category.slug || ''}`}>
+                {topic.category.name || 'Category'}
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink>{topic.title}</BreadcrumbLink>
+              <BreadcrumbLink>{topic.title || 'Topic'}</BreadcrumbLink>
             </BreadcrumbItem>
           </>
         )}
@@ -294,7 +310,7 @@ export function TopicDetail() {
       <div className="mt-4 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">{topic.title}</h1>
         <div className="text-sm text-muted-foreground">
-          Started by {topic.author.displayName || topic.author.username} on {formatDate(topic.createdAt)}
+          Started by {topic.author?.displayName || topic.author?.username || 'Unknown user'} on {formatDate(topic.createdAt)}
         </div>
       </div>
       

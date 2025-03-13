@@ -228,7 +228,22 @@ export const postsAPI = {
     
     try {
       const response = await api.get(`/posts/topic/${topicId}?page=${page}&limit=${limit}`);
-      return response.data;
+      
+      // Handle different response structures to ensure we always return an array
+      if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data && Array.isArray(response.data.posts)) {
+        return response.data.posts;
+      } else if (response.data && typeof response.data === 'object') {
+        console.warn('Unexpected posts response structure:', response.data);
+        // Try to extract posts from common response patterns
+        const possiblePostsArray = response.data.posts || response.data.data || response.data.items || [];
+        return Array.isArray(possiblePostsArray) ? possiblePostsArray : [];
+      }
+      
+      // Default to empty array if we can't find posts
+      console.warn('Could not extract posts array from response:', response.data);
+      return [];
     } catch (error) {
       console.error(`Error fetching posts for topic ${topicId}:`, error);
       throw error;

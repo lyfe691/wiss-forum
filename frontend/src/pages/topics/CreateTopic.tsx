@@ -77,11 +77,14 @@ export function CreateTopic() {
       
       // First try the normal method
       try {
-        newTopic = await topicsAPI.createTopic({
+        const response = await topicsAPI.createTopic({
           title,
           content,
           categoryId: category._id
         });
+        
+        // Extract the topic from the response
+        newTopic = response.topic || response;
       } catch (originalError) {
         console.log('Standard topic creation failed:', originalError);
         
@@ -106,7 +109,8 @@ export function CreateTopic() {
               throw new Error(`Server responded with ${response.status}`);
             }
             
-            newTopic = await response.json();
+            const bootstrapResult = await response.json();
+            newTopic = bootstrapResult.topic || bootstrapResult;
           } catch (bootstrapError) {
             console.error('Bootstrap topic creation also failed:', bootstrapError);
             throw bootstrapError; // Re-throw to be caught by the outer catch
@@ -116,8 +120,17 @@ export function CreateTopic() {
         }
       }
       
+      if (!newTopic || (!newTopic.slug && !newTopic._id)) {
+        console.error('Invalid topic response structure:', newTopic);
+        throw new Error('Invalid topic data received from server');
+      }
+      
+      // Use slug if available, otherwise use _id for navigation
+      const topicIdentifier = newTopic.slug || newTopic._id;
+      console.log('Navigating to new topic:', topicIdentifier);
+      
       // Redirect to the new topic
-      navigate(`/topics/${newTopic.slug}`);
+      navigate(`/topics/${topicIdentifier}`);
     } catch (error) {
       console.error('Failed to create topic:', error);
       setError('Failed to create topic. Please try again.');
