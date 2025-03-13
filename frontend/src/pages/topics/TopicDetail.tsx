@@ -329,7 +329,7 @@ export function TopicDetail() {
             <CardHeader className="flex flex-row space-y-0 items-start">
               <div className="flex flex-1 items-start space-x-4">
                 <Avatar>
-                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author.username}`} />
+                  <AvatarImage src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${post.author.username}`} />
                   <AvatarFallback>
                     <User />
                   </AvatarFallback>

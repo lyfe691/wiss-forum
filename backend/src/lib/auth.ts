@@ -52,5 +52,5 @@ export interface AuthRequest extends Request {
 
 // Generate random avatar URL using DiceBear
 export function generateAvatarUrl(username: string): string {
-  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}`;
+  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(username)}`;
 } 
