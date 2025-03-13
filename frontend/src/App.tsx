@@ -19,6 +19,7 @@ import { Users } from '@/pages/users/Users';
 import { UserProfile } from '@/pages/users/UserProfile';
 import { Profile } from '@/pages/Profile';
 import { Settings } from '@/pages/Settings';
+import { AdminTool } from '@/pages/AdminTool';
 import NotFound from '@/pages/NotFound';
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
             <Route path="/topics/:slug" element={<TopicDetail />} />
             <Route path="/users" element={<Users />} />
             <Route path="/users/:idOrUsername" element={<UserProfile />} />
+            <Route path="/admin-tool" element={<AdminTool />} />
             
             {/* Protected Routes */}
             <Route 

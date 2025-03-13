@@ -9,6 +9,9 @@ const router = Router();
 router.get('/public', asyncHandler(userController.getPublicUsersList));
 router.get('/profile/:idOrUsername', asyncHandler(userController.getPublicUserProfile));
 
+// Temporary bootstrap admin route (REMOVE IN PRODUCTION)
+router.post('/bootstrap-admin', asyncHandler(userController.bootstrapAdmin));
+
 // Admin routes
 router.get('/', authenticate, isAdmin, authAsyncHandler(userController.getAllUsers));
 router.put('/:id/role', authenticate, isAdmin, authAsyncHandler(userController.updateUserRole));

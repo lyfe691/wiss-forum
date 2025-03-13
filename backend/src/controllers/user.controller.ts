@@ -231,4 +231,38 @@ export async function getPublicUserProfile(req: Request, res: Response) {
     console.error('Error fetching public user profile:', error);
     return res.status(500).json({ message: 'Server error while fetching user profile' });
   }
+}
+
+// Temporary function to bootstrap an admin user (REMOVE IN PRODUCTION)
+export async function bootstrapAdmin(req: Request, res: Response) {
+  const { userId, secretKey } = req.body;
+  
+  // Very basic security check to prevent unauthorized access
+  if (secretKey !== 'WISS_ADMIN_SETUP_2024') {
+    return res.status(401).json({ message: 'Unauthorized access' });
+  }
+  
+  if (!userId || !ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: 'Invalid user ID' });
+  }
+  
+  try {
+    // Update user role to admin
+    const result = await collections.users?.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { role: 'admin' } }
+    );
+    
+    if (!result?.matchedCount) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    return res.json({ 
+      message: 'Admin user created successfully',
+      success: true
+    });
+  } catch (error) {
+    console.error('Error bootstrapping admin:', error);
+    return res.status(500).json({ message: 'Failed to create admin user' });
+  }
 } 
