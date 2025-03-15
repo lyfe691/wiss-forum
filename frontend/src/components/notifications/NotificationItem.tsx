@@ -47,12 +47,19 @@ export function NotificationItem({ notification, onClose }: NotificationItemProp
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase();
+  const getInitials = (name?: string) => {
+    if (!name) return '?';
+    
+    try {
+      return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase();
+    } catch (error) {
+      console.error('Error getting initials:', error);
+      return '?';
+    }
   };
 
   const formatTime = (dateString: string) => {
@@ -73,7 +80,7 @@ export function NotificationItem({ notification, onClose }: NotificationItemProp
       onClick={handleClick}
     >
       <div className="flex gap-3">
-        {notification.sender ? (
+        {notification.sender && notification.sender.username ? (
           <Avatar className="h-8 w-8">
             <AvatarImage src={notification.sender.avatar} alt={notification.sender.username} />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">

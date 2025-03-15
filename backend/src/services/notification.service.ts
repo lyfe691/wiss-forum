@@ -281,7 +281,7 @@ class NotificationService {
           if (sender) {
             return {
               ...notification,
-              senderInfo: {
+              sender: {
                 _id: sender._id,
                 username: sender.username,
                 avatar: sender.avatar
