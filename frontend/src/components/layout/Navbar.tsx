@@ -26,6 +26,7 @@ import {
   Home,
   LayoutGrid
 } from 'lucide-react';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -126,16 +127,8 @@ export function Navbar() {
           <div className="flex items-center space-x-3">
             {isAuthenticated ? (
               <div className="hidden md:flex md:items-center md:space-x-3">
-                {/* Notifications - example UI only */}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-9 h-9 rounded-full relative p-0"
-                  onClick={() => navigate('/notifications')}
-                >
-                  <Bell className="h-5 w-5 text-muted-foreground" />
-                  <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-primary"></span>
-                </Button>
+                {/* Notifications */}
+                <NotificationBell />
                 
                 {/* User profile dropdown */}
                 <DropdownMenu>

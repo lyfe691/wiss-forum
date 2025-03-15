@@ -1,114 +1,97 @@
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  maxVisiblePages?: number;
+  siblingCount?: number;
 }
 
 export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
-  maxVisiblePages = 5,
+  siblingCount = 1,
 }: PaginationProps) {
-  if (totalPages <= 1) return null;
+  // If there are less than 2 pages, don't render pagination
+  if (totalPages <= 1) {
+    return null;
+  }
 
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
-    }
-  };
-
-  // Calculate visible page numbers
-  const getVisiblePageNumbers = () => {
-    const pages = [];
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = [];
     
     // Always show first page
-    pages.push(1);
+    pageNumbers.push(1);
     
-    // Calculate start and end of visible pages
-    let startPage = Math.max(2, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 3);
+    // Calculate range around current page
+    const leftSibling = Math.max(2, currentPage - siblingCount);
+    const rightSibling = Math.min(totalPages - 1, currentPage + siblingCount);
     
-    // Adjust if we're near the end
-    if (endPage >= totalPages - 1) {
-      startPage = Math.max(2, totalPages - maxVisiblePages + 1);
-      endPage = totalPages - 1;
+    // Add dots if there's a gap after first page
+    if (leftSibling > 2) {
+      pageNumbers.push(-1); // -1 represents dots
     }
     
-    // Add ellipsis after first page if needed
-    if (startPage > 2) {
-      pages.push('ellipsis-start');
+    // Add pages around current page
+    for (let i = leftSibling; i <= rightSibling; i++) {
+      pageNumbers.push(i);
     }
     
-    // Add visible pages
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    
-    // Add ellipsis before last page if needed
-    if (endPage < totalPages - 1) {
-      pages.push('ellipsis-end');
+    // Add dots if there's a gap before last page
+    if (rightSibling < totalPages - 1) {
+      pageNumbers.push(-2); // -2 represents dots (different key from first dots)
     }
     
     // Always show last page if more than 1 page
     if (totalPages > 1) {
-      pages.push(totalPages);
+      pageNumbers.push(totalPages);
     }
     
-    return pages;
+    return pageNumbers;
   };
 
-  const visiblePages = getVisiblePageNumbers();
+  const pageNumbers = getPageNumbers();
 
   return (
-    <div className="flex items-center justify-center space-x-1">
+    <nav className="flex items-center justify-center space-x-1">
       <Button
         variant="outline"
         size="sm"
-        onClick={handlePrevious}
+        className="h-8 w-8"
+        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="h-8 w-8 p-0"
       >
         <ChevronLeft className="h-4 w-4" />
         <span className="sr-only">Previous page</span>
       </Button>
       
-      {visiblePages.map((page, index) => {
-        if (page === 'ellipsis-start' || page === 'ellipsis-end') {
+      {pageNumbers.map((pageNumber, index) => {
+        // Render dots
+        if (pageNumber < 0) {
           return (
-            <Button
-              key={`ellipsis-${index}`}
-              variant="outline"
-              size="sm"
-              disabled
-              className="h-8 w-8 p-0 cursor-default"
+            <span 
+              key={`dots-${pageNumber}`} 
+              className="flex h-8 w-8 items-center justify-center text-sm text-muted-foreground"
             >
               <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">More pages</span>
-            </Button>
+            </span>
           );
         }
         
+        // Render page number
         return (
           <Button
-            key={index}
-            variant={currentPage === page ? "default" : "outline"}
+            key={`page-${pageNumber}`}
+            variant={pageNumber === currentPage ? "default" : "outline"}
             size="sm"
-            onClick={() => onPageChange(page as number)}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8"
+            onClick={() => onPageChange(pageNumber)}
           >
-            {page}
-            <span className="sr-only">Page {page}</span>
+            {pageNumber}
+            <span className="sr-only">Page {pageNumber}</span>
           </Button>
         );
       })}
@@ -116,13 +99,13 @@ export function Pagination({
       <Button
         variant="outline"
         size="sm"
-        onClick={handleNext}
+        className="h-8 w-8"
+        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="h-8 w-8 p-0"
       >
         <ChevronRight className="h-4 w-4" />
         <span className="sr-only">Next page</span>
       </Button>
-    </div>
+    </nav>
   );
 } 

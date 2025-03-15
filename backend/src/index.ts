@@ -11,6 +11,7 @@ import categoryRoutes from './routes/category.routes';
 import topicRoutes from './routes/topic.routes';
 import postRoutes from './routes/post.routes';
 import userRoutes from './routes/user.routes';
+import notificationRoutes from './routes/notification.routes';
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +38,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/topics', topicRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Test connection endpoint (for frontend testing)
 app.get('/api/test-connection', (req, res) => {

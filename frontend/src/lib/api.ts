@@ -366,4 +366,89 @@ export const statsAPI = {
   }
 };
 
+// Notifications API
+export const notificationsAPI = {
+  getNotifications: async (page = 1, limit = 10) => {
+    try {
+      const response = await api.get(`/notifications?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return {
+        notifications: [],
+        totalNotifications: 0,
+        unreadCount: 0,
+        currentPage: 1,
+        totalPages: 1
+      };
+    }
+  },
+  
+  markAsRead: async (notificationIds?: string[]) => {
+    try {
+      const response = await api.post('/notifications/mark-read', { notificationIds });
+      return response.data;
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+      throw error;
+    }
+  },
+  
+  deleteNotification: async (id: string) => {
+    try {
+      const response = await api.delete(`/notifications/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      throw error;
+    }
+  },
+  
+  deleteAllNotifications: async () => {
+    try {
+      const response = await api.delete('/notifications');
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting all notifications:', error);
+      throw error;
+    }
+  },
+  
+  getNotificationSettings: async () => {
+    try {
+      const response = await api.get('/notifications/settings');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching notification settings:', error);
+      // Return default settings
+      return {
+        emailNotifications: true,
+        siteNotifications: true,
+        notifyOnReplies: true,
+        notifyOnMentions: true,
+        notifyOnLikes: true,
+        notifyOnTopicReplies: true,
+        notifyOnRoleChanges: true
+      };
+    }
+  },
+  
+  updateNotificationSettings: async (settings: {
+    emailNotifications?: boolean;
+    siteNotifications?: boolean;
+    notifyOnReplies?: boolean;
+    notifyOnMentions?: boolean;
+    notifyOnLikes?: boolean;
+    notifyOnTopicReplies?: boolean;
+    notifyOnRoleChanges?: boolean;
+  }) => {
+    try {
+      const response = await api.put('/notifications/settings', settings);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating notification settings:', error);
+      throw error;
+    }
+  }
+};
 export default api; 

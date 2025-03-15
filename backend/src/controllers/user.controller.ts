@@ -5,6 +5,8 @@ import { collections } from '../lib/database';
 import { AuthRequest } from '../lib/auth';
 import { User } from '../models';
 import { Request } from 'express';
+import NotificationService from '../services/notification.service';
+import { Notification, NotificationType } from '../models/Notification';
 
 // Get all users (admin only)
 export async function getAllUsers(req: AuthRequest, res: Response) {
@@ -12,32 +14,59 @@ export async function getAllUsers(req: AuthRequest, res: Response) {
   return res.json(users);
 }
 
-// Update user role (admin only)
+/**
+ * Update a user's role
+ */
 export async function updateUserRole(req: AuthRequest, res: Response) {
-  const { id } = req.params;
-  const { role } = req.body;
-  
-  // Validate role
-  if (!role || !['user', 'teacher', 'admin'].includes(role)) {
-    return res.status(400).json({ message: 'Invalid role. Role must be user, teacher, or admin' });
+  try {
+    const { id, role } = req.body;
+    const adminId = new ObjectId(req.user?.userId);
+    
+    // Validate role
+    if (!role || !['student', 'teacher', 'admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Role must be student, teacher, or admin' });
+    }
+    
+    // Validate ID
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    // Update user role
+    const result = await collections.users?.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { role } }
+    );
+    
+    if (!result?.matchedCount) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Send notification to the user
+    try {
+      // Create notification directly
+      const notification: Omit<Notification, '_id'> = {
+        userId: new ObjectId(id),
+        actorId: adminId,
+        type: 'role_change' as NotificationType,
+        title: 'Role Update',
+        message: `Your role has been updated to ${role} by an administrator.`,
+        read: false,
+        targetUrl: '/profile',
+        createdAt: new Date()
+      };
+      
+      await collections.notifications?.insertOne(notification);
+    } catch (error) {
+      // Don't fail if notification fails
+      console.error('Failed to send role change notification:', error);
+    }
+    
+    return res.json({ message: 'User role updated successfully' });
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    return res.status(500).json({ message: 'Failed to update user role' });
   }
-  
-  // Validate ID
-  if (!ObjectId.isValid(id)) {
-    return res.status(400).json({ message: 'Invalid user ID' });
-  }
-  
-  // Update user role
-  const result = await collections.users?.updateOne(
-    { _id: new ObjectId(id) },
-    { $set: { role } }
-  );
-  
-  if (!result?.matchedCount) {
-    return res.status(404).json({ message: 'User not found' });
-  }
-  
-  return res.json({ message: 'User role updated successfully' });
 }
 
 // Get user profile
@@ -233,23 +262,22 @@ export async function getPublicUserProfile(req: Request, res: Response) {
   }
 }
 
-// Temporary function to bootstrap an admin user (REMOVE IN PRODUCTION)
-export async function bootstrapAdmin(req: Request, res: Response) {
-  const { userId, secretKey } = req.body;
-  
-  // Very basic security check to prevent unauthorized access
-  if (secretKey !== 'WISS_ADMIN_SETUP_2024') {
-    return res.status(401).json({ message: 'Unauthorized access' });
-  }
-  
-  if (!userId || !ObjectId.isValid(userId)) {
-    return res.status(400).json({ message: 'Invalid user ID' });
-  }
-  
+/**
+ * Bootstrap a user to admin role
+ */
+export async function bootstrapAdmin(req: AuthRequest, res: Response) {
   try {
+    const { id } = req.params;
+    const adminId = new ObjectId(req.user?.userId);
+    
+    // Validate ID
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
     // Update user role to admin
     const result = await collections.users?.updateOne(
-      { _id: new ObjectId(userId) },
+      { _id: new ObjectId(id) },
       { $set: { role: 'admin' } }
     );
     
@@ -257,33 +285,49 @@ export async function bootstrapAdmin(req: Request, res: Response) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    return res.json({ 
-      message: 'Admin user created successfully',
-      success: true
-    });
+    // Send notification to the user
+    try {
+      // Create notification directly
+      const notification: Omit<Notification, '_id'> = {
+        userId: new ObjectId(id),
+        actorId: adminId,
+        type: 'role_change' as NotificationType,
+        title: 'Role Update',
+        message: 'Your role has been updated to admin.',
+        read: false,
+        targetUrl: '/profile',
+        createdAt: new Date()
+      };
+      
+      await collections.notifications?.insertOne(notification);
+    } catch (error) {
+      // Don't fail if notification fails
+      console.error('Failed to send role change notification:', error);
+    }
+    
+    return res.json({ message: 'User role updated to admin successfully' });
   } catch (error) {
     console.error('Error bootstrapping admin:', error);
-    return res.status(500).json({ message: 'Failed to create admin user' });
+    return res.status(500).json({ message: 'Failed to bootstrap admin' });
   }
 }
 
-// Temporary function to bootstrap a teacher user (REMOVE IN PRODUCTION)
-export async function bootstrapTeacher(req: Request, res: Response) {
-  const { userId, secretKey } = req.body;
-  
-  // Very basic security check to prevent unauthorized access
-  if (secretKey !== 'WISS_ADMIN_SETUP_2024') {
-    return res.status(401).json({ message: 'Unauthorized access' });
-  }
-  
-  if (!userId || !ObjectId.isValid(userId)) {
-    return res.status(400).json({ message: 'Invalid user ID' });
-  }
-  
+/**
+ * Bootstrap a user to teacher role
+ */
+export async function bootstrapTeacher(req: AuthRequest, res: Response) {
   try {
+    const { id } = req.params;
+    const adminId = new ObjectId(req.user?.userId);
+    
+    // Validate ID
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
     // Update user role to teacher
     const result = await collections.users?.updateOne(
-      { _id: new ObjectId(userId) },
+      { _id: new ObjectId(id) },
       { $set: { role: 'teacher' } }
     );
     
@@ -291,12 +335,29 @@ export async function bootstrapTeacher(req: Request, res: Response) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    return res.json({ 
-      message: 'Teacher user created successfully',
-      success: true
-    });
+    // Send notification to the user
+    try {
+      // Create notification directly
+      const notification: Omit<Notification, '_id'> = {
+        userId: new ObjectId(id),
+        actorId: adminId,
+        type: 'role_change' as NotificationType,
+        title: 'Role Update',
+        message: 'Your role has been updated to teacher.',
+        read: false,
+        targetUrl: '/profile',
+        createdAt: new Date()
+      };
+      
+      await collections.notifications?.insertOne(notification);
+    } catch (error) {
+      // Don't fail if notification fails
+      console.error('Failed to send role change notification:', error);
+    }
+    
+    return res.json({ message: 'User role updated to teacher successfully' });
   } catch (error) {
     console.error('Error bootstrapping teacher:', error);
-    return res.status(500).json({ message: 'Failed to create teacher user' });
+    return res.status(500).json({ message: 'Failed to bootstrap teacher' });
   }
 } 

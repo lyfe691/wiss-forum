@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { collections } from '../lib/database';
 import { Post } from '../models';
 import { AuthRequest } from '../lib/auth';
+import NotificationService from '../services/notification.service';
 
 // Create a new post (reply)
 export async function createPost(req: AuthRequest, res: Response) {
@@ -35,8 +36,9 @@ export async function createPost(req: AuthRequest, res: Response) {
     return res.status(400).json({ message: 'Invalid replyTo post ID' });
   }
   
+  let replyToPost;
   if (replyTo) {
-    const replyToPost = await collections.posts?.findOne({ _id: new ObjectId(replyTo) });
+    replyToPost = await collections.posts?.findOne({ _id: new ObjectId(replyTo) });
     if (!replyToPost) {
       return res.status(404).json({ message: 'Reply to post not found' });
     }
@@ -82,16 +84,55 @@ export async function createPost(req: AuthRequest, res: Response) {
     { projection: { password: 0 } }
   );
   
+  // Create notifications
+  try {
+    const authorName = author?.displayName || author?.username || 'Someone';
+    
+    // If this is a reply to another post, notify that post's author
+    if (replyTo && replyToPost) {
+      // Get the post we're replying to
+      const originalPostAuthorId = replyToPost.authorId;
+      
+      await NotificationService.notifyReply(replyTo, result.insertedId.toString());
+    }
+    
+    // Also notify the topic creator if it's not the author of this post
+    if (topic.authorId.toString() !== authorId.toString()) {
+      await NotificationService.notifyTopicReply(
+        topic._id.toString(),
+        result.insertedId.toString(),
+        authorId.toString()
+      );
+    }
+    
+    // Check for @mentions in the content and notify those users
+    const mentionRegex = /@(\w+)/g;
+    const mentions = content.match(mentionRegex);
+    
+    if (mentions && mentions.length > 0) {
+      // Extract usernames from mentions
+      const usernames = mentions.map((mention: string) => mention.substring(1));
+      
+      // Notify each mentioned user
+      for (const username of usernames) {
+        await NotificationService.notifyMention(username, result.insertedId.toString());
+      }
+    }
+  } catch (error) {
+    // Don't fail the post creation if notification creation fails
+    console.error('Failed to create notifications:', error);
+  }
+  
   // If it's a reply to another post, get that post's information
-  let replyToPost = null;
+  let replyToPostData = null;
   if (replyTo) {
-    replyToPost = await collections.posts?.findOne({ _id: new ObjectId(replyTo) });
-    if (replyToPost) {
+    replyToPostData = await collections.posts?.findOne({ _id: new ObjectId(replyTo) });
+    if (replyToPostData) {
       const replyToAuthor = await collections.users?.findOne(
-        { _id: replyToPost.authorId },
+        { _id: replyToPostData.authorId },
         { projection: { password: 0 } }
       );
-      replyToPost = { ...replyToPost, author: replyToAuthor };
+      replyToPostData = { ...replyToPostData, author: replyToAuthor };
     }
   }
   
@@ -101,7 +142,7 @@ export async function createPost(req: AuthRequest, res: Response) {
       ...newPost, 
       _id: result.insertedId,
       author,
-      replyToPost
+      replyToPost: replyToPostData
     }
   });
 }
@@ -394,6 +435,15 @@ export async function toggleLikePost(req: AuthRequest, res: Response) {
     { _id: updatedPost?.authorId },
     { projection: { password: 0 } }
   );
+  
+  // Send notification if this is a like (not an unlike)
+  if (post.authorId.toString() !== userId.toString()) {
+    // Get the liker's info for notification
+    const liker = await collections.users?.findOne({ _id: userId });
+    const likerName = liker?.displayName || liker?.username || 'Someone';
+    
+    await NotificationService.notifyLike(post._id.toString(), userId.toString());
+  }
   
   return res.json({
     message,
