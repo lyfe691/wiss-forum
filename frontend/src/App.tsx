@@ -101,7 +101,7 @@ function App() {
             <Route 
               path="/admin/categories" 
               element={
-                <ProtectedRoute requiredRole="admin">
+                <ProtectedRoute requiredRole="teacher">
                   <CategoryManagement />
                 </ProtectedRoute>
               }

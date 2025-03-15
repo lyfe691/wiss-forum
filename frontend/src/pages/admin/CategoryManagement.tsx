@@ -359,7 +359,7 @@ export function CategoryManagement() {
     );
   });
 
-  if (!user || user.role !== 'admin') {
+  if (!user || (user.role !== 'admin' && user.role !== 'teacher')) {
     return (
       <div className="container mx-auto py-10 text-center">
         <Card>
@@ -371,7 +371,7 @@ export function CategoryManagement() {
           </CardHeader>
           <CardContent>
             <ShieldCheck className="h-16 w-16 mx-auto text-muted-foreground opacity-50 mb-4" />
-            <p>This area is restricted to administrators only.</p>
+            <p>This area is restricted to administrators and teachers only.</p>
           </CardContent>
           <CardFooter className="flex justify-center">
             <Button onClick={() => navigate('/')}>
