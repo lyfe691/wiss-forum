@@ -38,6 +38,15 @@ export async function register(req: Request, res: Response) {
     displayName,
     role: role as 'student' | 'teacher' | 'admin',
     avatar: generateAvatarUrl(username),
+    settings: {
+      emailNotifications: true,
+      siteNotifications: true,
+      notifyOnReplies: true,
+      notifyOnMentions: true,
+      notifyOnLikes: true,
+      notifyOnTopicReplies: true,
+      notifyOnRoleChanges: true
+    },
     createdAt: new Date(),
     updatedAt: new Date(),
     lastActive: new Date()

@@ -370,7 +370,9 @@ export const statsAPI = {
 export const notificationsAPI = {
   getNotifications: async (page = 1, limit = 10) => {
     try {
+      console.log(`Fetching notifications - page ${page}, limit ${limit}`);
       const response = await api.get(`/notifications?page=${page}&limit=${limit}`);
+      console.log('Notifications response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -386,6 +388,7 @@ export const notificationsAPI = {
   
   markAsRead: async (notificationIds?: string[]) => {
     try {
+      console.log('Marking notifications as read:', notificationIds || 'all');
       const response = await api.post('/notifications/mark-read', { notificationIds });
       return response.data;
     } catch (error) {
@@ -396,6 +399,7 @@ export const notificationsAPI = {
   
   deleteNotification: async (id: string) => {
     try {
+      console.log('Deleting notification:', id);
       const response = await api.delete(`/notifications/${id}`);
       return response.data;
     } catch (error) {
@@ -406,6 +410,7 @@ export const notificationsAPI = {
   
   deleteAllNotifications: async () => {
     try {
+      console.log('Deleting all notifications');
       const response = await api.delete('/notifications');
       return response.data;
     } catch (error) {
@@ -416,11 +421,19 @@ export const notificationsAPI = {
   
   getNotificationSettings: async () => {
     try {
+      console.log('Fetching notification settings');
       const response = await api.get('/notifications/settings');
+      console.log('Settings response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching notification settings:', error);
-      // Return default settings
+      // Type assertion for axios error
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status: number; data: any } };
+        console.error('Error details:', axiosError.response?.status, axiosError.response?.data);
+      }
+      
+      // Return default settings on error
       return {
         emailNotifications: true,
         siteNotifications: true,
@@ -443,6 +456,7 @@ export const notificationsAPI = {
     notifyOnRoleChanges?: boolean;
   }) => {
     try {
+      console.log('Updating notification settings:', settings);
       const response = await api.put('/notifications/settings', settings);
       return response.data;
     } catch (error) {

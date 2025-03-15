@@ -109,17 +109,25 @@ class NotificationController {
         return res.status(401).json({ message: 'Unauthorized' });
       }
       
+      console.log('Getting notification settings for user:', userId);
+      
+      // Ensure userId is an ObjectId for MongoDB query
+      const objectId = new ObjectId(userId);
+      
       // Get user's notification settings from user document
-      const userDoc = await collections.users?.findOne({ _id: userId });
+      const userDoc = await collections.users?.findOne({ _id: objectId });
+      
       if (!userDoc) {
+        console.warn(`User not found for ID: ${userId}`);
         return res.status(404).json({ message: 'User not found' });
       }
       
       // Type assertion to access settings property
       const user = userDoc as User;
+      console.log('User found, settings:', user.settings);
       
       // Return notification settings with fallback values
-      res.json({
+      const settings = {
         emailNotifications: user.settings?.emailNotifications ?? true,
         siteNotifications: user.settings?.siteNotifications ?? true,
         notifyOnReplies: user.settings?.notifyOnReplies ?? true,
@@ -127,7 +135,10 @@ class NotificationController {
         notifyOnLikes: user.settings?.notifyOnLikes ?? true,
         notifyOnTopicReplies: user.settings?.notifyOnTopicReplies ?? true,
         notifyOnRoleChanges: user.settings?.notifyOnRoleChanges ?? true
-      });
+      };
+      
+      console.log('Returning settings:', settings);
+      res.json(settings);
     } catch (error) {
       console.error('Error getting notification settings:', error);
       res.status(500).json({ message: 'Failed to get notification settings' });
