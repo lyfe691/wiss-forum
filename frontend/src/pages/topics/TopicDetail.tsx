@@ -142,11 +142,15 @@ export function TopicDetail() {
     
     setIsSubmitting(true);
     try {
-      const newPost = await postsAPI.createPost({
+      // Log the data we're about to send
+      const postData = {
         content: newPostContent,
         topicId: topic._id,
-        replyTo: replyToPostId || undefined
-      });
+        ...(replyToPostId ? { replyTo: replyToPostId } : {})
+      };
+      console.log('Sending post data:', postData);
+      
+      const newPost = await postsAPI.createPost(postData);
       
       // Log the API response to see what's coming back
       console.log('API response for new post:', newPost);
@@ -154,15 +158,21 @@ export function TopicDetail() {
       // Validate and augment the post data if needed
       const validatedPost = {
         ...newPost,
-        // Ensure content is properly set - the API might return it in a different property
-        content: newPost.content || newPostContent, // Use our input if API doesn't return content
+        // Ensure content is properly set
+        content: newPost.content || newPostContent,
         // Ensure author exists, use current user if missing
         author: newPost.author || {
           _id: user?._id || 'unknown',
           username: user?.username || 'unknown',
           displayName: user?.displayName,
           role: user?.role || 'user'
-        }
+        },
+        // Ensure other required fields
+        topic: newPost.topic || topic._id,
+        createdAt: newPost.createdAt || new Date().toISOString(),
+        updatedAt: newPost.updatedAt || new Date().toISOString(),
+        likes: typeof newPost.likes === 'number' ? newPost.likes : 0,
+        isLiked: !!newPost.isLiked
       };
       
       console.log('Validated post being added to state:', validatedPost);
@@ -180,8 +190,13 @@ export function TopicDetail() {
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create post:', error);
+      // Log more details about the error
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
     } finally {
       setIsSubmitting(false);
     }

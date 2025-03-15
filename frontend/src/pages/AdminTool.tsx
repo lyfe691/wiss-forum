@@ -8,9 +8,11 @@ import { AlertCircle, CheckCircle, Key } from 'lucide-react';
 import { userAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export function AdminTool() {
   const [userId, setUserId] = useState('');
+  const [role, setRole] = useState<'admin' | 'teacher'>('admin');
   const [secretKey, setSecretKey] = useState('WISS_ADMIN_SETUP_2024');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -32,7 +34,7 @@ export function AdminTool() {
     fetchCurrentUser();
   }, []);
 
-  const makeAdmin = async () => {
+  const updateRole = async () => {
     if (!userId) {
       setError('Please enter a user ID');
       return;
@@ -44,14 +46,16 @@ export function AdminTool() {
       setSuccess('');
       
       // Try using the bootstrap endpoint first
+      const endpoint = role === 'admin' ? 'bootstrap-admin' : 'bootstrap-teacher';
+      
       try {
-        const response = await axios.post('http://localhost:3000/api/users/bootstrap-admin', {
+        const response = await axios.post(`http://localhost:3000/api/users/${endpoint}`, {
           userId,
           secretKey
         });
         
         if (response.data.success) {
-          setSuccess('User has been made an admin successfully! Please refresh the page or log out and back in to see changes.');
+          setSuccess(`User has been made a ${role} successfully! Please refresh the page or log out and back in to see changes.`);
           
           // If the user updated their own role, refresh their auth context
           if (userId === user?._id) {
@@ -61,13 +65,13 @@ export function AdminTool() {
           return;
         }
       } catch (bootstrapError: any) {
-        console.error('Bootstrap method failed:', bootstrapError);
+        console.error(`Bootstrap ${role} method failed:`, bootstrapError);
         // If bootstrap method failed, try the normal method
       }
       
       // Fall back to the standard method
-      await userAPI.updateUserRole(userId, 'admin');
-      setSuccess('User has been made an admin successfully!');
+      await userAPI.updateUserRole(userId, role);
+      setSuccess(`User has been made a ${role} successfully!`);
       
       // If the user updated their own role, refresh their auth context
       if (userId === user?._id) {
@@ -86,7 +90,7 @@ export function AdminTool() {
       <Card>
         <CardHeader>
           <CardTitle>Admin Role Manager</CardTitle>
-          <CardDescription>Update user roles to admin</CardDescription>
+          <CardDescription>Update user roles</CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
@@ -115,7 +119,7 @@ export function AdminTool() {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="user-id">User ID to make admin</Label>
+            <Label htmlFor="user-id">User ID</Label>
             <Input 
               id="user-id" 
               value={userId}
@@ -123,8 +127,22 @@ export function AdminTool() {
               placeholder="Enter user ID"
             />
             <p className="text-xs text-muted-foreground">
-              This is typically your own user ID to make yourself an admin
+              This is typically your own user ID to update your role
             </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Role</Label>
+            <RadioGroup value={role} onValueChange={(value) => setRole(value as 'admin' | 'teacher')}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="admin" id="admin" />
+                <Label htmlFor="admin">Admin</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="teacher" id="teacher" />
+                <Label htmlFor="teacher">Teacher</Label>
+              </div>
+            </RadioGroup>
           </div>
           
           <div className="space-y-2">
@@ -146,11 +164,11 @@ export function AdminTool() {
         
         <CardFooter>
           <Button 
-            onClick={makeAdmin} 
+            onClick={updateRole} 
             disabled={isLoading || !userId || !secretKey}
             className="w-full"
           >
-            {isLoading ? 'Processing...' : 'Make Admin'}
+            {isLoading ? 'Processing...' : `Make ${role.charAt(0).toUpperCase() + role.slice(1)}`}
           </Button>
         </CardFooter>
       </Card>

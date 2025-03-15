@@ -277,8 +277,11 @@ export const postsAPI = {
       // Log the raw response to debug
       console.log('Raw API response from createPost:', response.data);
       
+      // Extract the post data from the response
+      const postData = response.data.post || response.data;
+      
       // Process and validate the response
-      if (!response.data) {
+      if (!postData) {
         console.warn('Empty response from createPost API');
         // Create a minimal valid post with the data we sent
         return {
@@ -294,14 +297,14 @@ export const postsAPI = {
       
       // Ensure all required fields exist
       const processedPost = {
-        ...response.data,
-        _id: response.data._id || `temp-${Date.now()}`,
-        content: response.data.content || data.content, // Use input if response lacks content
-        topic: response.data.topic || data.topicId,
-        createdAt: response.data.createdAt || new Date().toISOString(),
-        updatedAt: response.data.updatedAt || new Date().toISOString(),
-        likes: typeof response.data.likes === 'number' ? response.data.likes : 0,
-        isLiked: !!response.data.isLiked
+        ...postData,
+        _id: postData._id || `temp-${Date.now()}`,
+        content: postData.content || data.content, // Use input if response lacks content
+        topic: postData.topic || data.topicId,
+        createdAt: postData.createdAt || new Date().toISOString(),
+        updatedAt: postData.updatedAt || new Date().toISOString(),
+        likes: Array.isArray(postData.likes) ? postData.likes.length : 0,
+        isLiked: Array.isArray(postData.likes) ? postData.likes.includes(postData.authorId) : false
       };
       
       return processedPost;

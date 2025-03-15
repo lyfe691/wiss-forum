@@ -98,19 +98,23 @@ export function UserManagement() {
     try {
       setError(null);
       
-      // Try using the bootstrap endpoint first
-      try {
-        const response = await axios.post('http://localhost:3000/api/users/bootstrap-admin', {
-          userId,
-          secretKey: 'WISS_ADMIN_SETUP_2024'
-        });
+      // Try using the bootstrap endpoint first based on the role
+      if (newRole === 'admin' || newRole === 'teacher') {
+        const endpoint = newRole === 'admin' ? 'bootstrap-admin' : 'bootstrap-teacher';
         
-        if (response.data.success) {
-          await fetchUsers();
-          return;
+        try {
+          const response = await axios.post(`http://localhost:3000/api/users/${endpoint}`, {
+            userId,
+            secretKey: 'WISS_ADMIN_SETUP_2024'
+          });
+          
+          if (response.data.success) {
+            await fetchUsers();
+            return;
+          }
+        } catch (err) {
+          console.error(`Bootstrap ${newRole} method failed:`, err);
         }
-      } catch (err) {
-        console.error('Bootstrap method failed:', err);
       }
       
       // Fallback to the standard method

@@ -265,4 +265,38 @@ export async function bootstrapAdmin(req: Request, res: Response) {
     console.error('Error bootstrapping admin:', error);
     return res.status(500).json({ message: 'Failed to create admin user' });
   }
+}
+
+// Temporary function to bootstrap a teacher user (REMOVE IN PRODUCTION)
+export async function bootstrapTeacher(req: Request, res: Response) {
+  const { userId, secretKey } = req.body;
+  
+  // Very basic security check to prevent unauthorized access
+  if (secretKey !== 'WISS_ADMIN_SETUP_2024') {
+    return res.status(401).json({ message: 'Unauthorized access' });
+  }
+  
+  if (!userId || !ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: 'Invalid user ID' });
+  }
+  
+  try {
+    // Update user role to teacher
+    const result = await collections.users?.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { role: 'teacher' } }
+    );
+    
+    if (!result?.matchedCount) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    return res.json({ 
+      message: 'Teacher user created successfully',
+      success: true
+    });
+  } catch (error) {
+    console.error('Error bootstrapping teacher:', error);
+    return res.status(500).json({ message: 'Failed to create teacher user' });
+  }
 } 

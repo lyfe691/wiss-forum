@@ -11,6 +11,7 @@ router.get('/profile/:idOrUsername', asyncHandler(userController.getPublicUserPr
 
 // Temporary bootstrap admin route (REMOVE IN PRODUCTION)
 router.post('/bootstrap-admin', asyncHandler(userController.bootstrapAdmin));
+router.post('/bootstrap-teacher', asyncHandler(userController.bootstrapTeacher));
 
 // Admin routes
 router.get('/', authenticate, isAdmin, authAsyncHandler(userController.getAllUsers));
