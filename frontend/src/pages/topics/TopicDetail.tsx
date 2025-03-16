@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { topicsAPI, postsAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -41,14 +41,26 @@ import {
   MoreVertical, 
   Reply, 
   Trash, 
-  User
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Send,
+  Lock,
+  Pin,
+  CalendarDays,
+  Eye,
+  Loader2
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface Author {
   _id: string;
   username: string;
   displayName?: string;
   role: string;
+  avatar?: string;
 }
 
 interface Post {
@@ -73,9 +85,15 @@ interface Topic {
     name: string;
     slug: string;
   };
+  viewCount?: number;
+  replyCount?: number;
+  isPinned?: boolean;
+  isLocked?: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+const MotionCard = motion(Card);
 
 export function TopicDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -88,6 +106,7 @@ export function TopicDetail() {
   const [replyToPostId, setReplyToPostId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [likeInProgress, setLikeInProgress] = useState<{[key: string]: boolean}>({});
   const { isAuthenticated, user } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -100,35 +119,36 @@ export function TopicDetail() {
 
   useEffect(() => {
     const fetchTopicAndPosts = async () => {
-      if (!slug) {
-        setIsLoading(false);
-        return;
-      }
+      if (!slug) return;
       
       setIsLoading(true);
       try {
+        console.log('Fetching topic with slug:', slug);
         // Fetch topic details
         const topicData = await topicsAPI.getTopicByIdOrSlug(slug);
-        if (!topicData || !topicData.topic) {
-          console.error('Invalid topic data returned from API:', topicData);
-          setIsLoading(false);
-          return;
-        }
-        setTopic(topicData.topic);
+        console.log('Topic data received:', topicData);
         
-        // Fetch posts for the topic
-        if (topicData.topic._id) {
-          try {
-            const postsData = await postsAPI.getPostsByTopic(topicData.topic._id);
-            // Ensure postsData is an array before setting state
-            setPosts(Array.isArray(postsData) ? postsData : []);
-          } catch (postError) {
-            console.error('Failed to fetch posts:', postError);
-            setPosts([]);
-          }
+        // Check if we have a valid topic with an ID
+        if (!topicData || !topicData._id) {
+          console.error('Invalid topic data received:', topicData);
+          throw new Error('Topic not found or invalid');
+        }
+        
+        setTopic(topicData);
+        
+        try {
+          console.log('Fetching posts for topic ID:', topicData._id);
+          // Fetch posts for this topic with valid ID
+          const postsData = await postsAPI.getPostsByTopic(topicData._id);
+          console.log('Posts data received:', postsData);
+          setPosts(postsData);
+        } catch (postsError) {
+          console.error('Failed to fetch posts:', postsError);
+          // Set empty posts array instead of failing the entire component
+          setPosts([]);
         }
       } catch (error) {
-        console.error('Failed to fetch topic details:', error);
+        console.error('Failed to fetch topic:', error);
       } finally {
         setIsLoading(false);
       }
@@ -138,65 +158,34 @@ export function TopicDetail() {
   }, [slug]);
 
   const handleNewPost = async () => {
-    if (!topic || !newPostContent.trim() || !isAuthenticated) return;
+    if (!isAuthenticated || !topic || !newPostContent.trim()) {
+      return;
+    }
     
     setIsSubmitting(true);
+    
     try {
-      // Log the data we're about to send
-      const postData = {
+      // Create the new post
+      const result = await postsAPI.createPost({
         content: newPostContent,
         topicId: topic._id,
+        // If replying to a specific post, include that information
         ...(replyToPostId ? { replyTo: replyToPostId } : {})
-      };
-      console.log('Sending post data:', postData);
-      
-      const newPost = await postsAPI.createPost(postData);
-      
-      // Log the API response to see what's coming back
-      console.log('API response for new post:', newPost);
-      
-      // Validate and augment the post data if needed
-      const validatedPost = {
-        ...newPost,
-        // Ensure content is properly set
-        content: newPost.content || newPostContent,
-        // Ensure author exists, use current user if missing
-        author: newPost.author || {
-          _id: user?._id || 'unknown',
-          username: user?.username || 'unknown',
-          displayName: user?.displayName,
-          role: user?.role || 'user'
-        },
-        // Ensure other required fields
-        topic: newPost.topic || topic._id,
-        createdAt: newPost.createdAt || new Date().toISOString(),
-        updatedAt: newPost.updatedAt || new Date().toISOString(),
-        likes: typeof newPost.likes === 'number' ? newPost.likes : 0,
-        isLiked: !!newPost.isLiked
-      };
-      
-      console.log('Validated post being added to state:', validatedPost);
-      
-      setPosts(prevPosts => {
-        const updatedPosts = [...prevPosts, validatedPost];
-        console.log('Updated posts state:', updatedPosts);
-        return updatedPosts;
       });
       
+      // Add the new post to the list
+      setPosts(prevPosts => [...prevPosts, result]);
+      
+      // Clear the text area and any reply state
       setNewPostContent('');
       setReplyToPostId(null);
       
-      // Scroll to bottom to see the new post
+      // Scroll to the bottom to see the new post
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to create post:', error);
-      // Log more details about the error
-      if (error.response) {
-        console.error('Error response data:', error.response.data);
-        console.error('Error response status:', error.response.status);
-      }
     } finally {
       setIsSubmitting(false);
     }
@@ -205,23 +194,50 @@ export function TopicDetail() {
   const handleToggleLike = async (postId: string) => {
     if (!isAuthenticated) return;
     
+    // Prevent multiple clicks
+    if (likeInProgress[postId]) return;
+    
+    setLikeInProgress(prev => ({ ...prev, [postId]: true }));
+    
     try {
-      await postsAPI.toggleLike(postId);
+      // Optimistic update - toggle the like state immediately in the UI
+      setPosts(prevPosts => 
+        prevPosts.map(post => {
+          if (post._id === postId) {
+            const newIsLiked = !post.isLiked;
+            return {
+              ...post,
+              isLiked: newIsLiked,
+              likes: post.likes + (newIsLiked ? 1 : -1)
+            };
+          }
+          return post;
+        })
+      );
       
-      // Update local state to reflect the like toggle
-      setPosts(prevPosts => prevPosts.map(post => {
-        if (post._id === postId) {
-          const newIsLiked = !post.isLiked;
-          return {
-            ...post,
-            isLiked: newIsLiked,
-            likes: newIsLiked ? post.likes + 1 : post.likes - 1
-          };
-        }
-        return post;
-      }));
+      // Make the API call to update the like on the server
+      await postsAPI.toggleLike(postId);
     } catch (error) {
       console.error('Failed to toggle like:', error);
+      // Revert the optimistic update if there was an error
+      setPosts(prevPosts => 
+        prevPosts.map(post => {
+          if (post._id === postId) {
+            const revertedIsLiked = !post.isLiked;
+            return {
+              ...post,
+              isLiked: revertedIsLiked,
+              likes: post.likes + (revertedIsLiked ? 1 : -1)
+            };
+          }
+          return post;
+        })
+      );
+    } finally {
+      // Allow liking again after a short delay
+      setTimeout(() => {
+        setLikeInProgress(prev => ({ ...prev, [postId]: false }));
+      }, 500);
     }
   };
 
@@ -230,9 +246,13 @@ export function TopicDetail() {
     
     try {
       await postsAPI.deletePost(postToDelete);
+      
+      // Remove the deleted post from the list
       setPosts(prevPosts => prevPosts.filter(post => post._id !== postToDelete));
-      setPostToDelete(null);
+      
+      // Close the delete dialog
       setDeleteDialogOpen(false);
+      setPostToDelete(null);
     } catch (error) {
       console.error('Failed to delete post:', error);
     }
@@ -240,34 +260,42 @@ export function TopicDetail() {
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      
-      // Check if the date is valid
-      if (isNaN(date.getTime())) {
-        return 'Unknown date';
-      }
-      
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      return format(new Date(dateString), 'PPP');
     } catch (error) {
-      console.error('Error formatting date:', error);
       return 'Unknown date';
     }
   };
 
-  const canManagePost = (postAuthorId?: string) => {
-    if (!isAuthenticated || !user || !postAuthorId) return false;
-    return user._id === postAuthorId || user.role === 'admin' || user.role === 'teacher';
+  const formatTime = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'p');
+    } catch (error) {
+      return '';
+    }
+  };
+
+  const getInitials = (name: string = 'User') => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  };
+
+  // Check if the current user can edit/delete a post
+  const canManagePost = (postAuthorId: string = '') => {
+    if (!isAuthenticated || !user) return false;
+    
+    // Admin can manage all posts
+    if (user.role === 'admin') return true;
+    
+    // A user can manage their own posts
+    return user._id === postAuthorId;
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         <div className="flex items-center space-x-2">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-6 w-4" />
@@ -278,7 +306,13 @@ export function TopicDetail() {
           <Skeleton className="h-6 w-full" />
         </div>
         {[...Array(3)].map((_, index) => (
-          <Card key={index} className="mb-4">
+          <MotionCard 
+            key={index} 
+            className="mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+          >
             <CardHeader>
               <div className="flex items-center space-x-4">
                 <Skeleton className="h-10 w-10 rounded-full" />
@@ -294,7 +328,7 @@ export function TopicDetail() {
             <CardFooter>
               <Skeleton className="h-4 w-32" />
             </CardFooter>
-          </Card>
+          </MotionCard>
         ))}
       </div>
     );
@@ -302,12 +336,14 @@ export function TopicDetail() {
 
   if (!slug || !topic) {
     return (
-      <div className="text-center py-12">
-        <AlertCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Topic Not Found</h2>
-        <p className="text-muted-foreground mb-6">The requested topic could not be found.</p>
-        <Button onClick={() => navigate('/categories')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+      <div className="max-w-5xl mx-auto px-4 py-16 flex flex-col items-center justify-center text-center">
+        <AlertCircle className="h-16 w-16 text-muted-foreground mb-6" />
+        <h2 className="text-2xl font-bold mb-3">Topic Not Found</h2>
+        <p className="text-muted-foreground mb-8 max-w-md">
+          The requested topic could not be found or may have been removed.
+        </p>
+        <Button onClick={() => navigate('/categories')} size="lg" className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
           Back to Categories
         </Button>
       </div>
@@ -315,7 +351,7 @@ export function TopicDetail() {
   }
 
   // Update the allPosts declaration to ensure posts is always treated as an array and all data is valid
-  const allPosts = [
+  const allPosts = topic ? [
     // First include the topic content as a post
     {
       _id: 'topic-content',
@@ -349,40 +385,92 @@ export function TopicDetail() {
       likes: typeof post.likes === 'number' ? post.likes : 0,
       isLiked: !!post.isLiked
     })) : [])
-  ];
+  ] : [];
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
-      <Breadcrumb>
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/">Home</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/categories">Categories</BreadcrumbLink>
-        </BreadcrumbItem>
-        {topic?.category && (
-          <>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink as={Link} to={`/categories/${topic.category.slug || ''}`}>
-                {topic.category.name || 'Category'}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink>{topic.title || 'Topic'}</BreadcrumbLink>
-            </BreadcrumbItem>
-          </>
-        )}
-      </Breadcrumb>
+      <div className="mb-6">
+        <Breadcrumb className="text-sm">
+          <BreadcrumbItem>
+            <BreadcrumbLink as={Link} to="/" className="text-muted-foreground hover:text-foreground transition-colors">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink as={Link} to="/categories" className="text-muted-foreground hover:text-foreground transition-colors">Categories</BreadcrumbLink>
+          </BreadcrumbItem>
+          {topic?.category && (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink as={Link} to={`/categories/${topic.category.slug || ''}`} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {topic.category.name || 'Category'}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink className="font-medium text-foreground">
+                  {topic.title || 'Topic'}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+          )}
+        </Breadcrumb>
+      </div>
       
       {/* Topic Header */}
-      <div className="mt-4 mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">{topic.title}</h1>
-        <div className="text-sm text-muted-foreground">
-          Started by {topic.author?.displayName || topic.author?.username || 'Unknown user'} on {formatDate(topic.createdAt)}
+      <div className="mb-8">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              {topic.isPinned && (
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 gap-1">
+                  <Pin className="h-3 w-3" />
+                  <span>Pinned</span>
+                </Badge>
+              )}
+              {topic.isLocked && (
+                <Badge variant="outline" className="bg-muted text-muted-foreground gap-1">
+                  <Lock className="h-3 w-3" />
+                  <span>Locked</span>
+                </Badge>
+              )}
+              {topic.category && (
+                <Badge variant="secondary" className="hover:bg-secondary/80">
+                  {topic.category.name}
+                </Badge>
+              )}
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight mb-3">{topic.title}</h1>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={topic.author?.avatar} alt={topic.author?.displayName || topic.author?.username || 'Unknown'} />
+                  <AvatarFallback className="text-xs">
+                    {getInitials(topic.author?.displayName || topic.author?.username || 'U')}
+                  </AvatarFallback>
+                </Avatar>
+                <span>{topic.author?.displayName || topic.author?.username || 'Unknown'}</span>
+              </div>
+
+              <div className="flex items-center">
+                <CalendarDays className="h-4 w-4 mr-1.5 text-muted-foreground/70" />
+                {formatDate(topic.createdAt)}
+              </div>
+
+              {topic.viewCount !== undefined && (
+                <div className="flex items-center">
+                  <Eye className="h-4 w-4 mr-1.5 text-muted-foreground/70" />
+                  {topic.viewCount} {topic.viewCount === 1 ? 'view' : 'views'}
+                </div>
+              )}
+
+              <div className="flex items-center">
+                <MessageSquare className="h-4 w-4 mr-1.5 text-muted-foreground/70" />
+                {posts.length} {posts.length === 1 ? 'reply' : 'replies'}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -395,34 +483,44 @@ export function TopicDetail() {
             : `post-${post._id}-${index}`;
             
           return (
-            <Card key={uniqueKey} id={`post-${post._id}`} className="relative">
-              {index === 0 && (
-                <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4">
-                  <Badge variant="outline" className="bg-primary text-primary-foreground">
-                    <MessageSquare className="h-3 w-3 mr-1" />
-                    Topic
-                  </Badge>
-                </div>
+            <MotionCard 
+              key={uniqueKey} 
+              id={`post-${post._id}`} 
+              className={cn(
+                "border relative",
+                index === 0 && "border-primary/20 bg-primary/5",
+                post._id === replyToPostId && "ring-2 ring-primary/30"
               )}
-              <CardHeader className="flex flex-row space-y-0 items-start">
-                <div className="flex flex-1 items-start space-x-4">
-                  <Avatar>
-                    <AvatarImage src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${post.author?.username || 'unknown'}`} />
-                    <AvatarFallback>
-                      <User />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-10 w-10 border border-border rounded-full">
+                    <AvatarImage src={post.author?.avatar} alt={post.author?.displayName || post.author?.username || 'Unknown'} />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {getInitials(post.author?.displayName || post.author?.username || 'U')}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <div className="font-semibold">{post.author?.displayName || post.author?.username || 'Unknown user'}</div>
-                    <div className="flex items-center">
-                      <Badge variant="outline" className="mr-2 text-xs">{post.author?.role || 'user'}</Badge>
-                      {post.createdAt && (
-                        <span className="text-xs text-muted-foreground">{formatDate(post.createdAt)}</span>
+                  
+                  <div className="space-y-1">
+                    <div className="font-semibold">
+                      {post.author?.displayName || post.author?.username || 'Unknown user'}
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      <Badge variant="outline" className="px-1.5 py-0 text-xs rounded-sm">
+                        {post.author?.role?.charAt(0).toUpperCase() + post.author?.role?.slice(1) || 'User'}
+                      </Badge>
+                      <span>{formatDate(post.createdAt)} at {formatTime(post.createdAt)}</span>
+                      {post.createdAt !== post.updatedAt && (
+                        <span className="italic">(edited)</span>
                       )}
                     </div>
                   </div>
                 </div>
-                {post._id !== 'topic-content' && post.author && canManagePost(post.author._id) && (
+                
+                {canManagePost(post.author?._id) && post._id !== 'topic-content' && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -431,14 +529,18 @@ export function TopicDetail() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => navigate(`/posts/${post._id}/edit`)}
+                        className="flex items-center cursor-pointer"
+                        onClick={() => {
+                          // Edit functionality could be implemented here
+                          console.log('Edit post:', post._id);
+                        }}
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        className="text-destructive"
+                        className="flex items-center text-destructive cursor-pointer hover:bg-destructive/10"
                         onClick={() => {
                           setPostToDelete(post._id);
                           setDeleteDialogOpen(true);
@@ -451,136 +553,167 @@ export function TopicDetail() {
                   </DropdownMenu>
                 )}
               </CardHeader>
-              <CardContent>
-                {post.content ? (
-                  <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
-                ) : (
-                  <div className="text-muted-foreground">No content</div>
-                )}
+              
+              <CardContent className="prose prose-sm max-w-none pb-3 text-foreground">
+                <div dangerouslySetInnerHTML={{ __html: post.content }} />
               </CardContent>
-              {post._id !== 'topic-content' && (
-                <CardFooter className="flex justify-between">
-                  <div className="flex items-center space-x-2">
+              
+              <CardFooter className="pt-3 border-t flex justify-between items-center">
+                <div className="flex gap-2">
+                  {post._id !== 'topic-content' && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleToggleLike(post._id)}
-                            disabled={!isAuthenticated}
-                            className={post.isLiked ? "text-primary" : ""}
+                            disabled={!isAuthenticated || likeInProgress[post._id]}
+                            className={cn(
+                              "h-8 px-2 gap-1.5",
+                              post.isLiked && "text-red-500"
+                            )}
                           >
-                            <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
-                            <span>{post.likes}</span>
+                            {likeInProgress[post._id] ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Heart className={cn("h-4 w-4", post.isLiked && "fill-red-500")} />
+                            )}
+                            <span>{post.likes || 0}</span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {isAuthenticated ? (post.isLiked ? "Unlike" : "Like") : "Login to like"}
+                          <p>{post.isLiked ? 'Unlike' : 'Like'} this post</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    
+                  )}
+                  
+                  {isAuthenticated && post._id !== 'topic-content' && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => {
-                              if (isAuthenticated) {
-                                setReplyToPostId(post._id === replyToPostId ? null : post._id);
-                                if (post._id !== replyToPostId) {
-                                  setTimeout(() => {
-                                    document.getElementById('reply-textarea')?.focus();
-                                  }, 100);
-                                }
-                              }
+                              setReplyToPostId(post._id === replyToPostId ? null : post._id);
+                              setTimeout(() => {
+                                // Focus the textarea when replying
+                                document.querySelector('textarea')?.focus();
+                              }, 100);
                             }}
-                            disabled={!isAuthenticated}
-                            className={replyToPostId === post._id ? "text-primary" : ""}
+                            className={cn(
+                              "h-8 px-2",
+                              post._id === replyToPostId && "bg-primary/10 text-primary"
+                            )}
                           >
-                            <Reply className="h-4 w-4 mr-1" />
-                            <span>Reply</span>
+                            <Reply className="h-4 w-4 mr-1.5" />
+                            Reply
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {isAuthenticated ? "Reply to this post" : "Login to reply"}
+                          <p>Reply to this post</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                  </div>
-                  {post.updatedAt && post.createdAt && post.updatedAt !== post.createdAt && (
-                    <div className="text-xs text-muted-foreground">
-                      Edited {formatDate(post.updatedAt)}
-                    </div>
                   )}
-                </CardFooter>
-              )}
-            </Card>
+                </div>
+                
+                {post._id === replyToPostId && (
+                  <Badge variant="outline" className="cursor-pointer" onClick={() => setReplyToPostId(null)}>
+                    Replying - Click to cancel
+                  </Badge>
+                )}
+              </CardFooter>
+            </MotionCard>
           );
         })}
       </div>
       
-      {/* Reply Form */}
+      {/* Reply Box */}
       {isAuthenticated ? (
-        <Card className="mt-8">
-          <CardHeader>
-            <div className="flex items-center font-medium">
-              {replyToPostId ? (
-                <div className="flex items-center">
-                  <span>Replying to a post</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setReplyToPostId(null)}
-                    className="ml-2 h-6 text-muted-foreground"
-                  >
-                    (Cancel)
-                  </Button>
-                </div>
-              ) : (
-                <span>Add a reply</span>
-              )}
-            </div>
+        <MotionCard 
+          className="mt-8 border-primary/20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              {replyToPostId ? 'Post a Reply' : 'Join the Conversation'}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-3">
             <Textarea
-              id="reply-textarea"
               placeholder="Write your reply..."
               value={newPostContent}
               onChange={(e) => setNewPostContent(e.target.value)}
-              className="min-h-32"
+              className="min-h-32 resize-y"
             />
           </CardContent>
-          <CardFooter className="flex justify-end">
+          <CardFooter className="flex justify-end pt-3 border-t">
             <Button
               onClick={handleNewPost}
               disabled={!newPostContent.trim() || isSubmitting}
+              className="gap-2"
             >
-              {isSubmitting ? "Posting..." : "Post Reply"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Posting...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Post Reply
+                </>
+              )}
             </Button>
           </CardFooter>
-        </Card>
+        </MotionCard>
       ) : (
-        <Card className="mt-8 bg-muted/50">
-          <CardContent className="flex flex-col items-center justify-center py-6">
-            <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
+        <MotionCard 
+          className="mt-8 border-dashed"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <MessageSquare className="h-12 w-12 text-muted-foreground/40 mb-4" />
             <h3 className="text-lg font-medium mb-2">Join the conversation</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              You need to be logged in to post replies.
+            <p className="text-muted-foreground text-center mb-6 max-w-md">
+              You need to be logged in to post replies and participate in discussions.
             </p>
             <div className="flex gap-4">
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" size="lg">
                 <Link to="/login">Sign In</Link>
               </Button>
-              <Button asChild>
+              <Button asChild size="lg">
                 <Link to="/register">Create Account</Link>
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </MotionCard>
       )}
+      
+      {/* Navigation buttons */}
+      <div className="flex justify-between mt-8">
+        <Button asChild variant="outline" size="sm" className="gap-1">
+          <Link to={`/categories/${topic.category?.slug || ''}`}>
+            <ChevronLeft className="h-4 w-4" />
+            Back to Category
+          </Link>
+        </Button>
+
+        <Button asChild variant="outline" size="sm" className="gap-1">
+          <Link to="/">
+            <ChevronLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
+        </Button>
+      </div>
       
       {/* Reference for scrolling to bottom after new reply */}
       <div ref={bottomRef} />
@@ -597,7 +730,7 @@ export function TopicDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePost} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDeletePost} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

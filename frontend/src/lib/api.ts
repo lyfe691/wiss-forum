@@ -170,8 +170,26 @@ export const topicsAPI = {
     }
     
     try {
+      console.log(`Requesting topic with ID/Slug: ${idOrSlug}`);
       const response = await api.get(`/topics/${idOrSlug}`);
-      return response.data;
+      console.log('Raw topic response:', response.data);
+      
+      // Extract topic data, handling both direct and nested responses
+      let topicData = response.data;
+      
+      // If the topic is nested under a 'topic' property, extract it
+      if (response.data && response.data.topic && typeof response.data.topic === 'object') {
+        topicData = response.data.topic;
+        console.log('Extracted nested topic data:', topicData);
+      }
+      
+      // Validate the topic data
+      if (!topicData || !topicData._id) {
+        console.error('Invalid or missing topic data:', topicData);
+        throw new Error('Invalid topic data received from server');
+      }
+      
+      return topicData;
     } catch (error) {
       console.error(`Error fetching topic ${idOrSlug}:`, error);
       throw error;
@@ -246,7 +264,15 @@ export const postsAPI = {
       throw new Error('Topic ID is required');
     }
     
+    // Validate that topicId is a proper ObjectId format
+    const objectIdPattern = /^[0-9a-fA-F]{24}$/;
+    if (!objectIdPattern.test(topicId)) {
+      console.error(`Invalid ObjectId format for topicId: ${topicId}`);
+      throw new Error('Invalid topic ID format');
+    }
+    
     try {
+      console.log(`Requesting posts for topic ID: ${topicId}`);
       const response = await api.get(`/posts/topic/${topicId}?page=${page}&limit=${limit}`);
       
       // Handle different response structures to ensure we always return an array

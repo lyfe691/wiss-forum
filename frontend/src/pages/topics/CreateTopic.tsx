@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, FileText, Loader2, ChevronLeft, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { motion } from 'framer-motion';
 
 interface Category {
   _id: string;
@@ -23,6 +25,8 @@ interface Category {
   };
 }
 
+const MotionCard = motion(Card);
+
 export function CreateTopic() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -32,6 +36,7 @@ export function CreateTopic() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -73,64 +78,26 @@ export function CreateTopic() {
     setError('');
     
     try {
-      let newTopic;
+      const response = await topicsAPI.createTopic({
+        title,
+        content,
+        categoryId: category._id
+      });
       
-      // First try the normal method
-      try {
-        const response = await topicsAPI.createTopic({
-          title,
-          content,
-          categoryId: category._id
-        });
-        
-        // Extract the topic from the response
-        newTopic = response.topic || response;
-      } catch (originalError) {
-        console.log('Standard topic creation failed:', originalError);
-        
-        // If the standard method fails, try a direct API call with bootstrap method
-        if (user) {
-          try {
-            const response = await fetch('http://localhost:3000/api/topics/bootstrap-create', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                title,
-                content,
-                categoryId: category._id,
-                userId: user._id,
-                secretKey: 'WISS_ADMIN_SETUP_2024'
-              }),
-            });
-            
-            if (!response.ok) {
-              throw new Error(`Server responded with ${response.status}`);
-            }
-            
-            const bootstrapResult = await response.json();
-            newTopic = bootstrapResult.topic || bootstrapResult;
-          } catch (bootstrapError) {
-            console.error('Bootstrap topic creation also failed:', bootstrapError);
-            throw bootstrapError; // Re-throw to be caught by the outer catch
-          }
-        } else {
-          throw originalError; // Re-throw if no user is available
-        }
-      }
+      // Extract topic information
+      const newTopic = response.topic || response;
       
-      if (!newTopic || (!newTopic.slug && !newTopic._id)) {
-        console.error('Invalid topic response structure:', newTopic);
-        throw new Error('Invalid topic data received from server');
-      }
+      // Show success message
+      setSuccessMessage('Topic created successfully!');
       
-      // Use slug if available, otherwise use _id for navigation
-      const topicIdentifier = newTopic.slug || newTopic._id;
-      console.log('Navigating to new topic:', topicIdentifier);
+      // Reset form
+      setTitle('');
+      setContent('');
       
-      // Redirect to the new topic
-      navigate(`/topics/${topicIdentifier}`);
+      // Redirect to the new topic after a short delay
+      setTimeout(() => {
+        navigate(`/topics/${newTopic.slug || newTopic._id}`);
+      }, 1500);
     } catch (error) {
       console.error('Failed to create topic:', error);
       setError('Failed to create topic. Please try again.');
@@ -141,128 +108,179 @@ export function CreateTopic() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center space-x-2">
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="h-6 w-4" />
-          <Skeleton className="h-6 w-40" />
-        </div>
-        <Card>
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <Skeleton className="h-8 w-64 mb-4" />
+        <MotionCard 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
           <CardHeader>
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-7 w-full max-w-md mb-2" />
+            <Skeleton className="h-4 w-full max-w-sm" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-32 w-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-32 w-full" />
+            </div>
           </CardContent>
           <CardFooter>
-            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-24" />
           </CardFooter>
-        </Card>
+        </MotionCard>
       </div>
     );
   }
 
   if (!category) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold mb-2">Category Not Found</h2>
-        <p className="text-muted-foreground mb-6">The requested category could not be found.</p>
-        <Button onClick={() => navigate('/categories')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Categories
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+        <AlertCircle className="h-16 w-16 mx-auto text-muted-foreground mb-6" />
+        <h2 className="text-2xl font-bold mb-3">Category Not Found</h2>
+        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+          We couldn't find the category you're looking for.
+        </p>
+        <Button asChild size="lg" className="gap-2">
+          <Link to="/categories">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Categories
+          </Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <Breadcrumb>
+      <Breadcrumb className="mb-8 text-sm">
         <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/">Home</BreadcrumbLink>
+          <BreadcrumbLink as={Link} to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+            Home
+          </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/categories">Categories</BreadcrumbLink>
+          <BreadcrumbLink as={Link} to="/categories" className="text-muted-foreground hover:text-foreground transition-colors">
+            Categories
+          </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to={`/categories/${category.slug}`}>{category.name}</BreadcrumbLink>
+          <BreadcrumbLink as={Link} to={`/categories/${category.slug}`} className="text-muted-foreground hover:text-foreground transition-colors">
+            {category.name}
+          </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink>Create Topic</BreadcrumbLink>
+          <BreadcrumbLink className="font-medium text-foreground">
+            Create Topic
+          </BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
       
-      <Card>
+      <h1 className="text-3xl font-bold tracking-tight mb-6 flex items-center gap-2">
+        <FileText className="h-7 w-7 text-primary" />
+        Create New Topic
+      </h1>
+      
+      <MotionCard 
+        className="mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <CardHeader>
-          <CardTitle>Create a New Topic</CardTitle>
+          <CardTitle>Post in {category.name}</CardTitle>
           <CardDescription>
-            Start a new discussion in the {category.name} category
+            {category.description || "Start a new discussion in this category"}
           </CardDescription>
         </CardHeader>
+        
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {error && (
-              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            {successMessage && (
+              <Alert className="bg-green-50 border-green-200 text-green-800">
+                <AlertCircle className="h-4 w-4 text-green-600" />
+                <AlertTitle>Success</AlertTitle>
+                <AlertDescription>{successMessage}</AlertDescription>
+              </Alert>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="title">Topic Title</Label>
+              <Label htmlFor="title" className="text-base">
+                Topic Title <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="title"
-                placeholder="Enter a descriptive title for your topic"
+                placeholder="Enter a descriptive title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                className="h-12"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
+              <Label htmlFor="content" className="text-base">
+                Content <span className="text-destructive">*</span>
+              </Label>
               <Textarea
                 id="content"
                 placeholder="Write your topic content here..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="min-h-[200px]"
+                className="min-h-64 resize-y"
                 required
               />
               <p className="text-xs text-muted-foreground">
-                You can use basic HTML for formatting. Simple tags like &lt;b&gt;, &lt;i&gt;, &lt;ul&gt;, &lt;ol&gt;, and &lt;li&gt; are supported.
+                Be descriptive and provide all relevant information. You can use basic formatting.
               </p>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
+          
+          <CardFooter className="flex justify-between border-t pt-6">
+            <Button 
+              type="button" 
+              variant="outline" 
               onClick={() => navigate(`/categories/${category.slug}`)}
+              className="gap-2"
             >
+              <ChevronLeft className="h-4 w-4" />
               Cancel
             </Button>
-            <Button
-              type="submit"
+            <Button 
+              type="submit" 
               disabled={isSubmitting || !title.trim() || !content.trim()}
+              className="gap-2"
             >
               {isSubmitting ? (
-                'Creating...'
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
               ) : (
                 <>
-                  <Send className="h-4 w-4 mr-2" />
+                  <Send className="h-4 w-4" />
                   Create Topic
                 </>
               )}
             </Button>
           </CardFooter>
         </form>
-      </Card>
+      </MotionCard>
     </div>
   );
 } 

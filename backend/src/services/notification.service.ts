@@ -68,7 +68,7 @@ class NotificationService {
 
       // Don't notify if the author is replying to their own post
       if (reply.authorId.toString() === post.authorId.toString()) {
-        return null;
+          return null;
       }
 
       // Get the topic for the link
