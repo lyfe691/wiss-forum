@@ -82,19 +82,19 @@ export function Notifications() {
             Stay updated with your latest activities
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {unreadCount > 0 && (
             <Button 
               variant="outline" 
-              size="sm"
+              size="default"
               onClick={handleMarkAllAsRead}
               disabled={isMarking}
               className="flex items-center gap-2"
             >
               {isMarking ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <CheckCheck className="h-4 w-4" />
+                <CheckCheck className="h-5 w-5" />
               )}
               <span>Mark all as read</span>
             </Button>
@@ -104,10 +104,10 @@ export function Notifications() {
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="outline" 
-                  size="sm"
+                  size="default"
                   className="flex items-center gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/20"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-5 w-5" />
                   <span>Clear all</span>
                 </Button>
               </AlertDialogTrigger>

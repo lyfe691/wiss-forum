@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Loader2 } from 'lucide-react';
+import { Bell, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -73,15 +73,17 @@ export function NotificationBell() {
           <h3 className="font-semibold text-base">Notifications</h3>
           {unreadCount > 0 && (
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="sm" 
-              className="text-xs h-8 gap-1.5"
+              className="text-sm h-9 gap-1.5 px-3"
               onClick={handleMarkAllAsRead}
               disabled={isMarking}
             >
               {isMarking ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : null}
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-5 w-5" />
+              )}
               <span>Mark all as read</span>
             </Button>
           )}

@@ -126,7 +126,7 @@ export function NotificationItem({ notification, onClose }: NotificationItemProp
           </p>
         </div>
         
-        <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="absolute right-2 top-2 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
           {!notification.read && (
             <TooltipProvider>
               <Tooltip>
@@ -134,10 +134,10 @@ export function NotificationItem({ notification, onClose }: NotificationItemProp
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 rounded-full"
+                    className="h-9 w-9 rounded-full bg-background shadow-sm border border-border hover:bg-primary/10"
                     onClick={handleMarkAsRead}
                   >
-                    <Check className="h-4 w-4 text-primary" />
+                    <Check className="h-5 w-5 text-primary" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -153,10 +153,10 @@ export function NotificationItem({ notification, onClose }: NotificationItemProp
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 w-7 rounded-full text-destructive hover:bg-destructive/10"
+                  className="h-9 w-9 rounded-full bg-background shadow-sm border border-border text-destructive hover:bg-destructive/10"
                   onClick={handleDelete}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
