@@ -417,52 +417,6 @@ export const notificationsAPI = {
       console.error('Error deleting all notifications:', error);
       throw error;
     }
-  },
-  
-  getNotificationSettings: async () => {
-    try {
-      console.log('Fetching notification settings');
-      const response = await api.get('/notifications/settings');
-      console.log('Settings response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching notification settings:', error);
-      // Type assertion for axios error
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status: number; data: any } };
-        console.error('Error details:', axiosError.response?.status, axiosError.response?.data);
-      }
-      
-      // Return default settings on error
-      return {
-        emailNotifications: true,
-        siteNotifications: true,
-        notifyOnReplies: true,
-        notifyOnMentions: true,
-        notifyOnLikes: true,
-        notifyOnTopicReplies: true,
-        notifyOnRoleChanges: true
-      };
-    }
-  },
-  
-  updateNotificationSettings: async (settings: {
-    emailNotifications?: boolean;
-    siteNotifications?: boolean;
-    notifyOnReplies?: boolean;
-    notifyOnMentions?: boolean;
-    notifyOnLikes?: boolean;
-    notifyOnTopicReplies?: boolean;
-    notifyOnRoleChanges?: boolean;
-  }) => {
-    try {
-      console.log('Updating notification settings:', settings);
-      const response = await api.put('/notifications/settings', settings);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating notification settings:', error);
-      throw error;
-    }
   }
 };
 export default api; 

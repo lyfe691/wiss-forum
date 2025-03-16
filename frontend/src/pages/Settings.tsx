@@ -26,7 +26,6 @@ import {
   Check, 
   Lock, 
   Moon, 
-  Bell, 
   User,
   Brush
 } from 'lucide-react';
@@ -48,9 +47,7 @@ export function Settings() {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    darkMode: themeUtils.getTheme() === 'dark',
-    emailNotifications: true,
-    siteNotifications: true
+    darkMode: themeUtils.getTheme() === 'dark'
   });
 
   // Form state handlers
@@ -99,12 +96,12 @@ export function Settings() {
       
       toast({
         title: "Profile updated",
-        description: "Your profile information has been updated successfully.",
+        description: "Your profile information has been updated.",
         variant: "default"
       });
       
-      // Refresh user data
-      await refreshUser();
+      // Update user state in auth context
+      refreshUser();
       
     } catch (error: any) {
       console.error('Failed to update profile:', error);
@@ -114,40 +111,45 @@ export function Settings() {
     }
   };
 
-  // Change password
+  // Password change
   const handleChangePassword = async () => {
     if (!user) return;
     
     setError(null);
+    setIsSubmitting(true);
     
     // Validate passwords
     if (!formState.currentPassword) {
       setError('Current password is required');
+      setIsSubmitting(false);
       return;
     }
     
     if (!formState.newPassword) {
       setError('New password is required');
+      setIsSubmitting(false);
       return;
     }
     
     if (formState.newPassword !== formState.confirmPassword) {
       setError('New passwords do not match');
+      setIsSubmitting(false);
       return;
     }
     
-    if (formState.newPassword.length < 6) {
-      setError('New password must be at least 6 characters long');
+    if (formState.newPassword.length < 8) {
+      setError('New password must be at least 8 characters long');
+      setIsSubmitting(false);
       return;
     }
-    
-    setIsSubmitting(true);
     
     try {
-      await userAPI.changePassword({
+      const data = {
         currentPassword: formState.currentPassword,
         newPassword: formState.newPassword
-      });
+      };
+      
+      const response = await userAPI.changePassword(data);
       
       toast({
         title: "Password changed",
@@ -177,15 +179,6 @@ export function Settings() {
     }
   };
 
-  // Handle notification settings
-  const handleSaveNotifications = () => {
-    toast({
-      title: "Notification settings saved",
-      description: "Your notification preferences have been updated.",
-      variant: "default"
-    });
-  };
-
   // Handle appearance settings
   const handleSaveAppearance = () => {
     toast({
@@ -203,7 +196,7 @@ export function Settings() {
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-8">
+        <TabsList className="grid grid-cols-3 mb-8">
           <TabsTrigger value="account" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Account</span>
@@ -215,10 +208,6 @@ export function Settings() {
           <TabsTrigger value="appearance" className="flex items-center gap-2">
             <Brush className="h-4 w-4" />
             <span className="hidden sm:inline">Appearance</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
         </TabsList>
         
@@ -385,54 +374,6 @@ export function Settings() {
               <div className="flex justify-end">
                 <Button 
                   onClick={handleSaveAppearance}
-                  className="flex items-center gap-2"
-                >
-                  Save Preferences
-                  <Check className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>
-                Manage how you receive notifications.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive notifications about replies and mentions via email.
-                  </p>
-                </div>
-                <Switch
-                  checked={formState.emailNotifications}
-                  onCheckedChange={(checked) => handleSwitchChange('emailNotifications', checked)}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Site Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive in-app notifications for activities.
-                  </p>
-                </div>
-                <Switch
-                  checked={formState.siteNotifications}
-                  onCheckedChange={(checked) => handleSwitchChange('siteNotifications', checked)}
-                />
-              </div>
-              
-              <div className="flex justify-end">
-                <Button 
-                  onClick={handleSaveNotifications}
                   className="flex items-center gap-2"
                 >
                   Save Preferences

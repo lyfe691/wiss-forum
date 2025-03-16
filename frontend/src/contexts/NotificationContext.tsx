@@ -29,16 +29,6 @@ interface NotificationContextType {
   markAsRead: (notificationIds?: string[]) => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
   deleteAllNotifications: () => Promise<void>;
-  notificationSettings: {
-    emailNotifications: boolean;
-    siteNotifications: boolean;
-    notifyOnReplies: boolean;
-    notifyOnMentions: boolean;
-    notifyOnLikes: boolean;
-    notifyOnTopicReplies: boolean;
-    notifyOnRoleChanges: boolean;
-  };
-  updateNotificationSettings: (settings: Partial<NotificationContextType['notificationSettings']>) => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -63,21 +53,11 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    siteNotifications: true,
-    notifyOnReplies: true,
-    notifyOnMentions: true,
-    notifyOnLikes: true,
-    notifyOnTopicReplies: true,
-    notifyOnRoleChanges: true
-  });
 
   // Fetch notifications when authenticated
   useEffect(() => {
     if (isAuthenticated) {
       fetchNotifications();
-      fetchNotificationSettings();
     }
   }, [isAuthenticated]);
 
@@ -107,17 +87,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchNotificationSettings = async () => {
-    if (!isAuthenticated) return;
-    
-    try {
-      const settings = await notificationsAPI.getNotificationSettings();
-      setNotificationSettings(settings);
-    } catch (error) {
-      console.error('Error fetching notification settings:', error);
     }
   };
 
@@ -191,17 +160,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     }
   };
 
-  const updateNotificationSettings = async (settings: Partial<NotificationContextType['notificationSettings']>) => {
-    if (!isAuthenticated) return;
-    
-    try {
-      const updatedSettings = await notificationsAPI.updateNotificationSettings(settings);
-      setNotificationSettings(updatedSettings);
-    } catch (error) {
-      console.error('Error updating notification settings:', error);
-    }
-  };
-
   const value = {
     notifications,
     unreadCount,
@@ -212,9 +170,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     fetchNotifications,
     markAsRead,
     deleteNotification,
-    deleteAllNotifications,
-    notificationSettings,
-    updateNotificationSettings
+    deleteAllNotifications
   };
 
   return (

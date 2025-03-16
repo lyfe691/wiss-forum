@@ -4,16 +4,6 @@ import NotificationController from '../controllers/notification.controller';
 
 const router = express.Router();
 
-// Get notification settings - Define this BEFORE the /:id route to avoid conflict
-router.get('/settings', authenticate, (req: Request, res: Response) => {
-  NotificationController.getNotificationSettings(req, res);
-});
-
-// Update notification settings - Define this BEFORE the /:id route to avoid conflict
-router.put('/settings', authenticate, (req: Request, res: Response) => {
-  NotificationController.updateNotificationSettings(req, res);
-});
-
 // Get all notifications for the authenticated user
 router.get('/', authenticate, (req: Request, res: Response) => {
   NotificationController.getNotifications(req, res);
