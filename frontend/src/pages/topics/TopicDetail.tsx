@@ -193,6 +193,32 @@ export function TopicDetail() {
     }
   };
 
+  // Helper function to recursively update a post's like status in the nested structure
+  const updatePostLikeStatus = (posts: Post[], postId: string, updatedPost: Partial<Post>): Post[] => {
+    return posts.map(post => {
+      // If this is the post we're looking for
+      if (post._id === postId) {
+        return {
+          ...post,
+          ...updatedPost,
+          // Preserve replies
+          replies: post.replies
+        };
+      }
+      
+      // If this post has replies, check them recursively
+      if (post.replies && post.replies.length > 0) {
+        return {
+          ...post,
+          replies: updatePostLikeStatus(post.replies, postId, updatedPost)
+        };
+      }
+      
+      // Otherwise return the post unchanged
+      return post;
+    });
+  };
+
   const handleToggleLike = async (postId: string) => {
     if (!isAuthenticated) return;
     
@@ -203,38 +229,52 @@ export function TopicDetail() {
     
     try {
       // Optimistic update - toggle the like state immediately in the UI
-      setPosts(prevPosts => 
-        prevPosts.map(post => {
-          if (post._id === postId) {
-            const newIsLiked = !post.isLiked;
-            return {
-              ...post,
-              isLiked: newIsLiked,
-              likes: post.likes + (newIsLiked ? 1 : -1)
-            };
-          }
-          return post;
-        })
-      );
+      setPosts(prevPosts => {
+        // Find the post in the flat structure
+        const targetPost = prevPosts.find(p => p._id === postId);
+        if (!targetPost) return prevPosts;
+        
+        const newIsLiked = !targetPost.isLiked;
+        const updatedPost = {
+          isLiked: newIsLiked,
+          likes: targetPost.likes + (newIsLiked ? 1 : -1)
+        };
+        
+        return updatePostLikeStatus(prevPosts, postId, updatedPost);
+      });
       
       // Make the API call to update the like on the server
-      await postsAPI.toggleLike(postId);
+      const response = await postsAPI.toggleLike(postId);
+      console.log('Server response from like toggle:', response);
+      
+      // If we received specific updated post data from the server, use it to update the UI
+      if (response && response.post) {
+        const updatedPost = response.post;
+        
+        // Update all posts including nested replies
+        setPosts(prevPosts => {
+          return updatePostLikeStatus(prevPosts, postId, {
+            likes: updatedPost.likes !== undefined ? updatedPost.likes : 0,
+            isLiked: updatedPost.isLiked !== undefined ? updatedPost.isLiked : false
+          });
+        });
+      }
     } catch (error) {
       console.error('Failed to toggle like:', error);
       // Revert the optimistic update if there was an error
-      setPosts(prevPosts => 
-        prevPosts.map(post => {
-          if (post._id === postId) {
-            const revertedIsLiked = !post.isLiked;
-            return {
-              ...post,
-              isLiked: revertedIsLiked,
-              likes: post.likes + (revertedIsLiked ? 1 : -1)
-            };
-          }
-          return post;
-        })
-      );
+      setPosts(prevPosts => {
+        // Find the post in the flat structure
+        const targetPost = prevPosts.find(p => p._id === postId);
+        if (!targetPost) return prevPosts;
+        
+        const revertedIsLiked = !targetPost.isLiked;
+        const updatedPost = {
+          isLiked: revertedIsLiked,
+          likes: targetPost.likes + (revertedIsLiked ? 1 : -1)
+        };
+        
+        return updatePostLikeStatus(prevPosts, postId, updatedPost);
+      });
     } finally {
       // Allow liking again after a short delay
       setTimeout(() => {
@@ -295,14 +335,22 @@ export function TopicDetail() {
     return user._id === postAuthorId;
   };
 
-  // Update organizePostsIntoThreads function
+  // Update organizePostsIntoThreads function to ensure like data is preserved
   const organizePostsIntoThreads = (posts: Post[]): Post[] => {
     // First create a map of all posts
     const postMap = new Map<string, Post>();
     
-    // Initialize each post with an empty replies array
+    // Initialize each post with an empty replies array and ensure like data is preserved
     posts.forEach(post => {
-      postMap.set(post._id, { ...post, replies: [] });
+      // Create a deep copy of the post to avoid reference issues
+      const postCopy = {
+        ...post,
+        replies: [],
+        // Make sure like data is preserved
+        likes: typeof post.likes === 'number' ? post.likes : 0,
+        isLiked: !!post.isLiked
+      };
+      postMap.set(post._id, postCopy);
     });
     
     // Group replies under their parent posts

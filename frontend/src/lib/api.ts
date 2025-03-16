@@ -275,21 +275,49 @@ export const postsAPI = {
       console.log(`Requesting posts for topic ID: ${topicId}`);
       const response = await api.get(`/posts/topic/${topicId}?page=${page}&limit=${limit}`);
       
+      // Get current user ID to check if posts are liked by current user
+      const userString = localStorage.getItem('user');
+      const currentUserId = userString ? JSON.parse(userString)._id : null;
+      
+      // Process the response to transform the likes array into count and isLiked
+      const processPost = (post: any) => {
+        // Make a copy of the post to avoid mutating the original
+        const processedPost = { ...post };
+        
+        // Process likes data
+        if (Array.isArray(processedPost.likes)) {
+          processedPost.isLiked = currentUserId ? processedPost.likes.includes(currentUserId) : false;
+          processedPost.likes = processedPost.likes.length;
+        } else {
+          // If likes is not an array (perhaps already processed), ensure it's a number
+          processedPost.likes = typeof processedPost.likes === 'number' ? processedPost.likes : 0;
+          // Make sure isLiked is a boolean
+          processedPost.isLiked = !!processedPost.isLiked;
+        }
+        
+        return processedPost;
+      };
+      
       // Handle different response structures to ensure we always return an array
+      let posts = [];
+      
       if (Array.isArray(response.data)) {
-        return response.data;
+        posts = response.data.map(processPost);
       } else if (response.data && Array.isArray(response.data.posts)) {
-        return response.data.posts;
+        posts = response.data.posts.map(processPost);
       } else if (response.data && typeof response.data === 'object') {
         console.warn('Unexpected posts response structure:', response.data);
         // Try to extract posts from common response patterns
         const possiblePostsArray = response.data.posts || response.data.data || response.data.items || [];
-        return Array.isArray(possiblePostsArray) ? possiblePostsArray : [];
+        posts = Array.isArray(possiblePostsArray) ? possiblePostsArray.map(processPost) : [];
+      } else {
+        // Default to empty array if we can't find posts
+        console.warn('Could not extract posts array from response:', response.data);
+        posts = [];
       }
       
-      // Default to empty array if we can't find posts
-      console.warn('Could not extract posts array from response:', response.data);
-      return [];
+      console.log('Processed posts with likes:', posts);
+      return posts;
     } catch (error) {
       console.error(`Error fetching posts for topic ${topicId}:`, error);
       throw error;
@@ -351,8 +379,40 @@ export const postsAPI = {
   },
   
   toggleLike: async (id: string) => {
-    const response = await api.post(`/posts/${id}/like`);
-    return response.data;
+    try {
+      console.log(`Toggling like for post ID: ${id}`);
+      const response = await api.post(`/posts/${id}/like`);
+      
+      // Log the response to help debug
+      console.log('Like toggle response:', response.data);
+      
+      // Extract the updated post data from the response
+      const updatedPost = response.data.post || response.data;
+      
+      if (!updatedPost) {
+        console.warn('Empty response from toggleLike API');
+        return { success: true }; // Return minimal success response
+      }
+      
+      // Get current user ID from localStorage to check if post is liked by current user
+      const userString = localStorage.getItem('user');
+      const currentUserId = userString ? JSON.parse(userString)._id : null;
+      
+      // Process the response to get consistent shape
+      return {
+        success: true,
+        post: {
+          ...updatedPost,
+          likes: Array.isArray(updatedPost.likes) ? updatedPost.likes.length : updatedPost.likes || 0,
+          isLiked: Array.isArray(updatedPost.likes) && currentUserId
+            ? updatedPost.likes.includes(currentUserId)
+            : updatedPost.isLiked || false
+        }
+      };
+    } catch (error) {
+      console.error(`Error toggling like for post ${id}:`, error);
+      throw error;
+    }
   },
 };
 
