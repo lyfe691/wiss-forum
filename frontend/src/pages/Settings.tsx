@@ -31,6 +31,14 @@ import {
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { themeUtils } from '@/lib/theme';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Theme, themes } from '@/lib/theme';
 
 export function Settings() {
   const { user, refreshUser, logout } = useAuth();
@@ -47,7 +55,7 @@ export function Settings() {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    darkMode: themeUtils.getTheme() === 'dark'
+    theme: themeUtils.getTheme()
   });
 
   // Form state handlers
@@ -56,13 +64,10 @@ export function Settings() {
     setFormState(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSwitchChange = (name: string, checked: boolean) => {
-    setFormState(prev => ({ ...prev, [name]: checked }));
-    
-    // Handle theme switching
-    if (name === 'darkMode') {
-      themeUtils.setTheme(checked ? 'dark' : 'light');
-    }
+  // Handle theme change
+  const handleThemeChange = (theme: Theme) => {
+    setFormState(prev => ({ ...prev, theme }));
+    themeUtils.setTheme(theme);
   };
 
   // Update profile info
@@ -358,17 +363,24 @@ export function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Dark Theme</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Enable dark mode for a more comfortable viewing experience at night.
-                  </p>
-                </div>
-                <Switch
-                  checked={formState.darkMode}
-                  onCheckedChange={(checked) => handleSwitchChange('darkMode', checked)}
-                />
+              <div className="space-y-2">
+                <Label className="text-base">Theme</Label>
+                <p className="text-sm text-muted-foreground">
+                  Choose your preferred theme for the forum.
+                </p>
+                <Select
+                  value={formState.theme}
+                  onValueChange={(value: Theme) => handleThemeChange(value)}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select a theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="steam">Steam (Coming Soon)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="flex justify-end">
