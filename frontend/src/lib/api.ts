@@ -54,6 +54,11 @@ export const authAPI = {
     const response = await api.get('/auth/me');
     return response.data;
   },
+  
+  refreshToken: async () => {
+    const response = await api.post('/auth/refresh-token');
+    return response.data;
+  },
 };
 
 // User API
@@ -74,7 +79,9 @@ export const userAPI = {
   },
   
   updateUserRole: async (userId: string, role: 'student' | 'teacher' | 'admin') => {
+    console.log(`API: Updating user ${userId} to role ${role}`);
     const response = await api.put(`/users/${userId}/role`, { role });
+    console.log('API: Update role response:', response.data);
     return response.data;
   },
   

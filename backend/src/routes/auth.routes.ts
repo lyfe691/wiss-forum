@@ -14,4 +14,7 @@ router.post('/login', asyncHandler(authController.login));
 // Get current user profile (protected route)
 router.get('/me', authenticate, authAsyncHandler(authController.getCurrentUser));
 
+// Refresh token (protected route)
+router.post('/refresh-token', authenticate, authAsyncHandler(authController.refreshToken));
+
 export default router; 

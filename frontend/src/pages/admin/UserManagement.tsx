@@ -58,7 +58,7 @@ export function UserManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,6 +110,12 @@ export function UserManagement() {
           
           if (response.data.success) {
             await fetchUsers();
+            
+            // If the current user's role was changed, refresh the auth context
+            if (user && user._id === userId) {
+              await refreshUser();
+            }
+            
             return;
           }
         } catch (err) {
@@ -118,8 +124,20 @@ export function UserManagement() {
       }
       
       // Fallback to the standard method
-      await userAPI.updateUserRole(userId, newRole);
-      await fetchUsers();
+      console.log(`Using standard method to update role for user ${userId} to ${newRole}`);
+      try {
+        const result = await userAPI.updateUserRole(userId, newRole);
+        console.log('Standard role update result:', result);
+        await fetchUsers();
+        
+        // If the current user's role was changed, refresh the auth context
+        if (user && user._id === userId) {
+          await refreshUser();
+        }
+      } catch (error) {
+        console.error('Standard role update failed:', error);
+        throw error; // Re-throw to be caught by the outer catch
+      }
     } catch (err) {
       console.error('Failed to update user role:', err);
       setError('Failed to update user role. Please try again.');

@@ -74,9 +74,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Refresh user data from the server
   const refreshUser = async () => {
     try {
-      const { user } = await authAPI.getCurrentUser();
-      setUser(user);
+      // First refresh the token to get latest role
+      const tokenResponse = await authAPI.refreshToken();
+      const { token, user } = tokenResponse;
+      
+      // Update token and user in localStorage
+      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
+      
+      // Update state
+      setUser(user);
       return user;
     } catch (error) {
       console.error('Failed to refresh user data:', error);

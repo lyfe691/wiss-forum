@@ -131,4 +131,28 @@ export async function getCurrentUser(req: AuthRequest, res: Response) {
   }
 
   return res.json({ user });
+}
+
+// Refresh token for current user
+export async function refreshToken(req: AuthRequest, res: Response) {
+  const userId = new ObjectId(req.user?.userId);
+  
+  // Get the latest user data with their current role
+  const user = await collections.users?.findOne({ _id: userId });
+  
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  
+  // Generate a new token with the updated user info (including any role changes)
+  const token = generateToken(user);
+  
+  // Return user information without password
+  const { password: _, ...userWithoutPassword } = user;
+  
+  return res.json({
+    message: 'Token refreshed successfully',
+    user: userWithoutPassword,
+    token
+  });
 } 
