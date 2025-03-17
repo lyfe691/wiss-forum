@@ -31,18 +31,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
-  // Parse the stored user data on mount
+  // Parse the stored user data on mount and check with server
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('user');
+    const initialize = async () => {
+      setIsLoading(true);
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          // Set from localStorage first for quick UI rendering
+          setUser(JSON.parse(storedUser));
+          
+          // Then immediately check with server for the latest user data
+          await checkAuth();
+        } catch (error) {
+          console.error('Error during authentication check:', error);
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+      } else {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+    
+    initialize();
   }, []);
   
   // Check if the token is valid and get fresh user data
@@ -58,9 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      const { user } = await authAPI.getCurrentUser();
-      setUser(user);
+      // Use refreshToken instead of getCurrentUser to ensure we get a fresh token with updated role
+      const { token: newToken, user } = await authAPI.refreshToken();
+      
+      // Update token and user in localStorage
+      localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(user));
+      
+      // Update state
+      setUser(user);
+      console.log('Auth check complete - user role:', user.role);
     } catch (error) {
       console.error('Auth check failed:', error);
       setUser(null);
