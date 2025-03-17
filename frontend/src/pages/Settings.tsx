@@ -378,7 +378,7 @@ export function Settings() {
                   <SelectContent>
                     <SelectItem value="light">Light</SelectItem>
                     <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="steam">Steam (Coming Soon)</SelectItem>
+                    <SelectItem value="steam">Steam</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

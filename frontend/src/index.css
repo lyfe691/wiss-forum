@@ -75,6 +75,43 @@
   --sidebar-ring: oklch(0.95 0 0);
 }
 
+/* Steam theme - retro but clean look */
+.steam {
+  --background: oklch(0.27 0.02 240);  /* Dark gray with slight tint */
+  --foreground: oklch(0.85 0.02 80);  /* Off-white text */
+  --card: oklch(0.32 0.02 240);  /* Slightly lighter panels */
+  --card-foreground: oklch(0.85 0.02 80);
+  --popover: oklch(0.32 0.02 240);
+  --popover-foreground: oklch(0.85 0.02 80);
+  --primary: oklch(0.45 0.07 220);  /* Steam blue-gray */
+  --primary-foreground: oklch(0.95 0 0);
+  --secondary: oklch(0.38 0.03 240);  /* Secondary buttons */
+  --secondary-foreground: oklch(0.85 0.02 80);
+  --muted: oklch(0.35 0.02 240);
+  --muted-foreground: oklch(0.65 0.02 80);
+  --accent: oklch(0.42 0.05 230);  /* Light blue-gray accent */
+  --accent-foreground: oklch(0.85 0.02 80);
+  --destructive: oklch(0.55 0.15 25);
+  --destructive-foreground: oklch(0.9 0 0);
+  --border: oklch(0.4 0.03 240);  /* Distinct borders */
+  --input: oklch(0.3 0.02 240);
+  --ring: oklch(0.45 0.07 220);  /* Matching primary */
+  --chart-1: oklch(0.45 0.07 220);  /* Steam blue-gray */
+  --chart-2: oklch(0.6 0.1 200);  /* Light blue */
+  --chart-3: oklch(0.55 0.1 40);  /* Orange */
+  --chart-4: oklch(0.5 0.15 300);  /* Purple */
+  --chart-5: oklch(0.5 0.1 180);  /* Teal */
+  --radius: 0.25rem;  /* Sharper corners for retro look */
+  --sidebar: oklch(0.22 0.02 240);  /* Darker sidebar */
+  --sidebar-foreground: oklch(0.85 0.02 80);
+  --sidebar-primary: oklch(0.45 0.07 220);  /* Steam blue-gray */
+  --sidebar-primary-foreground: oklch(0.95 0 0);
+  --sidebar-accent: oklch(0.3 0.02 240);
+  --sidebar-accent-foreground: oklch(0.85 0.02 80);
+  --sidebar-border: oklch(0.4 0.03 240);
+  --sidebar-ring: oklch(0.45 0.07 220);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
