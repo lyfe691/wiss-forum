@@ -55,6 +55,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import axios from 'axios';
+import  api  from '@/lib/api';
 
 interface Category {
   _id: string;
@@ -168,7 +169,7 @@ export function CategoryManagement() {
       
       // Try using the bootstrap endpoint first
       try {
-        const response = await axios.post('http://localhost:3000/api/categories/bootstrap-create', {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/categories/bootstrap-create`, {
           name: formData.name,
           description: formData.description,
           ...(formData.parentCategory && { parentCategory: formData.parentCategory }),
@@ -250,7 +251,7 @@ export function CategoryManagement() {
         if (user) {
           try {
             // Try to use a bootstrap method if it exists
-            const response = await axios.post('http://localhost:3000/api/categories/bootstrap-delete', {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/categories/bootstrap-delete`, {
               categoryId: id,
               secretKey: 'WISS_ADMIN_SETUP_2024',
               userId: user._id

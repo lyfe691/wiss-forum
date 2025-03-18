@@ -17,7 +17,7 @@ export function TestConnection() {
   const [documents, setDocuments] = useState<TestDocument[]>([]);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState<boolean>(false);
   
-  const API_URL = 'http://localhost:3000';
+  const API_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
   // Test the connection to the backend
   const testConnection = async () => {

@@ -74,7 +74,7 @@ export function NewPostButton() {
       
       // Try using the bootstrap endpoint first
       try {
-        const response = await axios.post('http://localhost:3000/api/categories/bootstrap-create', {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/categories/bootstrap-create`, {
           name: categoryName.trim(),
           description: categoryDescription.trim(),
           secretKey: 'WISS_ADMIN_SETUP_2024',
