@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertCircle, ChevronLeft, Calendar, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { formatDistanceToNow } from 'date-fns';
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
 
 interface UserProfile {
   _id: string;
@@ -76,12 +77,13 @@ export function UserProfile() {
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
-      <div className="mb-6">
-        <Link to="/users" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary">
-          <ChevronLeft className="mr-1 h-4 w-4" />
-          Back to Users
-        </Link>
-      </div>
+      <PageBreadcrumb
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Users', href: '/users' },
+          { label: profile?.displayName || profile?.username || 'User Profile', href: `/users/${idOrUsername}` },
+        ]}
+      />
 
       {error && (
         <Alert variant="destructive" className="mb-6">

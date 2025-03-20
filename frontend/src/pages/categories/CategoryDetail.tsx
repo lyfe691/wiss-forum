@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, MoreVertical, Trash, Check, X } from 'lucide-react';
 import { 
@@ -33,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
 
 interface Category {
   _id: string;
@@ -280,238 +280,258 @@ export function CategoryDetail() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Breadcrumb */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/">Home</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/categories">Categories</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          {category.parent && (
-            <>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to={`/categories/${category.parent.slug}`}>
-                    {category.parent.name}
-                  </Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-            </>
-          )}
-          <BreadcrumbItem>
-            <BreadcrumbLink>{category.name}</BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      {/* Category Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">{category.name}</h1>
-        <p className="text-muted-foreground">{category.description}</p>
-      </div>
-
-      {/* Alert Messages */}
+    <div className="container mx-auto max-w-6xl p-4">
       {error && (
-        <Alert variant="destructive" className="mt-4">
-          <X className="h-4 w-4" />
+        <Alert variant="destructive" className="mb-4">
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
       
       {success && (
-        <Alert className="mt-4 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300 border-green-200 dark:border-green-800/30">
+        <Alert className="bg-green-50 text-green-800 border-green-200 mb-4 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
           <Check className="h-4 w-4" />
           <AlertTitle>Success</AlertTitle>
           <AlertDescription>{success}</AlertDescription>
         </Alert>
       )}
 
-      {/* Subcategories if any */}
-      {category.subcategories && category.subcategories.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {category.subcategories.map((subcategory) => (
-            <Link 
-              key={subcategory._id} 
-              to={`/categories/${subcategory.slug}`}
-              className="block p-4 rounded-md border hover:bg-muted transition-colors"
-            >
-              <h3 className="font-medium">{subcategory.name}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {subcategory.description}
-              </p>
-            </Link>
+      {isLoading ? (
+        <div className="space-y-6">
+          <div className="flex items-center space-x-2">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-6 w-4" />
+            <Skeleton className="h-6 w-40" />
+          </div>
+          <div>
+            <Skeleton className="h-10 w-3/4 mb-2" />
+            <Skeleton className="h-6 w-full" />
+          </div>
+          <div className="flex justify-between mb-4">
+            <Skeleton className="h-10 w-40" />
+            <div className="flex space-x-2">
+              <Skeleton className="h-10 w-64" />
+              <Skeleton className="h-10 w-40" />
+            </div>
+          </div>
+          {[...Array(5)].map((_, index) => (
+            <Card key={index}>
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-5 w-full" />
+              </CardFooter>
+            </Card>
           ))}
         </div>
-      )}
-
-      {/* Topics Section */}
-      <div>
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-          <h2 className="text-xl font-semibold">Topics</h2>
-          <div className="flex gap-2">
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search topics..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recent">Most Recent</SelectItem>
-                <SelectItem value="activity">Recent Activity</SelectItem>
-                <SelectItem value="popular">Most Popular</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={refreshTopics} className="flex gap-1 items-center">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Refresh</span>
-            </Button>
-            {isAuthenticated && (
-              <Link to={`/categories/${category.slug}/create-topic`}>
-                <Button>
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  New Topic
-                </Button>
-              </Link>
-            )}
-          </div>
+      ) : !category ? (
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold mb-2">Category Not Found</h2>
+          <p className="text-muted-foreground mb-6">The requested category could not be found.</p>
+          <Button onClick={() => navigate('/categories')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Categories
+          </Button>
         </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Breadcrumb */}
+          <PageBreadcrumb
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Categories', href: '/categories' },
+              ...(category.parent ? [{ label: category.parent.name, href: `/categories/${category.parent.slug}` }] : []),
+              { label: category.name, href: `/categories/${category.slug}` },
+            ]}
+          />
+          
+          {/* Category Header */}
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">{category.name}</h1>
+            <p className="text-muted-foreground">{category.description}</p>
+          </div>
 
-        {sortedTopics.length === 0 ? (
-          <div className="text-center py-12 bg-muted rounded-lg">
-            <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Topics Found</h3>
-            <p className="text-muted-foreground mb-6">
-              {searchQuery 
-                ? "No topics match your search criteria." 
-                : "Be the first to start a discussion in this category!"}
-            </p>
-            {isAuthenticated && !searchQuery && (
-              <Link to={`/categories/${category.slug}/create-topic`}>
-                <Button>
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Create the First Topic
+          {/* Subcategories if any */}
+          {category.subcategories && category.subcategories.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {category.subcategories.map((subcategory) => (
+                <Link 
+                  key={subcategory._id} 
+                  to={`/categories/${subcategory.slug}`}
+                  className="block p-4 rounded-md border hover:bg-muted transition-colors"
+                >
+                  <h3 className="font-medium">{subcategory.name}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {subcategory.description}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* Topics Section */}
+          <div>
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+              <h2 className="text-xl font-semibold">Topics</h2>
+              <div className="flex gap-2">
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search topics..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Most Recent</SelectItem>
+                    <SelectItem value="activity">Recent Activity</SelectItem>
+                    <SelectItem value="popular">Most Popular</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={refreshTopics} className="flex gap-1 items-center">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>Refresh</span>
                 </Button>
-              </Link>
+                {isAuthenticated && (
+                  <Link to={`/categories/${category.slug}/create-topic`}>
+                    <Button>
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      New Topic
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {sortedTopics.length === 0 ? (
+              <div className="text-center py-12 bg-muted rounded-lg">
+                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Topics Found</h3>
+                <p className="text-muted-foreground mb-6">
+                  {searchQuery 
+                    ? "No topics match your search criteria." 
+                    : "Be the first to start a discussion in this category!"}
+                </p>
+                {isAuthenticated && !searchQuery && (
+                  <Link to={`/categories/${category.slug}/create-topic`}>
+                    <Button>
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Create the First Topic
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sortedTopics.map((topic) => (
+                  <Card key={topic._id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <Link to={`/topics/${topic.slug}`}>
+                          <CardTitle className="text-xl hover:text-primary transition-colors">
+                            {topic.title}
+                          </CardTitle>
+                        </Link>
+                        {isAdmin && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">More</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem 
+                                className="text-destructive" 
+                                onClick={() => {
+                                  setTopicToDelete(topic);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete Topic
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pb-2">
+                      <p className="line-clamp-2 text-muted-foreground">
+                        {topic.content.replace(/<[^>]*>/g, '')}
+                      </p>
+                    </CardContent>
+                    <CardFooter className="pt-2 text-sm text-muted-foreground flex flex-wrap justify-between items-center">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center">
+                          <User className="h-4 w-4 mr-1" />
+                          <span>{topic.author.displayName || topic.author.username}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-1" />
+                          <span>{formatRelativeTime(topic.createdAt)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <Badge variant="secondary" className="mr-2">
+                          <MessageSquare className="h-3 w-3 mr-1" />
+                          {topic.postCount} {topic.postCount === 1 ? 'reply' : 'replies'}
+                        </Badge>
+                        {topic.lastPost && (
+                          <span className="text-xs">
+                            Last reply {formatRelativeTime(topic.lastPost.createdAt)}
+                          </span>
+                        )}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
             )}
           </div>
-        ) : (
-          <div className="space-y-4">
-            {sortedTopics.map((topic) => (
-              <Card key={topic._id}>
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <Link to={`/topics/${topic.slug}`}>
-                      <CardTitle className="text-xl hover:text-primary transition-colors">
-                        {topic.title}
-                      </CardTitle>
-                    </Link>
-                    {isAdmin && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">More</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem 
-                            className="text-destructive" 
-                            onClick={() => {
-                              setTopicToDelete(topic);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete Topic
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-2">
-                  <p className="line-clamp-2 text-muted-foreground">
-                    {topic.content.replace(/<[^>]*>/g, '')}
-                  </p>
-                </CardContent>
-                <CardFooter className="pt-2 text-sm text-muted-foreground flex flex-wrap justify-between items-center">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-1" />
-                      <span>{topic.author.displayName || topic.author.username}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      <span>{formatRelativeTime(topic.createdAt)}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <Badge variant="secondary" className="mr-2">
-                      <MessageSquare className="h-3 w-3 mr-1" />
-                      {topic.postCount} {topic.postCount === 1 ? 'reply' : 'replies'}
-                    </Badge>
-                    {topic.lastPost && (
-                      <span className="text-xs">
-                        Last reply {formatRelativeTime(topic.lastPost.createdAt)}
-                      </span>
-                    )}
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Delete Topic Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Topic</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this topic? This action cannot be undone and will remove all posts within this topic.
-              {topicToDelete && (
-                <div className="mt-2 p-2 bg-muted rounded-md">
-                  <p className="font-medium">{topicToDelete.title}</p>
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={(e) => {
-                e.preventDefault();
-                handleDeleteTopic();
-              }}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          {/* Delete Topic Dialog */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Topic</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this topic? This action cannot be undone and will remove all posts within this topic.
+                  {topicToDelete && (
+                    <div className="mt-2 p-2 bg-muted rounded-md">
+                      <p className="font-medium">{topicToDelete.title}</p>
+                    </div>
+                  )}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDeleteTopic();
+                  }}
+                  disabled={isDeleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
     </div>
   );
 } 

@@ -48,19 +48,26 @@ const NavItem = ({ icon, label, href, isActive, isMobile, onClick }: NavItemProp
   );
 };
 
-export function SideNav() {
+interface SideNavProps {
+  isMobileSidebar?: boolean;
+  onItemClick?: () => void;
+}
+
+export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
   useEffect(() => {
+    if (isMobileSidebar) return; // Don't run resize detection if we're explicitly in mobile mode
+
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1024);
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isMobileSidebar]);
   
   const navItems = [
     {
@@ -126,6 +133,12 @@ export function SideNav() {
     }
   ];
 
+  const handleItemClick = () => {
+    if (onItemClick) {
+      onItemClick();
+    }
+  };
+
   const renderNavItems = (items: any[]) => {
     return items.map((item, index) => (
       <NavItem
@@ -135,14 +148,21 @@ export function SideNav() {
         href={item.href}
         isActive={location.pathname === item.href || 
           (item.href !== '/' && location.pathname.startsWith(item.href))}
+        isMobile={isMobileSidebar}
+        onClick={handleItemClick}
       />
     ));
   };
 
   const sidebarContent = (
     <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1 py-6">
+      <ScrollArea className="flex-1 py-4">
         <div className="px-3 space-y-1">
+          {isMobileSidebar && (
+            <h3 className="px-4 text-xs font-semibold text-muted-foreground mb-2">
+              Navigation
+            </h3>
+          )}
           {renderNavItems(navItems)}
         </div>
         
@@ -181,6 +201,11 @@ export function SideNav() {
       </ScrollArea>
     </div>
   );
+
+  // If explicitly used as mobile sidebar, just return the content
+  if (isMobileSidebar) {
+    return sidebarContent;
+  }
 
   return (
     <>

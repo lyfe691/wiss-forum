@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PaginationControls } from '@/components/PaginationControls';
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
 
 interface User {
   _id: string;
@@ -91,6 +92,10 @@ export function Users() {
 
   return (
     <div className="container max-w-6xl mx-auto py-6 px-4">
+      <PageBreadcrumb items={[
+        { label: 'Users', href: '/users' }
+      ]} />
+      
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Community Members</h1>
         <p className="text-muted-foreground">Browse all registered users and members of our community</p>

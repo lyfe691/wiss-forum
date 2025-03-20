@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PaginationControls } from '@/components/PaginationControls';
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
 
 interface Author {
   _id: string;
@@ -152,6 +153,10 @@ export function LatestTopics() {
 
   return (
     <div className="container max-w-5xl mx-auto py-8 px-4">
+      <PageBreadcrumb items={[
+        { label: 'Topics', href: '/topics' }
+      ]} />
+      
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Latest Topics</h1>

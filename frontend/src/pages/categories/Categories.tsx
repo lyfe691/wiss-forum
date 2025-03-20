@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, MessageSquare, FolderTree } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
 
 interface Category {
   _id: string;
@@ -56,6 +57,10 @@ export function Categories() {
 
   return (
     <div className="space-y-6">
+      <PageBreadcrumb items={[
+        { label: 'Categories', href: '/categories' }
+      ]} />
+      
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Categories</h1>
