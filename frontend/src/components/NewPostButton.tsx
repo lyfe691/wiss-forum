@@ -1,4 +1,4 @@
-import { Plus, FolderPlus, AlertTriangle } from 'lucide-react';
+import { Plus, FolderPlus, AlertTriangle, Info } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -237,21 +237,30 @@ export function NewPostButton() {
                     <Label htmlFor="category" className="text-right">
                       Category
                     </Label>
-                    <Select 
-                      onValueChange={setSelectedCategory} 
-                      defaultValue={selectedCategory}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category._id} value={category.slug}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="col-span-3 flex items-center gap-2">
+                      <Select 
+                        onValueChange={setSelectedCategory} 
+                        defaultValue={selectedCategory}
+                      >
+                        <SelectTrigger className="w-full flex-grow">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category._id} value={category.slug}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <div className="relative flex items-center group">
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                        <div className="absolute bottom-full right-0 mb-2 w-64 rounded-md shadow-md bg-popover border p-3 text-xs hidden group-hover:block z-50">
+                          <p>Can't find a suitable category? Please contact an admin or teacher to request a new category.</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
