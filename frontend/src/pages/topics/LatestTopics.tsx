@@ -34,6 +34,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PaginationControls } from '@/components/PaginationControls';
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
+import React from 'react';
 
 interface Author {
   _id: string;
@@ -68,7 +69,35 @@ interface Topic {
   category?: Category;
 }
 
-const MotionCard = motion(Card);
+const MotionCard = React.forwardRef<
+  HTMLDivElement, 
+  React.ComponentPropsWithoutRef<typeof Card> & { 
+    initial?: any; 
+    animate?: any; 
+    exit?: any;
+    variants?: any;
+    transition?: any;
+    whileHover?: any; 
+  }
+>((props, ref) => {
+  // Extract motion props from the rest of the props
+  const { initial, animate, exit, variants, transition, whileHover, ...cardProps } = props;
+  
+  return (
+    <motion.div
+      ref={ref}
+      initial={initial}
+      animate={animate}
+      exit={exit}
+      variants={variants}
+      transition={transition}
+      whileHover={whileHover}
+    >
+      <Card {...cardProps} />
+    </motion.div>
+  );
+});
+MotionCard.displayName = "MotionCard";
 
 const container = {
   hidden: { opacity: 0 },
