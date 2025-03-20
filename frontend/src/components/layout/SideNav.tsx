@@ -140,7 +140,7 @@ export function SideNav() {
 
   const sidebarContent = (
     <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 py-6">
         <div className="px-3 space-y-1">
           {renderNavItems(navItems)}
         </div>
