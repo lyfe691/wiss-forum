@@ -16,7 +16,6 @@ export function NotificationBell() {
   const { 
     notifications, 
     unreadCount, 
-    totalNotifications,
     loading, 
     markAsRead,
     fetchNotifications

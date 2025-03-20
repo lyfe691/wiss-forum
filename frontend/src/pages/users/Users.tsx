@@ -11,6 +11,7 @@ import { AlertCircle, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface User {
   _id: string;
@@ -175,7 +176,7 @@ export function Users() {
 
           {totalPages > 1 && (
             <div className="mt-8 flex justify-center">
-              <Pagination
+              <PaginationControls
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}

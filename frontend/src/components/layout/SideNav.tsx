@@ -133,7 +133,8 @@ export function SideNav() {
         icon={item.icon}
         label={item.label}
         href={item.href}
-        isActive={location.pathname === item.href}
+        isActive={location.pathname === item.href || 
+          (item.href !== '/' && location.pathname.startsWith(item.href))}
       />
     ));
   };

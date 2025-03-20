@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Bell, Trash2, CheckCheck, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pagination } from '@/components/ui/pagination';
+import { PaginationControls } from '@/components/PaginationControls';
 import { NotificationItem } from '@/components/notifications/NotificationItem';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +22,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
 
 export function Notifications() {
   const { user } = useAuth();
@@ -71,7 +76,8 @@ export function Notifications() {
     }
   };
 
-  const MotionCard = motion(Card);
+  // Don't use motion(Card) directly as it causes ref forwarding issues
+  // const MotionCard = motion(Card);
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -176,42 +182,44 @@ export function Notifications() {
         </div>
 
         <TabsContent value="all" className="mt-6">
-          <MotionCard
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden border rounded-lg shadow-sm"
+            className="border rounded-lg shadow-sm overflow-hidden"
           >
-            {loading ? (
-              <div className="flex justify-center items-center p-12">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Loading notifications...</p>
+            <Card>
+              {loading ? (
+                <div className="flex justify-center items-center p-12">
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Loading notifications...</p>
+                  </div>
                 </div>
-              </div>
-            ) : notifications.length > 0 ? (
-              <div className="divide-y">
-                {notifications.map((notification) => (
-                  <NotificationItem 
-                    key={notification._id} 
-                    notification={notification} 
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center p-12 text-center">
-                <Bell className="h-16 w-16 text-muted-foreground mb-4 opacity-30" />
-                <h3 className="text-xl font-medium mb-2">No notifications</h3>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  When you receive notifications about replies, mentions, and other activities, they will appear here.
-                </p>
-              </div>
-            )}
-          </MotionCard>
+              ) : notifications.length > 0 ? (
+                <div className="divide-y">
+                  {notifications.map((notification) => (
+                    <NotificationItem 
+                      key={notification._id} 
+                      notification={notification} 
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-12 text-center">
+                  <Bell className="h-16 w-16 text-muted-foreground mb-4 opacity-30" />
+                  <h3 className="text-xl font-medium mb-2">No notifications</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    When you receive notifications about replies, mentions, and other activities, they will appear here.
+                  </p>
+                </div>
+              )}
+            </Card>
+          </motion.div>
           
           {totalPages > 1 && (
-            <div className="flex justify-center mt-8">
-              <Pagination
+            <div className="mt-8 flex justify-center">
+              <PaginationControls
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
@@ -221,40 +229,42 @@ export function Notifications() {
         </TabsContent>
 
         <TabsContent value="unread" className="mt-6">
-          <MotionCard
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden border rounded-lg shadow-sm"
+            className="border rounded-lg shadow-sm overflow-hidden"
           >
-            {loading ? (
-              <div className="flex justify-center items-center p-12">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Loading notifications...</p>
+            <Card>
+              {loading ? (
+                <div className="flex justify-center items-center p-12">
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Loading notifications...</p>
+                  </div>
                 </div>
-              </div>
-            ) : notifications.filter(n => !n.read).length > 0 ? (
-              <div className="divide-y">
-                {notifications
-                  .filter(notification => !notification.read)
-                  .map((notification) => (
-                    <NotificationItem 
-                      key={notification._id} 
-                      notification={notification} 
-                    />
-                  ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center p-12 text-center">
-                <CheckCheck className="h-16 w-16 text-primary mb-4 opacity-30" />
-                <h3 className="text-xl font-medium mb-2">All caught up!</h3>
-                <p className="text-sm text-muted-foreground">
-                  You have no unread notifications at the moment.
-                </p>
-              </div>
-            )}
-          </MotionCard>
+              ) : notifications.filter(n => !n.read).length > 0 ? (
+                <div className="divide-y">
+                  {notifications
+                    .filter(notification => !notification.read)
+                    .map((notification) => (
+                      <NotificationItem 
+                        key={notification._id} 
+                        notification={notification} 
+                      />
+                    ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-12 text-center">
+                  <CheckCheck className="h-16 w-16 text-primary mb-4 opacity-30" />
+                  <h3 className="text-xl font-medium mb-2">All caught up!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    You have no unread notifications at the moment.
+                  </p>
+                </div>
+              )}
+            </Card>
+          </motion.div>
         </TabsContent>
       </Tabs>
     </div>

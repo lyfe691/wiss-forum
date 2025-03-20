@@ -32,6 +32,7 @@ import {
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface Author {
   _id: string;
@@ -408,7 +409,7 @@ export function LatestTopics() {
             
             {pagination.totalPages > 1 && (
               <div className="mt-8 flex justify-center">
-                <Pagination
+                <PaginationControls
                   currentPage={pagination.currentPage}
                   totalPages={pagination.totalPages}
                   onPageChange={handlePageChange}

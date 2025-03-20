@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -631,29 +631,37 @@ export function TopicDetail() {
       {/* Breadcrumb */}
       <div className="mb-6">
         <Breadcrumb className="text-sm">
-          <BreadcrumbItem>
-            <BreadcrumbLink as={Link} to="/" className="text-muted-foreground hover:text-foreground transition-colors">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink as={Link} to="/categories" className="text-muted-foreground hover:text-foreground transition-colors">Categories</BreadcrumbLink>
-          </BreadcrumbItem>
-          {topic?.category && (
-            <>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink as={Link} to={`/categories/${topic.category.slug || ''}`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {topic.category.name || 'Category'}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink className="font-medium text-foreground">
-                  {topic.title || 'Topic'}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-            </>
-          )}
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/categories" className="text-muted-foreground hover:text-foreground transition-colors">Categories</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {topic?.category && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to={`/categories/${topic.category.slug || ''}`} className="text-muted-foreground hover:text-foreground transition-colors">
+                      {topic.category.name || 'Category'}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink className="font-medium text-foreground">
+                    {topic.title || 'Topic'}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+          </BreadcrumbList>
         </Breadcrumb>
       </div>
       

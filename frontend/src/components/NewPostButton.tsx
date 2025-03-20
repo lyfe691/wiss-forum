@@ -61,6 +61,7 @@ export function NewPostButton() {
 
   const handleCreateTopic = () => {
     if (!selectedCategory) return;
+    console.log("Creating topic in category:", selectedCategory);
     setIsOpen(false);
     navigate(`/categories/${selectedCategory}/create-topic`);
   };

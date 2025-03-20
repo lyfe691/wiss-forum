@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { categoriesAPI, topicsAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, MoreVertical, Trash, Check, X } from 'lucide-react';
 import { 
@@ -283,27 +283,35 @@ export function CategoryDetail() {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <Breadcrumb>
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/">Home</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/categories">Categories</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        {category.parent && (
-          <>
-            <BreadcrumbItem>
-              <BreadcrumbLink as={Link} to={`/categories/${category.parent.slug}`}>
-                {category.parent.name}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-          </>
-        )}
-        <BreadcrumbItem>
-          <BreadcrumbLink>{category.name}</BreadcrumbLink>
-        </BreadcrumbItem>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/">Home</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/categories">Categories</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          {category.parent && (
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to={`/categories/${category.parent.slug}`}>
+                    {category.parent.name}
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+            </>
+          )}
+          <BreadcrumbItem>
+            <BreadcrumbLink>{category.name}</BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
       </Breadcrumb>
 
       {/* Category Header */}
