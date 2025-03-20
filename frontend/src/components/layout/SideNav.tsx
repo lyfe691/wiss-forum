@@ -14,11 +14,8 @@ import {
   HelpCircle,
   FileText,
   ShieldCheck,
-  Menu,
-  X,
   ChevronRight
 } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useState, useEffect } from 'react';
 
 interface NavItemProps {
@@ -54,7 +51,6 @@ const NavItem = ({ icon, label, href, isActive, isMobile, onClick }: NavItemProp
 export function SideNav() {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
   useEffect(() => {
@@ -65,8 +61,6 @@ export function SideNav() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
   
   const navItems = [
     {
@@ -132,7 +126,7 @@ export function SideNav() {
     }
   ];
 
-  const renderNavItems = (items: any[], isMobile = false) => {
+  const renderNavItems = (items: any[]) => {
     return items.map((item, index) => (
       <NavItem
         key={index}
@@ -140,29 +134,15 @@ export function SideNav() {
         label={item.label}
         href={item.href}
         isActive={location.pathname === item.href}
-        isMobile={isMobile}
-        onClick={isMobile ? closeMobileSidebar : undefined}
       />
     ));
   };
 
-  const sidebarContent = (isMobileView = false) => (
-    <div className={cn("h-full flex flex-col", isMobileView && "pt-10")}>
-      {isMobileView && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="absolute right-4 top-4 w-8 h-8 p-0"
-          onClick={closeMobileSidebar}
-        >
-          <X className="h-6 w-6" />
-          <span className="sr-only">Close sidebar</span>
-        </Button>
-      )}
-      
-      <ScrollArea className="flex-1 py-4">
+  const sidebarContent = (
+    <div className="h-full flex flex-col">
+      <ScrollArea className="flex-1">
         <div className="px-3 space-y-1">
-          {renderNavItems(navItems, isMobileView)}
+          {renderNavItems(navItems)}
         </div>
         
         {(userNavItems.length > 0 || adminNavItems.length > 0) && (
@@ -174,7 +154,7 @@ export function SideNav() {
                 <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
                   User
                 </h3>
-                {renderNavItems(userNavItems, isMobileView)}
+                {renderNavItems(userNavItems)}
               </div>
             )}
             
@@ -183,7 +163,7 @@ export function SideNav() {
                 <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
                   Administration
                 </h3>
-                {renderNavItems(adminNavItems, isMobileView)}
+                {renderNavItems(adminNavItems)}
               </div>
             )}
           </>
@@ -195,7 +175,7 @@ export function SideNav() {
           <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
             Support
           </h3>
-          {renderNavItems(helpNavItems, isMobileView)}
+          {renderNavItems(helpNavItems)}
         </div>
       </ScrollArea>
     </div>
@@ -206,28 +186,12 @@ export function SideNav() {
       {/* Desktop Sidebar */}
       {!isMobile && (
         <aside className="hidden lg:block w-64 shrink-0 border-r fixed top-16 bottom-0 overflow-hidden z-40">
-          {sidebarContent()}
+          {sidebarContent}
         </aside>
       )}
       
       {/* Empty space to compensate for the fixed sidebar */}
       {!isMobile && <div className="hidden lg:block w-64 shrink-0" />}
-      
-      {/* Mobile Sidebar Trigger Button */}
-      {isMobile && (
-        <div className="lg:hidden fixed left-4 bottom-4 z-50">
-          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm" className="rounded-full shadow-lg w-10 h-10 p-0">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-[280px] p-0 z-[100]">
-              {sidebarContent(true)}
-            </SheetContent>
-          </Sheet>
-        </div>
-      )}
     </>
   );
 } 

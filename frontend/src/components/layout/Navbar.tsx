@@ -24,7 +24,10 @@ import {
   Bell,
   MessageSquare,
   Home,
-  LayoutGrid
+  LayoutGrid,
+  HelpCircle,
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
@@ -67,6 +70,50 @@ export function Navbar() {
     return location.pathname.startsWith(path);
   }
 
+  // Navigation item groups
+  const mainNavItems = [
+    {
+      icon: <Home className="h-4 w-4" />,
+      label: "Home",
+      href: "/"
+    },
+    {
+      icon: <LayoutGrid className="h-4 w-4" />,
+      label: "Categories",
+      href: "/categories"
+    },
+    {
+      icon: <FileText className="h-4 w-4" />,
+      label: "Latest Topics",
+      href: "/topics/latest"
+    },
+    {
+      icon: <Users className="h-4 w-4" />,
+      label: "Users",
+      href: "/users"
+    }
+  ];
+
+  const adminNavItems = isAuthenticated && (user?.role === 'admin' || user?.role === 'teacher') ? [
+    {
+      icon: <Book className="h-4 w-4" />,
+      label: "Manage Categories",
+      href: "/admin/categories"
+    },
+    ...(user?.role === 'admin' ? [
+      {
+        icon: <Users className="h-4 w-4" />,
+        label: "Manage Users",
+        href: "/admin/users"
+      },
+      {
+        icon: <ShieldCheck className="h-4 w-4" />,
+        label: "Admin Dashboard",
+        href: "/admin"
+      }
+    ] : [])
+  ] : [];
+
   return (
     <header className={cn(
       "bg-background border-b border-border transition-all duration-200",
@@ -83,43 +130,39 @@ export function Navbar() {
             </Link>
             
             <nav className="hidden md:ml-10 md:flex md:items-center md:space-x-1">
-              <Link
-                to="/"
-                className={cn(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
-                  isActivePath('/') 
-                    ? "text-primary bg-primary/10"
-                    : "text-foreground hover:text-primary hover:bg-primary/5"
-                )}
-              >
-                <Home className="h-4 w-4" />
-                <span>Home</span>
-              </Link>
-              <Link
-                to="/categories"
-                className={cn(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
-                  isActivePath('/categories') 
-                    ? "text-primary bg-primary/10"
-                    : "text-foreground hover:text-primary hover:bg-primary/5"
-                )}
-              >
-                <LayoutGrid className="h-4 w-4" />
-                <span>Categories</span>
-              </Link>
-              {isAuthenticated && user?.role === 'admin' && (
+              {mainNavItems.map((item) => (
                 <Link
-                  to="/admin"
+                  key={item.href}
+                  to={item.href}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
-                    isActivePath('/admin') 
+                    isActivePath(item.href) 
                       ? "text-primary bg-primary/10"
                       : "text-foreground hover:text-primary hover:bg-primary/5"
                   )}
                 >
-                  <Settings className="h-4 w-4" />
-                  <span>Admin</span>
+                  {item.icon}
+                  <span>{item.label}</span>
                 </Link>
+              ))}
+              {adminNavItems.length > 0 && (
+                <>
+                  {adminNavItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={cn(
+                        "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                        isActivePath(item.href) 
+                          ? "text-primary bg-primary/10"
+                          : "text-foreground hover:text-primary hover:bg-primary/5"
+                      )}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                </>
               )}
             </nav>
           </div>
@@ -250,126 +293,153 @@ export function Navbar() {
                     <Menu className="h-5 w-5 text-foreground" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="border-l border-border">
+                <SheetContent className="border-l border-border w-[280px] sm:w-[350px] px-0">
                   <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-between py-4 border-b border-border">
+                    <div className="flex items-center py-4 px-4 border-b border-border">
                       <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                           <MessageSquare className="w-4 h-4" />
                         </div>
                         <span className="font-bold">WISS Forum</span>
                       </Link>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-8 h-8 p-0"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <X className="h-5 w-5 text-foreground" />
-                      </Button>
                     </div>
 
-                    <nav className="flex-1 py-6">
-                      <div className="flex flex-col space-y-1">
-                        <Link
-                          to="/"
-                          className={cn(
-                            "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
-                            isActivePath('/') 
-                              ? "text-primary bg-primary/10"
-                              : "text-foreground hover:text-primary hover:bg-primary/5"
-                          )}
-                          onClick={closeMobileMenu}
-                        >
-                          <Home className="h-4 w-4" />
-                          <span>Home</span>
-                        </Link>
-                        <Link
-                          to="/categories"
-                          className={cn(
-                            "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
-                            isActivePath('/categories') 
-                              ? "text-primary bg-primary/10"
-                              : "text-foreground hover:text-primary hover:bg-primary/5"
-                          )}
-                          onClick={closeMobileMenu}
-                        >
-                          <LayoutGrid className="h-4 w-4" />
-                          <span>Categories</span>
-                        </Link>
-                        {isAuthenticated && user?.role === 'admin' && (
-                          <Link
-                            to="/admin"
-                            className={cn(
-                              "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
-                              isActivePath('/admin') 
-                                ? "text-primary bg-primary/10"
-                                : "text-foreground hover:text-primary hover:bg-primary/5"
-                            )}
-                            onClick={closeMobileMenu}
-                          >
-                            <Settings className="h-4 w-4" />
-                            <span>Admin</span>
-                          </Link>
-                        )}
-                      </div>
-                    </nav>
-
-                    <div className="border-t border-border py-4">
-                      {isAuthenticated ? (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border border-primary/20">
-                              <AvatarImage src={user?.avatar} alt={user?.displayName} />
-                              <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                                {user?.displayName ? getInitials(user.displayName) : 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">{user?.displayName || user?.username}</p>
-                              <div className="inline-flex mt-1">
-                                <span className="text-xs font-medium px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary">
-                                  {user?.role}
-                                </span>
-                              </div>
+                    {isAuthenticated && (
+                      <div className="px-4 py-3 border-b border-border">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border border-primary/20">
+                            <AvatarImage src={user?.avatar} alt={user?.displayName} />
+                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                              {user?.displayName ? getInitials(user.displayName) : 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">{user?.displayName || user?.username}</p>
+                            <div className="inline-flex mt-1">
+                              <span className="text-xs font-medium px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary">
+                                {user?.role}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex flex-col space-y-2">
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start"
-                              onClick={() => {
-                                navigate('/profile');
-                                closeMobileMenu();
-                              }}
-                            >
-                              <User className="mr-2 h-4 w-4 text-primary" />
-                              Profile
-                            </Button>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start"
-                              onClick={() => {
-                                navigate('/settings');
-                                closeMobileMenu();
-                              }}
-                            >
-                              <Settings className="mr-2 h-4 w-4 text-primary" />
-                              Settings
-                            </Button>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-destructive hover:text-destructive"
-                              onClick={() => {
-                                handleLogout();
-                                closeMobileMenu();
-                              }}
-                            >
-                              <LogOut className="mr-2 h-4 w-4" />
-                              Log out
-                            </Button>
-                          </div>
                         </div>
+                      </div>
+                    )}
+
+                    <div className="flex-1 overflow-auto">
+                      <div className="px-2 py-4">
+                        <div className="mb-2 px-3">
+                          <h3 className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+                            Navigation
+                          </h3>
+                        </div>
+                        <nav className="flex flex-col space-y-1">
+                          {mainNavItems.map((item) => (
+                            <Link
+                              key={item.href}
+                              to={item.href}
+                              className={cn(
+                                "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                                isActivePath(item.href) 
+                                  ? "text-primary bg-primary/10"
+                                  : "text-foreground hover:text-primary hover:bg-primary/5"
+                              )}
+                              onClick={closeMobileMenu}
+                            >
+                              {item.icon}
+                              <span>{item.label}</span>
+                            </Link>
+                          ))}
+                        </nav>
+                      </div>
+
+                      {isAuthenticated && (
+                        <div className="px-2 py-3 border-t border-border">
+                          <div className="mb-2 px-3">
+                            <h3 className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+                              Account
+                            </h3>
+                          </div>
+                          <nav className="flex flex-col space-y-1">
+                            <Link
+                              to="/profile"
+                              className="px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                              onClick={closeMobileMenu}
+                            >
+                              <User className="h-4 w-4" />
+                              <span>Profile</span>
+                            </Link>
+                            <Link
+                              to="/settings"
+                              className="px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                              onClick={closeMobileMenu}
+                            >
+                              <Settings className="h-4 w-4" />
+                              <span>Settings</span>
+                            </Link>
+                          </nav>
+                        </div>
+                      )}
+
+                      {adminNavItems.length > 0 && (
+                        <div className="px-2 py-3 border-t border-border">
+                          <div className="mb-2 px-3">
+                            <h3 className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+                              Administration
+                            </h3>
+                          </div>
+                          <nav className="flex flex-col space-y-1">
+                            {adminNavItems.map((item) => (
+                              <Link
+                                key={item.href}
+                                to={item.href}
+                                className={cn(
+                                  "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                                  isActivePath(item.href) 
+                                    ? "text-primary bg-primary/10"
+                                    : "text-foreground hover:text-primary hover:bg-primary/5"
+                                )}
+                                onClick={closeMobileMenu}
+                              >
+                                {item.icon}
+                                <span>{item.label}</span>
+                              </Link>
+                            ))}
+                          </nav>
+                        </div>
+                      )}
+
+                      <div className="px-2 py-3 border-t border-border">
+                        <div className="mb-2 px-3">
+                          <h3 className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+                            Support
+                          </h3>
+                        </div>
+                        <nav className="flex flex-col space-y-1">
+                          <Link
+                            to="/help"
+                            className="px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                            onClick={closeMobileMenu}
+                          >
+                            <HelpCircle className="h-4 w-4" />
+                            <span>Help & FAQ</span>
+                          </Link>
+                        </nav>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border p-4">
+                      {isAuthenticated ? (
+                        <Button
+                          variant="destructive"
+                          className="w-full"
+                          onClick={() => {
+                            handleLogout();
+                            closeMobileMenu();
+                          }}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Log out
+                        </Button>
                       ) : (
                         <div className="flex flex-col space-y-2">
                           <Button
