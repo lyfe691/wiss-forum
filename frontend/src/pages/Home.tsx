@@ -102,10 +102,10 @@ export function Home() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative overflow-hidden bg-gradient-to-r from-primary/90 via-primary to-primary/80 rounded-2xl p-8 md:p-12 text-white shadow-xl"
+        className="relative overflow-hidden bg-gradient-to-r from-primary/90 via-primary to-primary/80 dark:from-primary/30 dark:via-primary/25 dark:to-primary/20 rounded-2xl p-8 md:p-12 text-white shadow-xl"
       >
-        <div className="absolute inset-0 bg-grid-white/10 bg-grid-8" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/90" />
+        <div className="absolute inset-0 bg-grid-white/10 dark:bg-grid-white/5 bg-grid-8" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/90 dark:to-primary/40" />
         <div className="relative max-w-3xl mx-auto text-center">
           <Badge variant="outline" className="mb-4 border-white/30 text-white bg-white/10 backdrop-blur-sm py-1.5 px-3">
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
@@ -204,7 +204,7 @@ export function Home() {
                 {isLoading ? (
                   <Skeleton className="h-9 w-16 rounded-md" />
                 ) : (
-                  stats.topicCount
+                  stats.topicCount !== undefined ? stats.topicCount : 'N/A'
                 )}
               </div>
               <p className="text-xs text-muted-foreground">

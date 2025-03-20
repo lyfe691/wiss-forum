@@ -15,7 +15,7 @@ router.post('/bootstrap-create', asyncHandler(topicController.bootstrapCreateTop
 router.post('/bootstrap-delete', asyncHandler(topicController.bootstrapDeleteTopic));
 
 // Protected routes (require authentication & proper role)
-router.post('/', authenticate, isTeacherOrAdmin, authAsyncHandler(topicController.createTopic));
+router.post('/', authenticate, authAsyncHandler(topicController.createTopic));
 router.put('/:id', authenticate, isTeacherOrAdmin, authAsyncHandler(topicController.updateTopic));
 router.delete('/:id', authenticate, isTeacherOrAdmin, authAsyncHandler(topicController.deleteTopic));
 

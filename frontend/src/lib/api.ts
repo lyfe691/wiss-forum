@@ -166,8 +166,37 @@ export const topicsAPI = {
   },
   
   getLatestTopics: async (page = 1, limit = 10) => {
-    const response = await api.get(`/topics/latest?page=${page}&limit=${limit}`);
-    return response.data;
+    try {
+      console.log(`Fetching latest topics - page ${page}, limit ${limit}`);
+      const response = await api.get(`/topics/latest?page=${page}&limit=${limit}`);
+      console.log('Latest topics raw response:', response.data);
+      
+      // Extract and log the total count for debugging
+      const totalCount = response.data?.totalTopics || 
+                         response.data?.total || 
+                         response.data?.totalItems || 
+                         (Array.isArray(response.data?.topics) ? response.data.topics.length : 0);
+      
+      console.log(`Total topics count from API: ${totalCount}`);
+      
+      // Enhance the response with the count if it's missing
+      const enhancedResponse = {
+        ...response.data,
+        totalTopics: totalCount,
+        totalItems: totalCount
+      };
+      
+      return enhancedResponse;
+    } catch (error) {
+      console.error('Error fetching latest topics:', error);
+      return {
+        topics: [],
+        totalTopics: 0,
+        totalItems: 0,
+        currentPage: 1,
+        totalPages: 1
+      };
+    }
   },
   
   getTopicByIdOrSlug: async (idOrSlug: string) => {
@@ -427,24 +456,33 @@ export const postsAPI = {
 export const statsAPI = {
   getStats: async () => {
     try {
-      // Make a direct API request to get all public users
-      const directUsersResponse = await fetch('http://localhost:3000/api/users/public');
-      const users = await directUsersResponse.json();
+      // Simplify to a single approach - just fetch the collections directly
+      console.log("Getting stats by directly fetching collections...");
       
-      // Also get categories
-      const directCategoriesResponse = await fetch('http://localhost:3000/api/categories');
-      const categories = await directCategoriesResponse.json();
+      // Get users
+      const usersRequest = await api.get('/users/public');
+      const users = Array.isArray(usersRequest.data) ? usersRequest.data : [];
+      const userCount = users.length;
+      console.log(`User count: ${userCount}`);
       
-      // Use our existing topic API for topics
-      const topicsData = await topicsAPI.getLatestTopics(1, 1);
+      // Get categories
+      const categoriesRequest = await api.get('/categories');
+      const categories = Array.isArray(categoriesRequest.data) ? categoriesRequest.data : [];
+      const categoryCount = categories.length;
+      console.log(`Category count: ${categoryCount}`);
       
-      // Get the actual count of users
-      const userCount = Array.isArray(users) ? users.length : 0;
+      // Get topics - use the normal getLatestTopics method which we know works
+      const topicsData = await topicsAPI.getLatestTopics(1, 10);
+      // Extract the count from various possible properties
+      const topicCount = topicsData.totalTopics || 
+                         topicsData.totalItems || 
+                         topicsData.total || 0;
+      console.log(`Topic count: ${topicCount}`);
       
       return {
-        userCount: userCount,
-        categoryCount: Array.isArray(categories) ? categories.length : 0,
-        topicCount: topicsData.totalItems || 0,
+        userCount,
+        categoryCount,
+        topicCount,
         postCount: 0 // Simplified
       };
     } catch (error) {
