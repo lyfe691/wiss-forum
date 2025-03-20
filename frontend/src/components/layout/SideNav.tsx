@@ -140,18 +140,32 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
   };
 
   const renderNavItems = (items: any[]) => {
-    return items.map((item, index) => (
-      <NavItem
-        key={index}
-        icon={item.icon}
-        label={item.label}
-        href={item.href}
-        isActive={location.pathname === item.href || 
-          (item.href !== '/' && location.pathname.startsWith(item.href))}
-        isMobile={isMobileSidebar}
-        onClick={handleItemClick}
-      />
-    ));
+    return items.map((item, index) => {
+      // Special case for admin dashboard - don't highlight when on admin/users or admin/categories
+      const isExactMatch = location.pathname === item.href;
+      const isParentPath = item.href !== '/' && location.pathname.startsWith(item.href);
+      
+      // Exclude specific cases where we don't want parent highlighting
+      const excludeFromParentHighlight = 
+        (item.href === '/admin' && (
+          location.pathname === '/admin/users' || 
+          location.pathname === '/admin/categories'
+        ));
+      
+      const isActive = isExactMatch || (isParentPath && !excludeFromParentHighlight);
+      
+      return (
+        <NavItem
+          key={index}
+          icon={item.icon}
+          label={item.label}
+          href={item.href}
+          isActive={isActive}
+          isMobile={isMobileSidebar}
+          onClick={handleItemClick}
+        />
+      );
+    });
   };
 
   const sidebarContent = (

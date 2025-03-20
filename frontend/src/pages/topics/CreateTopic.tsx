@@ -271,7 +271,7 @@ export function CreateTopic() {
                   className="min-h-64 resize-y"
                   required
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mb-3">
                   Be descriptive and provide all relevant information. You can use basic formatting.
                 </p>
               </div>
