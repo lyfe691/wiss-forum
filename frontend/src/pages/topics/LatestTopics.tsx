@@ -154,7 +154,7 @@ export function LatestTopics() {
   return (
     <div className="container max-w-5xl mx-auto py-8 px-4">
       <PageBreadcrumb items={[
-        { label: 'Topics', href: '/topics' }
+        { label: 'Latest Topics', isCurrentPage: true }
       ]} />
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -217,7 +217,7 @@ export function LatestTopics() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Link to="/categories">
+          <Link to="/create-topic">
             <Button className="gap-2" size="sm">
               <PlusCircle className="h-4 w-4" />
               <span>Create Topic</span>
@@ -266,7 +266,7 @@ export function LatestTopics() {
                 <MessageSquare className="h-16 w-16 text-muted-foreground/40 mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No topics found</h3>
                 <p className="text-muted-foreground mb-6 max-w-md">Be the first to start a discussion in our community!</p>
-                <Link to="/categories">
+                <Link to="/create-topic">
                   <Button className="gap-2">
                     <PlusCircle className="h-4 w-4" />
                     <span>Create New Topic</span>

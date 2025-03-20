@@ -56,7 +56,16 @@ function App() {
               
               {/* Protected Routes */}
               <Route 
-                path="/categories/:slug/create-topic" 
+                path="/create-topic" 
+                element={
+                  <ProtectedRoute>
+                    <CreateTopic />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/create-topic/:slug" 
                 element={
                   <ProtectedRoute>
                     <CreateTopic />

@@ -404,7 +404,7 @@ export function CategoryDetail() {
                   <span>Refresh</span>
                 </Button>
                 {isAuthenticated && (
-                  <Link to={`/categories/${category.slug}/create-topic`}>
+                  <Link to={`/create-topic/${category.slug}`}>
                     <Button>
                       <PlusCircle className="h-4 w-4 mr-2" />
                       New Topic
@@ -424,7 +424,7 @@ export function CategoryDetail() {
                     : "Be the first to start a discussion in this category!"}
                 </p>
                 {isAuthenticated && !searchQuery && (
-                  <Link to={`/categories/${category.slug}/create-topic`}>
+                  <Link to={`/create-topic/${category.slug}`}>
                     <Button>
                       <PlusCircle className="h-4 w-4 mr-2" />
                       Create the First Topic

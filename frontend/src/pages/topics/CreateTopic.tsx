@@ -12,6 +12,8 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, Breadc
 import { ArrowLeft, Send, FileText, Loader2, ChevronLeft, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { motion } from 'framer-motion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
 
 interface Category {
   _id: string;
@@ -39,6 +41,8 @@ export function CreateTopic() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const { isAuthenticated, user } = useAuth();
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
 
   // Add a console log for debugging
   useEffect(() => {
@@ -49,44 +53,79 @@ export function CreateTopic() {
   }, [slug, isAuthenticated, user]);
 
   useEffect(() => {
-    const fetchCategory = async () => {
+    const fetchAllCategories = async () => {
       setIsLoading(true);
       try {
-        if (!slug) {
-          console.error('No slug provided');
-          setError('Invalid category. Please go back and try again.');
-          setIsLoading(false);
-          return;
-        }
+        // Fetch all categories for the dropdown
+        const categoriesData = await categoriesAPI.getAllCategories();
+        console.log('All categories:', categoriesData);
+        // Flatten the categories if needed
+        const flattenedCategories = flattenCategories(categoriesData);
+        setAllCategories(flattenedCategories);
         
-        console.log('Fetching category details for slug:', slug);
-        // Fetch category details
-        const categoryData = await categoriesAPI.getCategoryByIdOrSlug(slug);
-        console.log('Category data received:', categoryData);
-        setCategory(categoryData);
+        // If a slug is provided, try to find and select that category
+        if (slug) {
+          const matchingCategory = flattenedCategories.find(cat => cat.slug === slug);
+          if (matchingCategory) {
+            setCategory(matchingCategory);
+            setSelectedCategoryId(matchingCategory._id);
+            console.log('Found matching category:', matchingCategory);
+          } else {
+            console.error('No matching category found for slug:', slug);
+            setError('Invalid category. Please select a category from the dropdown.');
+          }
+        }
       } catch (error) {
-        console.error('Failed to fetch category details:', error);
-        setError('Failed to load category. Please try again later.');
+        console.error('Failed to fetch categories:', error);
+        setError('Failed to load categories. Please try again later.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchCategory();
+    fetchAllCategories();
   }, [slug]);
 
   useEffect(() => {
     // Redirect if not authenticated
     if (!isAuthenticated && !isLoading) {
-      navigate('/login', { state: { from: `/categories/${slug}/create-topic` } });
+      navigate('/login', { state: { from: slug ? `/create-topic/${slug}` : '/create-topic' } });
     }
   }, [isAuthenticated, isLoading, navigate, slug]);
+
+  // Helper function to flatten nested categories
+  const flattenCategories = (categories: any[]): Category[] => {
+    let result: Category[] = [];
+    
+    const processCategory = (category: any) => {
+      result.push({
+        _id: category._id,
+        name: category.name,
+        description: category.description || '',
+        slug: category.slug,
+        parent: category.parent
+      });
+      
+      if (category.subcategories && category.subcategories.length > 0) {
+        category.subcategories.forEach(processCategory);
+      }
+    };
+    
+    categories.forEach(processCategory);
+    return result;
+  };
+
+  const handleCategoryChange = (value: string) => {
+    const selectedCategory = allCategories.find(cat => cat._id === value);
+    setSelectedCategoryId(value);
+    setCategory(selectedCategory || null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !content.trim() || !category) {
-      setError('Please fill in all fields');
+    if (!title.trim() || !content.trim() || !selectedCategoryId) {
+      setError('Please fill in all fields and select a category');
       return;
     }
     
@@ -97,7 +136,7 @@ export function CreateTopic() {
       const response = await topicsAPI.createTopic({
         title,
         content,
-        categoryId: category._id
+        categoryId: selectedCategoryId
       });
       
       // Extract topic information
@@ -153,60 +192,13 @@ export function CreateTopic() {
     );
   }
 
-  if (!category) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <AlertCircle className="h-16 w-16 mx-auto text-muted-foreground mb-6" />
-        <h2 className="text-2xl font-bold mb-3">Category Not Found</h2>
-        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-          We couldn't find the category you're looking for.
-        </p>
-        <Button asChild size="lg" className="gap-2">
-          <Link to="/categories">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Categories
-          </Link>
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <Breadcrumb className="mb-8 text-sm">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-                Home
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/categories" className="text-muted-foreground hover:text-foreground transition-colors">
-                Categories
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to={`/categories/${category.slug}`} className="text-muted-foreground hover:text-foreground transition-colors">
-                {category.name}
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink className="font-medium text-foreground">
-              New Topic
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <PageBreadcrumb items={[
+        { label: 'Latest Topics', href: '/topics/latest' },
+        { label: 'New Topic', href: '/create-topic' }
+      ]} />
       
       <h1 className="text-3xl font-bold tracking-tight mb-6 flex items-center gap-2">
         <FileText className="h-7 w-7 text-primary" />
@@ -221,9 +213,9 @@ export function CreateTopic() {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Post in {category.name}</CardTitle>
+            <CardTitle>Create a New Topic</CardTitle>
             <CardDescription>
-              {category.description || "Start a new discussion in this category"}
+              Start a new discussion in our community
             </CardDescription>
           </CardHeader>
           
@@ -244,6 +236,27 @@ export function CreateTopic() {
                   <AlertDescription>{successMessage}</AlertDescription>
                 </Alert>
               )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-base">
+                  Category <span className="text-destructive">*</span>
+                </Label>
+                <Select 
+                  value={selectedCategoryId} 
+                  onValueChange={handleCategoryChange}
+                >
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allCategories.map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-base">
@@ -281,7 +294,7 @@ export function CreateTopic() {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => navigate(`/categories/${category.slug}`)}
+                onClick={() => navigate(category ? `/categories/${category.slug}` : '/topics')}
                 className="gap-2"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -289,7 +302,7 @@ export function CreateTopic() {
               </Button>
               <Button 
                 type="submit" 
-                disabled={isSubmitting || !title.trim() || !content.trim()}
+                disabled={isSubmitting || !title.trim() || !content.trim() || !selectedCategoryId}
                 className="gap-2"
               >
                 {isSubmitting ? (

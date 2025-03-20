@@ -93,7 +93,7 @@ export function Users() {
   return (
     <div className="container max-w-6xl mx-auto py-6 px-4">
       <PageBreadcrumb items={[
-        { label: 'Users', href: '/users' }
+        { label: 'Users', isCurrentPage: true }
       ]} />
       
       <div className="mb-8">
