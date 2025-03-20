@@ -58,7 +58,7 @@ export function Categories() {
   return (
     <div className="space-y-6">
       <PageBreadcrumb items={[
-        { label: 'Categories', href: '/categories' }
+        { label: 'Categories', isCurrentPage: true }
       ]} />
       
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
