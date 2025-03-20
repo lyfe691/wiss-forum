@@ -321,10 +321,6 @@ export function LatestTopics() {
               {topics.map((topic, index) => (
                 <motion.div key={topic._id} variants={item}>
                   <MotionCard 
-                    whileHover={{ 
-                      y: -2,
-                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025)"
-                    }}
                     className={cn(
                       "border hover:border-primary/20 transition-all duration-200 overflow-hidden",
                       topic.isPinned && "bg-primary/5 border-primary/10"
