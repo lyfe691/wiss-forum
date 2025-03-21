@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
-import { ArrowLeft, Send, FileText, Loader2, ChevronLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Send, FileText, Loader2, ChevronLeft, AlertCircle, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -241,21 +241,30 @@ export function CreateTopic() {
                 <Label htmlFor="category" className="text-base">
                   Category <span className="text-destructive">*</span>
                 </Label>
-                <Select 
-                  value={selectedCategoryId} 
-                  onValueChange={handleCategoryChange}
-                >
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allCategories.map((cat) => (
-                      <SelectItem key={cat._id} value={cat._id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select 
+                    value={selectedCategoryId} 
+                    onValueChange={handleCategoryChange}
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allCategories.map((cat) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <div className="relative flex items-center group">
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    <div className="absolute bottom-full right-0 mb-2 w-64 rounded-md shadow-md bg-popover border p-3 text-xs hidden group-hover:block z-50">
+                      <p>Can't find a suitable category? Please contact an admin or teacher to request a new category.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <div className="space-y-2">
