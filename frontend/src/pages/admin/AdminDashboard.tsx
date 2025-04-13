@@ -313,25 +313,6 @@ export function AdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <FileText className="mr-2 h-4 w-4" />
-            Admin Activity Log
-          </CardTitle>
-          <CardDescription>
-            Recent administrative actions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-muted-foreground py-8">
-            Activity logging will be available in a future update.
-            <br />
-            This will provide an audit trail of all administrative actions.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 } 

@@ -361,7 +361,10 @@ export function Settings() {
                 </p>
                 <Select
                   value={formState.theme}
-                  onValueChange={(value: Theme) => handleThemeChange(value)}
+                  onValueChange={(value: Theme) => {
+                    handleThemeChange(value);
+                    handleSaveAppearance();
+                  }}
                 >
                   <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="Select a theme" />
@@ -372,16 +375,6 @@ export function Settings() {
                     <SelectItem value="steam">Steam</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button 
-                  onClick={handleSaveAppearance}
-                  className="flex items-center gap-2"
-                >
-                  Save Preferences
-                  <Check className="h-4 w-4" />
-                </Button>
               </div>
             </CardContent>
           </Card>
