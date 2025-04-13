@@ -24,9 +24,11 @@ export function MainLayout() {
       </div>
       <div className="flex flex-1 pt-16 pb-0">
         <SideNav />
-        <main className={`flex-1 container mx-auto ${!isMobile ? 'lg:ml-64 lg:px-8 lg:py-8' : 'px-4 py-6'} mb-8`}>
-          <Outlet />
-        </main>
+        <div className="flex-1">
+          <main className="container mx-auto max-w-7xl px-4 py-6 mb-8">
+            <Outlet />
+          </main>
+        </div>
       </div>
       <div className={`mt-auto w-full ${!isMobile ? 'lg:pl-64' : ''}`}>
         <Footer />
