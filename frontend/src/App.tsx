@@ -134,8 +134,24 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
-          
-          <Toaster position='top-center' /> 
+
+          {/*richcolors: to fix white text bug for later*/}
+          <Toaster
+            richColors 
+            expand={false} 
+            duration={5000}
+            toastOptions={{
+              classNames: {
+                toast: "group border border-border",
+                title: "font-medium text-foreground",
+                description: "text-muted-foreground text-sm",
+                actionButton: "bg-primary text-primary-foreground",
+                cancelButton: "bg-muted text-foreground"
+              }
+            }}
+            />
+    
+
         </NotificationProvider>
       </AuthProvider>
     </Router>

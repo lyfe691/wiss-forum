@@ -14,7 +14,10 @@ import {
   HelpCircle,
   FileText,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Bookmark,
+  Bell,
+  LayoutDashboard
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -25,24 +28,31 @@ interface NavItemProps {
   isActive?: boolean;
   isMobile?: boolean;
   onClick?: () => void;
+  badge?: number | string;
 }
 
-const NavItem = ({ icon, label, href, isActive, isMobile, onClick }: NavItemProps) => {
+const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavItemProps) => {
   return (
     <Link to={href} onClick={onClick} className="w-full">
       <Button
         variant="ghost"
         className={cn(
-          "w-full justify-start gap-3 font-normal",
+          "w-full justify-start gap-3 font-normal relative rounded-md",
           isActive 
-            ? "bg-primary/10 text-primary hover:bg-primary/20" 
+            ? "bg-primary/10 text-primary hover:bg-primary/20 font-medium" 
             : "hover:bg-muted",
-          isMobile && "text-base py-6"
+          isMobile ? "text-base py-6" : "py-2.5"
         )}
       >
-        {icon}
-        <span>{label}</span>
-        {isMobile && <ChevronRight className="ml-auto h-4 w-4 opacity-60" />}
+        {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-primary rounded-full" />}
+        <span className={cn("flex items-center justify-center", isActive ? "text-primary" : "text-muted-foreground")}>{icon}</span>
+        <span className={isActive ? "text-primary" : ""}>{label}</span>
+        {badge && (
+          <span className="ml-auto bg-primary/15 text-primary text-xs font-medium rounded-full px-2 py-0.5 min-w-5 text-center">
+            {badge}
+          </span>
+        )}
+        {isMobile && !badge && <ChevronRight className="ml-auto h-4 w-4 opacity-60" />}
       </Button>
     </Link>
   );
@@ -76,18 +86,24 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
       href: "/"
     },
     {
-      icon: <MessageSquare className="h-5 w-5" />,
+      icon: <Bookmark className="h-5 w-5" />,
       label: "Categories",
       href: "/categories"
     },
     {
       icon: <FileText className="h-5 w-5" />,
       label: "Latest Topics",
-      href: "/topics/latest"
+      href: "/topics/latest",
+      badge: "New"
+    },
+    {
+      icon: <MessageSquare className="h-5 w-5" />,
+      label: "Discussions",
+      href: "/topics"
     },
     {
       icon: <Users className="h-5 w-5" />,
-      label: "Users",
+      label: "Community",
       href: "/users"
     }
   ];
@@ -99,6 +115,12 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
       href: "/profile"
     },
     {
+      icon: <Bell className="h-5 w-5" />,
+      label: "Notifications",
+      href: "/notifications",
+      badge: 3
+    },
+    {
       icon: <Settings className="h-5 w-5" />,
       label: "Settings",
       href: "/settings"
@@ -107,20 +129,25 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
   
   const adminNavItems = isAuthenticated && (user?.role === 'admin' || user?.role === 'teacher') ? [
     {
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      label: "Dashboard",
+      href: "/admin"
+    },
+    {
       icon: <Book className="h-5 w-5" />,
-      label: "Manage Categories",
+      label: "Categories",
       href: "/admin/categories"
     },
     ...(user?.role === 'admin' ? [
       {
         icon: <Users className="h-5 w-5" />,
-        label: "Manage Users",
+        label: "Users",
         href: "/admin/users"
       },
       {
         icon: <ShieldCheck className="h-5 w-5" />,
-        label: "Admin Dashboard",
-        href: "/admin"
+        label: "Moderation",
+        href: "/admin/moderation"
       }
     ] : [])
   ] : [];
@@ -163,6 +190,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
           isActive={isActive}
           isMobile={isMobileSidebar}
           onClick={handleItemClick}
+          badge={item.badge}
         />
       );
     });
@@ -172,42 +200,42 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     <div className="h-full flex flex-col">
       <ScrollArea className="flex-1 py-4">
         <div className="px-3 space-y-1">
-          <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
-            Navigation
-          </h3>
+          <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            Main
+          </div>
           {renderNavItems(navItems)}
         </div>
         
         {(userNavItems.length > 0 || adminNavItems.length > 0) && (
           <>
-            <Separator className="my-4" />
+            <Separator className="my-4 opacity-50" />
             
             {userNavItems.length > 0 && (
               <div className="px-3 space-y-1">
-                <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
-                  User
-                </h3>
+                <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Account
+                </div>
                 {renderNavItems(userNavItems)}
               </div>
             )}
             
             {adminNavItems.length > 0 && (
               <div className="px-3 space-y-1 mt-4">
-                <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
+                <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   Administration
-                </h3>
+                </div>
                 {renderNavItems(adminNavItems)}
               </div>
             )}
           </>
         )}
         
-        <Separator className="my-4" />
+        <Separator className="my-4 opacity-50" />
         
         <div className="px-3 space-y-1">
-          <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
+          <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Support
-          </h3>
+          </div>
           {renderNavItems(helpNavItems)}
         </div>
       </ScrollArea>
@@ -223,7 +251,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     <>
       {/* Desktop Sidebar */}
       {!isMobile && (
-        <aside className="hidden lg:block w-64 shrink-0 border-r fixed top-16 bottom-0 overflow-hidden z-40">
+        <aside className="hidden lg:block w-64 shrink-0 border-r fixed top-16 bottom-0 overflow-hidden z-40 bg-background/95 backdrop-blur-sm">
           {sidebarContent}
         </aside>
       )}
