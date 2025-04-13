@@ -283,8 +283,70 @@ export function Profile() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-48">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="container mx-auto py-8 max-w-5xl">
+        <div className="flex flex-col md:flex-row md:items-start gap-8">
+          {/* Profile Header Skeleton */}
+          <div className="w-full md:w-1/3">
+            <Card className="mb-6">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <Skeleton className="h-24 w-24 rounded-full mb-4" />
+                <Skeleton className="h-8 w-48 mb-2" />
+                <Skeleton className="h-4 w-32 mb-3" />
+                <Skeleton className="h-6 w-24" />
+                
+                <Separator className="my-4" />
+                
+                <div className="w-full space-y-3 text-left">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Security Section Skeleton */}
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32 mb-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Main Content Skeleton */}
+          <div className="w-full md:w-2/3">
+            <Skeleton className="h-10 w-48 mb-4" />
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-72" />
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-32 w-full" />
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <Skeleton className="h-10 w-32" />
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
       </div>
     );
   }
