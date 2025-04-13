@@ -32,6 +32,29 @@ interface NavItemProps {
 }
 
 const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavItemProps) => {
+  if (isMobile) {
+    return (
+      <Link to={href} onClick={onClick} className="w-full">
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start",
+            isActive ? "text-primary font-medium" : ""
+          )}
+        >
+          <span className="flex items-center justify-center mr-3">{icon}</span>
+          <span>{label}</span>
+          {badge && (
+            <span className="ml-auto bg-primary/15 text-primary text-xs font-medium rounded-full px-2 py-0.5 min-w-5 text-center">
+              {badge}
+            </span>
+          )}
+          <ChevronRight className="ml-auto h-4 w-4 opacity-60" />
+        </Button>
+      </Link>
+    );
+  }
+
   return (
     <Link to={href} onClick={onClick} className="w-full">
       <Button
@@ -40,8 +63,7 @@ const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavI
           "w-full justify-start gap-3 font-normal relative rounded-md",
           isActive 
             ? "bg-primary/10 text-primary hover:bg-primary/20 font-medium" 
-            : "hover:bg-muted",
-          isMobile ? "text-base py-6" : "py-2.5"
+            : "hover:bg-muted"
         )}
       >
         {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-primary rounded-full" />}
@@ -52,7 +74,6 @@ const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavI
             {badge}
           </span>
         )}
-        {isMobile && !badge && <ChevronRight className="ml-auto h-4 w-4 opacity-60" />}
       </Button>
     </Link>
   );
@@ -93,13 +114,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     {
       icon: <FileText className="h-5 w-5" />,
       label: "Latest Topics",
-      href: "/topics/latest",
-      badge: "New"
-    },
-    {
-      icon: <MessageSquare className="h-5 w-5" />,
-      label: "Discussions",
-      href: "/topics"
+      href: "/topics/latest"
     },
     {
       icon: <Users className="h-5 w-5" />,
@@ -117,8 +132,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     {
       icon: <Bell className="h-5 w-5" />,
       label: "Notifications",
-      href: "/notifications",
-      badge: 3
+      href: "/notifications"
     },
     {
       icon: <Settings className="h-5 w-5" />,
@@ -200,9 +214,15 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     <div className="h-full flex flex-col">
       <ScrollArea className="flex-1 py-4">
         <div className="px-3 space-y-1">
-          <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Main
-          </div>
+          {isMobileSidebar ? (
+            <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
+              Navigation
+            </h3>
+          ) : (
+            <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              Main
+            </div>
+          )}
           {renderNavItems(navItems)}
         </div>
         
@@ -212,18 +232,30 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
             
             {userNavItems.length > 0 && (
               <div className="px-3 space-y-1">
-                <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Account
-                </div>
+                {isMobileSidebar ? (
+                  <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
+                    Account
+                  </h3>
+                ) : (
+                  <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                    Account
+                  </div>
+                )}
                 {renderNavItems(userNavItems)}
               </div>
             )}
             
             {adminNavItems.length > 0 && (
               <div className="px-3 space-y-1 mt-4">
-                <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Administration
-                </div>
+                {isMobileSidebar ? (
+                  <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
+                    Administration
+                  </h3>
+                ) : (
+                  <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                    Administration
+                  </div>
+                )}
                 {renderNavItems(adminNavItems)}
               </div>
             )}
@@ -233,9 +265,15 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
         <Separator className="my-4 opacity-50" />
         
         <div className="px-3 space-y-1">
-          <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Support
-          </div>
+          {isMobileSidebar ? (
+            <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
+              Support
+            </h3>
+          ) : (
+            <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              Support
+            </div>
+          )}
           {renderNavItems(helpNavItems)}
         </div>
       </ScrollArea>

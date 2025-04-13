@@ -85,16 +85,10 @@ export function Navbar() {
                 <Button variant="ghost" size="icon" className="lg:hidden relative text-foreground">
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
-                  {isAuthenticated && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                    </span>
-                  )}
                 </Button>
               </SheetTrigger>
               
-              <SheetContent side="left" className="p-0 w-[300px]" hideCloseButton>
+              <SheetContent side="left" className="p-0 w-[280px]" hideCloseButton>
                 <div className="flex flex-col h-full">
                   <div className="p-4 border-b flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
@@ -114,7 +108,7 @@ export function Navbar() {
                   {/* Use mobile version of SideNav */}
                   <div className="flex-1 overflow-y-auto">
                     {isAuthenticated && (
-                      <div className="px-4 py-4 border-b border-border">
+                      <div className="px-4 py-3 border-b border-border">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10 border border-primary/20">
                             <AvatarImage src={user?.avatar} alt={user?.displayName} />
@@ -131,30 +125,6 @@ export function Navbar() {
                             </div>
                           </div>
                         </div>
-                        
-                        {/* Quick actions */}
-                        <div className="grid grid-cols-2 gap-2 mt-4">
-                          <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                            <Link to="/profile" onClick={closeMobileMenu}>
-                              <User className="mr-2 h-4 w-4" />
-                              Profile
-                            </Link>
-                          </Button>
-                          <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                            <Link to="/notifications" onClick={closeMobileMenu}>
-                              <Bell className="mr-2 h-4 w-4" />
-                              Notifications
-                            </Link>
-                          </Button>
-                        </div>
-                        
-                        {/* Create post button */}
-                        <Button className="w-full mt-3" size="sm" asChild>
-                          <Link to="/create-topic" onClick={closeMobileMenu}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Create Post
-                          </Link>
-                        </Button>
                       </div>
                     )}
                     
@@ -300,20 +270,6 @@ export function Navbar() {
             )}
           </div>
         </div>
-      </div>
-      
-      {/* Mobile search - only visible on small screens */}
-      <div className="lg:hidden px-4 pb-3">
-        <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="pl-10 pr-4 w-full bg-muted/40 border-muted"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-          />
-        </form>
       </div>
     </header>
   );
