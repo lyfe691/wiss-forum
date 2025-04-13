@@ -39,7 +39,7 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface UserProfile {
   _id: string;
@@ -304,11 +304,7 @@ export function Profile() {
 
   return (
     <div className="container mx-auto py-8 max-w-5xl">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div>
         <div className="flex flex-col md:flex-row md:items-start gap-8">
           {/* Profile Header */}
           <div className="w-full md:w-1/3">
@@ -567,7 +563,7 @@ export function Profile() {
             </Tabs>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 } 

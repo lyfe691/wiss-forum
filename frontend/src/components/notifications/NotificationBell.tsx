@@ -10,7 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Link } from 'react-router-dom';
 import { NotificationItem } from './NotificationItem';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export function NotificationBell() {
   const { 
@@ -53,18 +52,11 @@ export function NotificationBell() {
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
-          <AnimatePresence>
-            {unreadCount > 0 && (
-              <motion.span
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.5, opacity: 0 }}
-                className="absolute -top-1 -right-1 flex items-center justify-center min-w-[1.25rem] h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shadow-sm"
-              >
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </motion.span>
-            )}
-          </AnimatePresence>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[1.25rem] h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shadow-sm">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0 shadow-lg rounded-xl border overflow-hidden" align="end">

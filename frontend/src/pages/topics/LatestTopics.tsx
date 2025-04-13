@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Pagination } from '@/components/ui/pagination';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { 
@@ -75,51 +74,6 @@ interface Topic {
   author?: Author;
   category?: Category;
 }
-
-const MotionCard = React.forwardRef<
-  HTMLDivElement, 
-  React.ComponentPropsWithoutRef<typeof Card> & { 
-    initial?: any; 
-    animate?: any; 
-    exit?: any;
-    variants?: any;
-    transition?: any;
-    whileHover?: any; 
-  }
->((props, ref) => {
-  // Extract motion props from the rest of the props
-  const { initial, animate, exit, variants, transition, whileHover, ...cardProps } = props;
-  
-  return (
-    <motion.div
-      ref={ref}
-      initial={initial}
-      animate={animate}
-      exit={exit}
-      variants={variants}
-      transition={transition}
-      whileHover={whileHover}
-    >
-      <Card {...cardProps} />
-    </motion.div>
-  );
-});
-MotionCard.displayName = "MotionCard";
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-};
 
 export function LatestTopics() {
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -279,201 +233,176 @@ export function LatestTopics() {
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <motion.div 
-            className="space-y-4"
-            variants={container}
-            initial="hidden"
-            animate="show"
-            key="loading"
-          >
-            {[...Array(5)].map((_, index) => (
-              <motion.div key={index} variants={item}>
-                <MotionCard className="border shadow-sm">
-                  <CardHeader className="pb-2">
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/4" />
-                  </CardHeader>
-                  <CardContent className="pb-3">
-                    <Skeleton className="h-4 w-full mb-3" />
-                    <Skeleton className="h-4 w-full" />
-                  </CardContent>
-                  <CardFooter>
-                    <Skeleton className="h-4 w-1/3" />
-                  </CardFooter>
-                </MotionCard>
-              </motion.div>
-            ))}
-          </motion.div>
-        ) : topics.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            key="empty"
-          >
-            <MotionCard className="border shadow-sm text-center p-8 bg-muted/20">
-              <div className="flex flex-col items-center justify-center py-8">
-                <MessageSquare className="h-16 w-16 text-muted-foreground/40 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No topics found</h3>
-                <p className="text-muted-foreground mb-6 max-w-md">Be the first to start a discussion in our community!</p>
-                <Link to="/create-topic">
-                  <Button className="gap-2">
-                    <PlusCircle className="h-4 w-4" />
-                    <span>Create New Topic</span>
-                  </Button>
-                </Link>
-              </div>
-            </MotionCard>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <motion.div 
-              className="space-y-4"
-              variants={container}
-              initial="hidden"
-              animate="show"
-            >
-              {topics.map((topic, index) => (
-                <motion.div key={topic._id} variants={item}>
-                  <MotionCard 
-                    className={cn(
-                      "border hover:border-primary/20 transition-all duration-200 overflow-hidden",
-                      topic.isPinned && "bg-primary/5 border-primary/10"
-                    )}
-                  >
-                    <CardHeader className="pb-3 pt-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start gap-2">
-                            {topic.isPinned && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Pin className="h-4 w-4 text-primary shrink-0 mt-1" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Pinned topic</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            {topic.isLocked && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Lock className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Locked topic</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            <CardTitle className="text-lg hover:text-primary transition-colors">
-                              <Link to={`/topics/${topic.slug}`} className="hover:underline">
-                                {topic.title}
-                              </Link>
-                            </CardTitle>
-                          </div>
-                          
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
-                            {topic.category && (
-                              <Link to={`/categories/${topic.category.slug}`} className="hover:opacity-80 transition-opacity">
-                                <Badge variant="secondary" className="px-2 py-0">
-                                  {topic.category.name}
-                                </Badge>
-                              </Link>
-                            )}
-                            
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
-                              {formatDistanceToNow(new Date(topic.createdAt), { addSuffix: true })}
-                            </div>
-                            
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <Eye className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
-                              {topic.viewCount} {topic.viewCount === 1 ? 'view' : 'views'}
-                            </div>
-
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <MessageSquare className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
-                              {topic.replyCount || 0} {(topic.replyCount || 0) === 1 ? 'reply' : 'replies'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="pb-3">
-                      <CardDescription className="line-clamp-2 text-sm">
-                        {topic.content.replace(/<[^>]*>?/gm, '')}
-                      </CardDescription>
-                      
-                      {topic.tags && topic.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          <Tag className="h-3.5 w-3.5 text-muted-foreground/70" />
-                          {topic.tags.map((tag, index) => (
-                            <Badge key={index} variant="outline" className="bg-muted/30 border-muted/50 text-xs px-1.5 py-0 hover:bg-muted/50">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                    
-                    <CardFooter className="pt-0 pb-4 border-t border-border/50 mt-2 pt-3">
-                      <div className="flex justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          {topic.author?.avatar ? (
-                            <Avatar className="h-6 w-6 border border-border">
-                              <AvatarImage src={topic.author.avatar} alt={topic.author.displayName || topic.author.username} />
-                              <AvatarFallback className="text-xs">
-                                {getInitials(topic.author.displayName || topic.author.username)}
-                              </AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            <User className="h-5 w-5 text-muted-foreground/70 mr-0.5" />
+      {isLoading ? (
+        <div className="space-y-4">
+          {[...Array(5)].map((_, index) => (
+            <div key={index}>
+              <Card className="border shadow-sm">
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/4" />
+                </CardHeader>
+                <CardContent className="pb-3">
+                  <Skeleton className="h-4 w-full mb-3" />
+                  <Skeleton className="h-4 w-full" />
+                </CardContent>
+                <CardFooter>
+                  <Skeleton className="h-4 w-1/3" />
+                </CardFooter>
+              </Card>
+            </div>
+          ))}
+        </div>
+      ) : topics.length === 0 ? (
+        <div>
+          <Card className="border shadow-sm text-center p-8 bg-muted/20">
+            <div className="flex flex-col items-center justify-center py-8">
+              <MessageSquare className="h-16 w-16 text-muted-foreground/40 mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No topics found</h3>
+              <p className="text-muted-foreground mb-6 max-w-md">Be the first to start a discussion in our community!</p>
+              <Link to="/create-topic">
+                <Button className="gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  <span>Create New Topic</span>
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
+      ) : (
+        <div>
+          <div className="space-y-4">
+            {topics.map((topic) => (
+              <div key={topic._id}>
+                <Card 
+                  className={cn(
+                    "border hover:border-primary/20 transition-all duration-200 overflow-hidden",
+                    topic.isPinned && "bg-primary/5 border-primary/10"
+                  )}
+                >
+                  <CardHeader className="pb-3 pt-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2">
+                          {topic.isPinned && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Pin className="h-4 w-4 text-primary shrink-0 mt-1" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Pinned topic</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           )}
-                          <span className="text-sm text-muted-foreground">
-                            {topic.author ? topic.author.displayName || topic.author.username : 'Unknown user'}
-                          </span>
+                          {topic.isLocked && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Lock className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Locked topic</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                          <CardTitle className="text-lg hover:text-primary transition-colors">
+                            <Link to={`/topics/${topic.slug}`} className="hover:underline">
+                              {topic.title}
+                            </Link>
+                          </CardTitle>
                         </div>
                         
-                        <Link to={`/topics/${topic.slug}`}>
-                          <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary">
-                            View Topic
-                            <ArrowRight className="h-3.5 w-3.5" />
-                          </Button>
-                        </Link>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                          {topic.category && (
+                            <Link to={`/categories/${topic.category.slug}`} className="hover:opacity-80 transition-opacity">
+                              <Badge variant="secondary" className="px-2 py-0">
+                                {topic.category.name}
+                              </Badge>
+                            </Link>
+                          )}
+                          
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
+                            {formatDistanceToNow(new Date(topic.createdAt), { addSuffix: true })}
+                          </div>
+                          
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Eye className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
+                            {topic.viewCount} {topic.viewCount === 1 ? 'view' : 'views'}
+                          </div>
+
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <MessageSquare className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
+                            {topic.replyCount || 0} {(topic.replyCount || 0) === 1 ? 'reply' : 'replies'}
+                          </div>
+                        </div>
                       </div>
-                    </CardFooter>
-                  </MotionCard>
-                </motion.div>
-              ))}
-            </motion.div>
-            
-            {pagination.totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
-                <PaginationControls
-                  currentPage={pagination.currentPage}
-                  totalPages={pagination.totalPages}
-                  onPageChange={handlePageChange}
-                  maxVisible={5}
-                />
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="pb-3">
+                    <CardDescription className="line-clamp-2 text-sm">
+                      {topic.content.replace(/<[^>]*>?/gm, '')}
+                    </CardDescription>
+                    
+                    {topic.tags && topic.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        <Tag className="h-3.5 w-3.5 text-muted-foreground/70" />
+                        {topic.tags.map((tag, index) => (
+                          <Badge key={index} variant="outline" className="bg-muted/30 border-muted/50 text-xs px-1.5 py-0 hover:bg-muted/50">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                  
+                  <CardFooter className="pt-0 pb-4 border-t border-border/50 mt-2 pt-3">
+                    <div className="flex justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        {topic.author?.avatar ? (
+                          <Avatar className="h-6 w-6 border border-border">
+                            <AvatarImage src={topic.author.avatar} alt={topic.author.displayName || topic.author.username} />
+                            <AvatarFallback className="text-xs">
+                              {getInitials(topic.author.displayName || topic.author.username)}
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <User className="h-5 w-5 text-muted-foreground/70 mr-0.5" />
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {topic.author ? topic.author.displayName || topic.author.username : 'Unknown user'}
+                        </span>
+                      </div>
+                      
+                      <Link to={`/topics/${topic.slug}`}>
+                        <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary">
+                          View Topic
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardFooter>
+                </Card>
               </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            ))}
+          </div>
+          
+          {pagination.totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <PaginationControls
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+                maxVisible={5}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 } 

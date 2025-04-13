@@ -9,7 +9,6 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -77,37 +76,12 @@ export function Home() {
     fetchData();
   }, []);
 
-  // Animation variants for staggered children
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring", stiffness: 100 }
-    }
-  };
-
   return (
     <div className="space-y-8 mx-auto px-0 sm:px-2 py-4">
       {/* Home page doesn't need breadcrumbs */}
       
       {/* Hero Section */}
-      <motion.section 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative overflow-hidden bg-gradient-to-r from-primary/90 via-primary to-primary/80 dark:from-primary/30 dark:via-primary/25 dark:to-primary/20 rounded-2xl p-8 md:p-12 text-white shadow-xl"
-      >
+      <section className="relative overflow-hidden bg-gradient-to-r from-primary/90 via-primary to-primary/80 dark:from-primary/30 dark:via-primary/25 dark:to-primary/20 rounded-2xl p-8 md:p-12 text-white shadow-xl">
         <div className="absolute inset-0 bg-grid-white/10 dark:bg-grid-white/5 bg-grid-8" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/90 dark:to-primary/40" />
         <div className="relative max-w-3xl mx-auto text-center">
@@ -146,16 +120,11 @@ export function Home() {
             )}
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Stats Cards */}
-      <motion.section 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
-      >
-        <motion.div variants={itemVariants}>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
           <Card className="border-none shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background/80">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Categories</CardTitle>
@@ -174,9 +143,9 @@ export function Home() {
               </p>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
         
-        <motion.div variants={itemVariants}>
+        <div>
           <Card className="border-none shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background/80">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Community Members</CardTitle>
@@ -195,9 +164,9 @@ export function Home() {
               </p>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
         
-        <motion.div variants={itemVariants}>
+        <div>
           <Card className="border-none shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background/80">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Topics Created</CardTitle>
@@ -216,8 +185,8 @@ export function Home() {
               </p>
             </CardContent>
           </Card>
-        </motion.div>
-      </motion.section>
+        </div>
+      </section>
 
       {/* Featured Categories */}
       <section>
@@ -252,14 +221,9 @@ export function Home() {
             ))}
           </div>
         ) : (
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.slice(0, 6).map((category) => (
-              <motion.div key={category._id} variants={itemVariants}>
+              <div key={category._id}>
                 <Card className="h-full flex flex-col border hover:border-primary/50 hover:shadow-md transition-all duration-300 overflow-hidden">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center">
@@ -300,20 +264,15 @@ export function Home() {
                     </Link>
                   </CardFooter>
                 </Card>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
       </section>
 
       {/* Call to Action */}
       {!isAuthenticated && (
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="relative bg-gradient-to-r from-muted/80 via-muted to-muted/90 p-8 md:p-12 text-center rounded-xl overflow-hidden shadow-sm"
-        >
+        <section className="relative bg-gradient-to-r from-muted/80 via-muted to-muted/90 p-8 md:p-12 text-center rounded-xl overflow-hidden shadow-sm">
           <div className="absolute inset-0 bg-grid-black/[0.2] bg-grid-8" />
           <div className="relative">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Join our Academic Community Today</h2>
@@ -331,7 +290,7 @@ export function Home() {
               </Button>
             </Link>
           </div>
-        </motion.section>
+        </section>
       )}
     </div>
   );

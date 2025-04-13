@@ -8,7 +8,6 @@ import { PaginationControls } from '@/components/PaginationControls';
 import { NotificationItem } from '@/components/notifications/NotificationItem';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -21,11 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
+
 
 export function Notifications() {
   const { user } = useAuth();
@@ -75,9 +70,6 @@ export function Notifications() {
       setIsMarking(false);
     }
   };
-
-  // Don't use motion(Card) directly as it causes ref forwarding issues
-  // const MotionCard = motion(Card);
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -182,12 +174,7 @@ export function Notifications() {
         </div>
 
         <TabsContent value="all" className="mt-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="border rounded-lg shadow-sm overflow-hidden"
-          >
+          <div className="border rounded-lg shadow-sm overflow-hidden">
             <Card>
               {loading ? (
                 <div className="flex justify-center items-center p-12">
@@ -215,7 +202,7 @@ export function Notifications() {
                 </div>
               )}
             </Card>
-          </motion.div>
+          </div>
           
           {totalPages > 1 && (
             <div className="mt-8 flex justify-center">
@@ -229,12 +216,7 @@ export function Notifications() {
         </TabsContent>
 
         <TabsContent value="unread" className="mt-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="border rounded-lg shadow-sm overflow-hidden"
-          >
+          <div className="border rounded-lg shadow-sm overflow-hidden">
             <Card>
               {loading ? (
                 <div className="flex justify-center items-center p-12">
@@ -264,7 +246,7 @@ export function Notifications() {
                 </div>
               )}
             </Card>
-          </motion.div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

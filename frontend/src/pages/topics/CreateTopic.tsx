@@ -11,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
 import { ArrowLeft, Send, FileText, Loader2, ChevronLeft, AlertCircle, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Category {
@@ -25,9 +24,6 @@ interface Category {
     slug: string;
   };
 }
-
-// Don't use motion(Card) directly as it causes ref forwarding issues
-// const MotionCard = motion(Card);
 
 export function CreateTopic() {
   const { slug } = useParams<{ slug: string }>();
@@ -164,11 +160,7 @@ export function CreateTopic() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8">
         <Skeleton className="h-8 w-64 mb-4" />
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="border rounded-lg shadow-sm"
-        >
+        <div className="border rounded-lg shadow-sm">
           <div className="p-6 pb-2">
             <Skeleton className="h-7 w-full max-w-md mb-2" />
             <Skeleton className="h-4 w-full max-w-sm" />
@@ -186,7 +178,7 @@ export function CreateTopic() {
           <div className="p-6">
             <Skeleton className="h-10 w-24" />
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -231,12 +223,7 @@ export function CreateTopic() {
         Create New Topic
       </h1>
       
-      <motion.div 
-        className="border rounded-lg shadow-sm mb-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <div className="border rounded-lg shadow-sm mb-8">
         <Card>
           <CardHeader>
             <CardTitle>Create a New Topic</CardTitle>
@@ -355,7 +342,7 @@ export function CreateTopic() {
             </CardFooter>
           </form>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 } 
