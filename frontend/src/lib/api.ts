@@ -225,6 +225,14 @@ export const topicsAPI = {
         throw new Error('Invalid topic data received from server');
       }
       
+      // Increment the view count by calling the backend
+      try {
+        await api.post(`/topics/${topicData._id}/view`);
+      } catch (viewError) {
+        console.warn('Failed to increment view count:', viewError);
+        // Continue anyway even if view count update fails
+      }
+      
       return topicData;
     } catch (error) {
       console.error(`Error fetching topic ${idOrSlug}:`, error);

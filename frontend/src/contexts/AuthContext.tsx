@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
-import { authAPI, userAPI } from '@/lib/api';
+import { authAPI } from '@/lib/api';
 
 interface User {
   _id: string;

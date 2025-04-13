@@ -10,6 +10,7 @@ export interface Topic {
   isPinned: boolean;
   isLocked: boolean;
   viewCount: number;
+  replyCount: number; // Count of replies
   lastPostId?: ObjectId; // Reference to latest Post
   lastPostAt?: Date;
   tags?: string[];

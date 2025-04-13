@@ -74,7 +74,8 @@ export async function createPost(req: AuthRequest, res: Response) {
       $set: { 
         lastPostId: result.insertedId,
         lastPostAt: new Date() 
-      } 
+      },
+      $inc: { replyCount: 1 }
     }
   );
   
@@ -352,6 +353,12 @@ export async function deletePost(req: AuthRequest, res: Response) {
   if (!result?.deletedCount) {
     return res.status(500).json({ message: 'Failed to delete post' });
   }
+  
+  // Decrement the topic's replyCount
+  await collections.topics?.updateOne(
+    { _id: post.topicId },
+    { $inc: { replyCount: -1 } }
+  );
   
   // Update the topic's lastPostId if necessary
   if (topic?.lastPostId?.toString() === id) {

@@ -172,11 +172,9 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     <div className="h-full flex flex-col">
       <ScrollArea className="flex-1 py-4">
         <div className="px-3 space-y-1">
-          {isMobileSidebar && (
-            <h3 className="px-4 text-xs font-semibold text-muted-foreground mb-2">
-              Navigation
-            </h3>
-          )}
+          <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
+            Navigation
+          </h3>
           {renderNavItems(navItems)}
         </div>
         

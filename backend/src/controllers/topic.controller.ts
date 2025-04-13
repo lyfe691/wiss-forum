@@ -36,6 +36,7 @@ export async function createTopic(req: AuthRequest, res: Response) {
     authorId,
     tags: tags || [],
     viewCount: 0,
+    replyCount: 0,
     isLocked: false,
     isPinned: false,
     createdAt: new Date(),
@@ -440,6 +441,7 @@ export async function bootstrapCreateTopic(req: Request, res: Response) {
     authorId: new ObjectId(userId),
     tags: tags || [],
     viewCount: 0,
+    replyCount: 0,
     isLocked: false,
     isPinned: false,
     createdAt: new Date(),
@@ -528,4 +530,31 @@ export async function bootstrapDeleteTopic(req: Request, res: Response) {
     success: true,
     message: 'Topic deleted successfully'
   });
+}
+
+// Increment topic view count
+export async function incrementViewCount(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    
+    // Validate ID
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid topic ID' });
+    }
+    
+    // Update the topic
+    const result = await collections.topics?.updateOne(
+      { _id: new ObjectId(id) },
+      { $inc: { viewCount: 1 } }
+    );
+    
+    if (!result?.matchedCount) {
+      return res.status(404).json({ message: 'Topic not found' });
+    }
+    
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error incrementing view count:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 } 
