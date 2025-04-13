@@ -135,7 +135,7 @@ function App() {
             </Route>
           </Routes>
           
-          <Toaster />
+          <Toaster position='top-center' /> 
         </NotificationProvider>
       </AuthProvider>
     </Router>

@@ -29,7 +29,6 @@ import { Badge } from '@/components/ui/badge';
 import { 
   User, 
   Mail, 
-  Edit2, 
   Clock, 
   Calendar, 
   Shield, 
