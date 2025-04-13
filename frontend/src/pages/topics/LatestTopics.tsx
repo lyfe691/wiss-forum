@@ -33,7 +33,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PaginationControls } from '@/components/PaginationControls';
-import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator
+} from '@/components/ui/breadcrumb';
 import React from 'react';
 
 interface Author {
@@ -182,9 +189,26 @@ export function LatestTopics() {
 
   return (
     <div className="container max-w-5xl mx-auto py-8 px-4">
-      <PageBreadcrumb items={[
-        { label: 'Latest Topics', isCurrentPage: true }
-      ]} />
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link 
+                to="/" 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Home
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink className="font-medium text-foreground">
+              Latest Topics
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>

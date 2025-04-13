@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 interface Category {
   _id: string;
@@ -340,14 +340,52 @@ export function CategoryDetail() {
       ) : (
         <div className="space-y-6">
           {/* Breadcrumb */}
-          <PageBreadcrumb
-            items={[
-              { label: 'Home', href: '/' },
-              { label: 'Categories', href: '/categories' },
-              ...(category.parent ? [{ label: category.parent.name, href: `/categories/${category.parent.slug}` }] : []),
-              { label: category.name, href: `/categories/${category.slug}` },
-            ]}
-          />
+          <Breadcrumb className="mb-6">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link 
+                    to="/" 
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Home
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link 
+                    to="/categories" 
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Categories
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              {category.parent && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link 
+                        to={`/categories/${category.parent.slug}`} 
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {category.parent.name}
+                      </Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </>
+              )}
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink className="font-medium text-foreground">
+                  {category.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           
           {/* Category Header */}
           <div>

@@ -13,7 +13,6 @@ import { ArrowLeft, Send, FileText, Loader2, ChevronLeft, AlertCircle, Info } fr
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
 
 interface Category {
   _id: string;
@@ -195,10 +194,37 @@ export function CreateTopic() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <PageBreadcrumb items={[
-        { label: 'Latest Topics', href: '/topics/latest' },
-        { label: 'New Topic', href: '/create-topic' }
-      ]} />
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link 
+                to="/" 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Home
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link 
+                to="/topics/latest" 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Latest Topics
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink className="font-medium text-foreground">
+              New Topic
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       
       <h1 className="text-3xl font-bold tracking-tight mb-6 flex items-center gap-2">
         <FileText className="h-7 w-7 text-primary" />

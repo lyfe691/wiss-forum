@@ -12,7 +12,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PaginationControls } from '@/components/PaginationControls';
-import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator
+} from '@/components/ui/breadcrumb';
 
 interface User {
   _id: string;
@@ -92,9 +98,26 @@ export function Users() {
 
   return (
     <div className="container max-w-6xl mx-auto py-6 px-4">
-      <PageBreadcrumb items={[
-        { label: 'Users', isCurrentPage: true }
-      ]} />
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link 
+                to="/" 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Home
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink className="font-medium text-foreground">
+              Users
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Community Members</h1>

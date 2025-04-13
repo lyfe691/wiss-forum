@@ -10,7 +10,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { PageBreadcrumb } from '@/components/common/PageBreadcrumb';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList
+} from '@/components/ui/breadcrumb';
 
 interface Category {
   _id: string;
@@ -94,8 +99,7 @@ export function Home() {
 
   return (
     <div className="space-y-8 mx-auto px-0 sm:px-2 py-4">
-      {/* Breadcrumb */}
-      <PageBreadcrumb items={[]} />
+      {/* Home page doesn't need breadcrumbs */}
       
       {/* Hero Section */}
       <motion.section 
