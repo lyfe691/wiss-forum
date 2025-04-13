@@ -35,16 +35,18 @@ import {
 import { 
   AlertCircle, 
   ArrowLeft, 
-  Edit, 
-  Heart, 
-  MessageSquare, 
-  MoreVertical, 
-  Reply, 
-  Trash, 
-  User,
+  Bell,
+  Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Heart,
+  MessageSquare,
+  MoreVertical,
+  Reply,
   Send,
+  Trash,
+  User,
   Lock,
   Pin,
   CalendarDays,
@@ -427,16 +429,6 @@ export function TopicDetail() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        className="flex items-center cursor-pointer"
-                        onClick={() => {
-                          console.log('Edit reply:', reply._id);
-                        }}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
                         className="flex items-center text-destructive cursor-pointer hover:bg-destructive/10"
                         onClick={() => {
                           setPostToDelete(reply._id);
@@ -772,16 +764,6 @@ export function TopicDetail() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          className="flex items-center cursor-pointer"
-                          onClick={() => {
-                            console.log('Edit post:', post._id);
-                          }}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="flex items-center text-destructive cursor-pointer hover:bg-destructive/10"
                           onClick={() => {

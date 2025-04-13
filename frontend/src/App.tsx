@@ -26,6 +26,7 @@ import { UserManagement } from '@/pages/admin/UserManagement';
 import { CategoryManagement } from '@/pages/admin/CategoryManagement';
 import NotFound from '@/pages/NotFound';
 import { Notifications } from '@/pages/Notifications';
+import { Help } from '@/pages/Help';
 
 function App() {
   // Initialize theme only once when the app loads
@@ -53,6 +54,7 @@ function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/users/:idOrUsername" element={<UserProfile />} />
               <Route path="/admin-tool" element={<AdminTool />} />
+              <Route path="/help" element={<Help />} />
               
               {/* Protected Routes */}
               <Route 
