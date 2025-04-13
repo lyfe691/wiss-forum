@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI } from '@/lib/api';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,7 +70,6 @@ interface PasswordFormData {
 export function Profile() {
   const { user, checkAuth } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,18 +115,14 @@ export function Profile() {
         });
       } catch (error) {
         console.error('Failed to fetch profile:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load your profile. Please try again.",
-        });
+        toast.error("Failed to load your profile. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchProfile();
-  }, [user, navigate, toast]);
+  }, [user, navigate]);
 
   // Handle profile form changes
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -189,17 +184,10 @@ export function Profile() {
       // Update auth context
       await checkAuth();
       
-      toast({
-        title: "Success",
-        description: message || "Profile updated successfully",
-      });
+      toast.success(message || "Profile updated successfully");
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to update profile';
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: message,
-      });
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -258,10 +246,7 @@ export function Profile() {
         newPassword: passwordForm.newPassword
       });
       
-      toast({
-        title: "Success",
-        description: message || "Password changed successfully",
-      });
+      toast.success(message || "Password changed successfully");
       
       // Reset form and close dialog
       setPasswordForm({
@@ -272,11 +257,7 @@ export function Profile() {
       setPasswordDialogOpen(false);
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to change password';
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: message,
-      });
+      toast.error(message);
     } finally {
       setIsChangingPassword(false);
     }

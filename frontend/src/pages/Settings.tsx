@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { 
   AlertCircle, 
   Check, 
@@ -43,7 +43,6 @@ import { Theme, themes } from '@/lib/theme';
 export function Settings() {
   const { user, refreshUser, logout } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState('account');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,10 +87,8 @@ export function Settings() {
       
       // Check if any field was actually changed
       if (Object.values(updateData).every(val => val === undefined)) {
-        toast({
-          title: "No changes detected",
-          description: "Make some changes before updating your profile.",
-          variant: "default"
+        toast("No changes detected", {
+          description: "Make some changes before updating your profile."
         });
         setIsSubmitting(false);
         return;
@@ -99,10 +96,8 @@ export function Settings() {
       
       const response = await userAPI.updateUserProfile(updateData);
       
-      toast({
-        title: "Profile updated",
-        description: "Your profile information has been updated.",
-        variant: "default"
+      toast("Profile updated", {
+        description: "Your profile information has been updated."
       });
       
       // Update user state in auth context
@@ -156,10 +151,8 @@ export function Settings() {
       
       const response = await userAPI.changePassword(data);
       
-      toast({
-        title: "Password changed",
-        description: "Your password has been changed successfully. Please log in again.",
-        variant: "default"
+      toast("Password changed", {
+        description: "Your password has been changed successfully. Please log in again."
       });
       
       // Clear password fields
@@ -186,10 +179,8 @@ export function Settings() {
 
   // Handle appearance settings
   const handleSaveAppearance = () => {
-    toast({
-      title: "Appearance settings saved",
-      description: "Your appearance preferences have been updated.",
-      variant: "default"
+    toast("Appearance settings saved", {
+      description: "Your appearance preferences have been updated."
     });
   };
 

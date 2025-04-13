@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { authAPI } from '@/lib/api';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
+import { authAPI, userAPI } from '@/lib/api';
 
 interface User {
   _id: string;
@@ -29,7 +29,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { toast } = useToast();
 
   // Parse the stored user data on mount and check with server
   useEffect(() => {
@@ -122,15 +121,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       
-      toast({
-        title: "Registration successful!",
+      toast.success("Registration successful!", {
         description: `Welcome, ${user.displayName}!`,
       });
     } catch (error: any) {
       const message = error.response?.data?.message || 'Registration failed. Please try again.';
-      toast({
-        variant: "destructive",
-        title: "Registration failed",
+      toast.error("Registration failed", {
         description: message,
       });
       throw error;
@@ -151,15 +147,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       
-      toast({
-        title: "Login successful!",
+      toast.success("Login successful!", {
         description: `Welcome back, ${user.displayName}!`,
       });
     } catch (error: any) {
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
-      toast({
-        variant: "destructive",
-        title: "Login failed",
+      toast.error("Login failed", {
         description: message,
       });
       throw error;
@@ -174,8 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user');
     setUser(null);
     
-    toast({
-      title: "Logged out",
+    toast.success("Logged out", {
       description: "You have been successfully logged out.",
     });
   };
