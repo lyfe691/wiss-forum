@@ -87,7 +87,7 @@ export function Settings() {
       
       // Check if any field was actually changed
       if (Object.values(updateData).every(val => val === undefined)) {
-        toast("No changes detected", {
+        toast.error("No changes detected", {
           description: "Make some changes before updating your profile."
         });
         setIsSubmitting(false);
@@ -96,7 +96,7 @@ export function Settings() {
       
       const response = await userAPI.updateUserProfile(updateData);
       
-      toast("Profile updated", {
+      toast.success("Profile updated", {
         description: "Your profile information has been updated."
       });
       
@@ -151,7 +151,7 @@ export function Settings() {
       
       const response = await userAPI.changePassword(data);
       
-      toast("Password changed", {
+      toast.success("Password changed", {
         description: "Your password has been changed successfully. Please log in again."
       });
       
@@ -179,7 +179,7 @@ export function Settings() {
 
   // Handle appearance settings
   const handleSaveAppearance = () => {
-    toast("Appearance settings saved", {
+    toast.success("Appearance settings saved", {
       description: "Your appearance preferences have been updated."
     });
   };
@@ -279,7 +279,7 @@ export function Settings() {
                   className="flex items-center gap-2"
                 >
                   {isSubmitting ? 'Saving...' : 'Save Changes'}
-                  {!isSubmitting && <Check className="h-4 w-4" />}
+                  {!isSubmitting}
                 </Button>
               </div>
             </CardContent>
@@ -338,7 +338,7 @@ export function Settings() {
                   className="flex items-center gap-2"
                 >
                   {isSubmitting ? 'Changing...' : 'Change Password'}
-                  {!isSubmitting && <Check className="h-4 w-4" />}
+                  {!isSubmitting}
                 </Button>
               </div>
             </CardContent>
