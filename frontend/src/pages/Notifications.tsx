@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Bell, Trash2, CheckCheck, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PaginationControls } from '@/components/PaginationControls';
 import { NotificationItem } from '@/components/notifications/NotificationItem';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +21,6 @@ import { cn } from '@/lib/utils';
 
 
 export function Notifications() {
-  const { user } = useAuth();
   const { 
     notifications, 
     unreadCount, 

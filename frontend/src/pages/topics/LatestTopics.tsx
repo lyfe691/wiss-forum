@@ -19,7 +19,6 @@ import {
   Filter
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Pagination } from '@/components/ui/pagination';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { 
@@ -32,7 +31,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PaginationControls } from '@/components/PaginationControls';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -40,7 +38,6 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
-import React from 'react';
 
 interface Author {
   _id: string;
@@ -369,7 +366,7 @@ export function LatestTopics() {
                     )}
                   </CardContent>
                   
-                  <CardFooter className="pt-0 pb-4 border-t border-border/50 mt-2 pt-3">
+                  <CardFooter className="pt-0 pb-4 border-t border-border/50 mt-2">
                     <div className="flex justify-between w-full">
                       <div className="flex items-center gap-2">
                         {topic.author?.avatar ? (

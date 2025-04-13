@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
@@ -18,14 +18,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { 
   AlertCircle, 
-  Check, 
   Lock, 
-  Moon, 
   User,
   Brush
 } from 'lucide-react';
@@ -38,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Theme, themes } from '@/lib/theme';
+import { Theme } from '@/lib/theme';
 
 export function Settings() {
   const { user, refreshUser, logout } = useAuth();
@@ -93,7 +90,7 @@ export function Settings() {
         setIsSubmitting(false);
         return;
       }
-      
+
       const response = await userAPI.updateUserProfile(updateData);
       
       toast.success("Profile updated", {

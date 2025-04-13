@@ -20,7 +20,6 @@ import { Button } from '@/components/ui/button';
 import { 
   Asterisk,
   Cog,
-  FileText,
   Folder,
   MessageSquare,
   ShieldAlert,

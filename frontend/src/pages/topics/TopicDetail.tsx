@@ -13,7 +13,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import {
@@ -35,25 +34,19 @@ import {
 import { 
   AlertCircle, 
   ArrowLeft, 
-  Bell,
-  Check,
-  ChevronDown,
   ChevronLeft,
-  ChevronRight,
   Heart,
   MessageSquare,
   MoreVertical,
   Reply,
   Send,
   Trash,
-  User,
   Lock,
   Pin,
   CalendarDays,
   Eye,
   Loader2
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -96,8 +89,6 @@ interface Topic {
   createdAt: string;
   updatedAt: string;
 }
-
-const MotionCard = Card;
 
 export function TopicDetail() {
   const { slug } = useParams<{ slug: string }>();
