@@ -19,15 +19,9 @@ import {
   User, 
   LogOut, 
   Settings, 
-  Book, 
-  Users, 
   Bell,
   MessageSquare,
-  Home,
-  LayoutGrid,
-  HelpCircle,
-  FileText,
-  ShieldCheck
+
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { SideNav } from './SideNav';
@@ -64,56 +58,6 @@ export function Navbar() {
       .toUpperCase();
   };
 
-  const isActivePath = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/'
-    }
-    return location.pathname.startsWith(path);
-  }
-
-  // Navigation item groups
-  const mainNavItems = [
-    {
-      icon: <Home className="h-4 w-4" />,
-      label: "Home",
-      href: "/"
-    },
-    {
-      icon: <LayoutGrid className="h-4 w-4" />,
-      label: "Categories",
-      href: "/categories"
-    },
-    {
-      icon: <FileText className="h-4 w-4" />,
-      label: "Latest Topics",
-      href: "/topics/latest"
-    },
-    {
-      icon: <Users className="h-4 w-4" />,
-      label: "Users",
-      href: "/users"
-    }
-  ];
-
-  const adminNavItems = isAuthenticated && (user?.role === 'admin' || user?.role === 'teacher') ? [
-    {
-      icon: <Book className="h-4 w-4" />,
-      label: "Manage Categories",
-      href: "/admin/categories"
-    },
-    ...(user?.role === 'admin' ? [
-      {
-        icon: <Users className="h-4 w-4" />,
-        label: "Manage Users",
-        href: "/admin/users"
-      },
-      {
-        icon: <ShieldCheck className="h-4 w-4" />,
-        label: "Admin Dashboard",
-        href: "/admin"
-      }
-    ] : [])
-  ] : [];
 
   return (
     <header className={cn(
@@ -133,7 +77,7 @@ export function Navbar() {
                 </Button>
               </SheetTrigger>
               
-              <SheetContent side="left" className="p-0 w-[280px]">
+              <SheetContent side="left" className="p-0 w-[280px]" hideCloseButton>
                 <div className="flex flex-col h-full">
                   <div className="p-4 border-b flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
