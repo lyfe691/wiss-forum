@@ -139,7 +139,10 @@ export async function getTopicsByCategory(req: Request, res: Response) {
           }
         }
         
-        return { ...topic, author, lastPost };
+        // Make sure replyCount is defined
+        const replyCount = topic.replyCount !== undefined ? topic.replyCount : 0;
+        
+        return { ...topic, author, lastPost, replyCount };
       }) || []
     );
     
@@ -199,6 +202,8 @@ export async function getTopicByIdOrSlug(req: Request, res: Response) {
         ...topic,
         author,
         category,
+        replyCount: topic.replyCount !== undefined ? topic.replyCount : (postsCount || 0),
+        viewCount: topic.viewCount !== undefined ? topic.viewCount : 0,
         postsCount: (postsCount || 0) + 1 // Include the topic itself as the first post
       }
     });
@@ -376,7 +381,11 @@ export async function getLatestTopics(req: Request, res: Response) {
           }
         }
         
-        return { ...topic, author, category, lastPost };
+        // Make sure replyCount and viewCount are defined
+        const replyCount = topic.replyCount !== undefined ? topic.replyCount : 0;
+        const viewCount = topic.viewCount !== undefined ? topic.viewCount : 0;
+        
+        return { ...topic, author, category, lastPost, replyCount, viewCount };
       }) || []
     );
     

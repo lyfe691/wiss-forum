@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, MoreVertical, Trash, Check, X } from 'lucide-react';
+import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, MoreVertical, Trash, Check, X, Eye } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -64,7 +64,9 @@ interface Topic {
   };
   createdAt: string;
   updatedAt: string;
-  postCount: number;
+  postCount?: number;
+  replyCount?: number;
+  viewCount?: number;
   lastPost?: {
     _id: string;
     createdAt: string;
@@ -178,7 +180,10 @@ export function CategoryDetail() {
       const bActivity = a.lastPost ? new Date(a.lastPost.createdAt).getTime() : new Date(a.createdAt).getTime();
       return aActivity - bActivity;
     } else if (sortBy === 'popular') {
-      return b.postCount - a.postCount;
+      // Use replyCount if available, otherwise fall back to postCount
+      const bCount = b.replyCount !== undefined ? b.replyCount : (b.postCount || 0);
+      const aCount = a.replyCount !== undefined ? a.replyCount : (a.postCount || 0);
+      return bCount - aCount;
     }
     return 0;
   });
@@ -432,7 +437,7 @@ export function CategoryDetail() {
                   <SelectContent>
                     <SelectItem value="recent">Most Recent</SelectItem>
                     <SelectItem value="activity">Recent Activity</SelectItem>
-                    <SelectItem value="popular">Most Popular</SelectItem>
+                    <SelectItem value="popular">Most Replies</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button variant="outline" onClick={refreshTopics} className="flex gap-1 items-center">
@@ -524,8 +529,14 @@ export function CategoryDetail() {
                       <div className="flex items-center">
                         <Badge variant="secondary" className="mr-2">
                           <MessageSquare className="h-3 w-3 mr-1" />
-                          {topic.postCount} {topic.postCount === 1 ? 'reply' : 'replies'}
+                          {topic.replyCount !== undefined ? topic.replyCount : (topic.postCount || 0)} {(topic.replyCount !== undefined ? topic.replyCount : (topic.postCount || 0)) === 1 ? 'reply' : 'replies'}
                         </Badge>
+                        {topic.viewCount !== undefined && (
+                          <Badge variant="outline" className="mr-2">
+                            <Eye className="h-3 w-3 mr-1" />
+                            {topic.viewCount} {topic.viewCount === 1 ? 'view' : 'views'}
+                          </Badge>
+                        )}
                         {topic.lastPost && (
                           <span className="text-xs">
                             Last reply {formatRelativeTime(topic.lastPost.createdAt)}

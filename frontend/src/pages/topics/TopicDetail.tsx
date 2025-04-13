@@ -706,7 +706,7 @@ export function TopicDetail() {
 
               <div className="flex items-center">
                 <MessageSquare className="h-4 w-4 mr-1.5 text-muted-foreground/70" />
-                {posts.length} {posts.length === 1 ? 'reply' : 'replies'}
+                {topic.replyCount !== undefined ? topic.replyCount : posts.length} {(topic.replyCount !== undefined ? topic.replyCount : posts.length) === 1 ? 'reply' : 'replies'}
               </div>
             </div>
           </div>

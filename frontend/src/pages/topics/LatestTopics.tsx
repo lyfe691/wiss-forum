@@ -65,7 +65,7 @@ interface Topic {
   authorId: string;
   categoryId: string;
   tags: string[];
-  viewCount: number;
+  viewCount?: number;
   replyCount?: number;
   isPinned: boolean;
   isLocked: boolean;
@@ -103,11 +103,11 @@ export function LatestTopics() {
       if (sortBy === 'latest') {
         data = await topicsAPI.getLatestTopics(pagination.currentPage);
       } else if (sortBy === 'popular') {
-        // We need to implement this sorting on the frontend since the API doesn't support it
+        // Sort by viewCount on the frontend
         data = await topicsAPI.getLatestTopics(pagination.currentPage);
-        data.topics = [...data.topics].sort((a, b) => b.viewCount - a.viewCount);
+        data.topics = [...data.topics].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
       } else {
-        // We need to implement this sorting on the frontend since the API doesn't support it
+        // Sort by replyCount on the frontend
         data = await topicsAPI.getLatestTopics(pagination.currentPage);
         data.topics = [...data.topics].sort((a, b) => (b.replyCount || 0) - (a.replyCount || 0));
       }
@@ -224,12 +224,21 @@ export function LatestTopics() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Link to="/create-topic">
-            <Button className="gap-2" size="sm">
-              <PlusCircle className="h-4 w-4" />
-              <span>Create Topic</span>
-            </Button>
-          </Link>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/create-topic">
+                  <Button className="gap-2" size="sm">
+                    <PlusCircle className="h-4 w-4" />
+                    <span>Create Topic</span>
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Start a new discussion</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
@@ -263,7 +272,7 @@ export function LatestTopics() {
               <Link to="/create-topic">
                 <Button className="gap-2">
                   <PlusCircle className="h-4 w-4" />
-                  <span>Create New Topic</span>
+                  <span>Create Topic</span>
                 </Button>
               </Link>
             </div>
@@ -331,7 +340,7 @@ export function LatestTopics() {
                           
                           <div className="flex items-center text-xs text-muted-foreground">
                             <Eye className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
-                            {topic.viewCount} {topic.viewCount === 1 ? 'view' : 'views'}
+                            {topic.viewCount || 0} {(topic.viewCount || 0) === 1 ? 'view' : 'views'}
                           </div>
 
                           <div className="flex items-center text-xs text-muted-foreground">
