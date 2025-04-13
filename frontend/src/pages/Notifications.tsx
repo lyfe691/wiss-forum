@@ -112,8 +112,10 @@ export function Notifications() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action will permanently delete all your notifications and cannot be undone.
+                  <AlertDialogDescription asChild>
+                    <div>
+                      This action will permanently delete all your notifications and cannot be undone.
+                    </div>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -555,13 +555,15 @@ export function CategoryDetail() {
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Topic</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this topic? This action cannot be undone and will remove all posts within this topic.
-                  {topicToDelete && (
-                    <div className="mt-2 p-2 bg-muted rounded-md">
-                      <p className="font-medium">{topicToDelete.title}</p>
-                    </div>
-                  )}
+                <AlertDialogDescription asChild>
+                  <div>
+                    <span>Are you sure you want to delete this topic? This action cannot be undone and will remove all posts within this topic.</span>
+                    {topicToDelete && (
+                      <div className="mt-2 p-2 bg-muted rounded-md">
+                        <span className="font-medium">{topicToDelete.title}</span>
+                      </div>
+                    )}
+                  </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

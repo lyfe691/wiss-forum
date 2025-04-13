@@ -951,9 +951,11 @@ export function TopicDetail() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the post
-              and remove it from the topic.
+            <AlertDialogDescription asChild>
+              <div>
+                This action cannot be undone. This will permanently delete the post
+                and remove it from the topic.
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
