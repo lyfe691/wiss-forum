@@ -141,31 +141,31 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     }
   ] : [];
   
-  const adminNavItems = isAuthenticated && (user?.role === 'admin' || user?.role === 'teacher') ? [
-    {
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      label: "Dashboard",
-      href: "/admin"
-    },
-    {
-      icon: <Book className="h-5 w-5" />,
-      label: "Categories",
-      href: "/admin/categories"
-    },
-    ...(user?.role === 'admin' ? [
+  const adminNavItems = isAuthenticated ? (
+    user?.role === 'admin' ? [
+      {
+        icon: <LayoutDashboard className="h-5 w-5" />,
+        label: "Dashboard",
+        href: "/admin"
+      },
+      {
+        icon: <Book className="h-5 w-5" />,
+        label: "Categories",
+        href: "/admin/categories"
+      },
       {
         icon: <Users className="h-5 w-5" />,
         label: "Users",
         href: "/admin/users"
-      },
-      {
-        icon: <ShieldCheck className="h-5 w-5" />,
-        label: "Moderation",
-        href: "/admin/moderation"
       }
-    ] : [])
-  ] : [];
-  
+    ] : user?.role === 'teacher' ? [
+      {
+        icon: <Book className="h-5 w-5" />,
+        label: "Categories",
+        href: "/admin/categories"
+      }
+    ] : []
+  ) : [];
   const helpNavItems = [
     {
       icon: <HelpCircle className="h-5 w-5" />,
