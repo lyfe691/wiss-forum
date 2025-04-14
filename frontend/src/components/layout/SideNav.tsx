@@ -17,9 +17,11 @@ import {
   ChevronRight,
   Bookmark,
   Bell,
-  LayoutDashboard
+  LayoutDashboard,
+  ChevronLeft
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { IconRight } from 'react-day-picker';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -276,6 +278,13 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
           )}
           {renderNavItems(helpNavItems)}
         </div>
+        <div className="absolute bottom-4 left-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <ChevronRight className="h-4 w-4" />
+            {} v.1.0.0
+          </div>
+        </div>
+
       </ScrollArea>
     </div>
   );
