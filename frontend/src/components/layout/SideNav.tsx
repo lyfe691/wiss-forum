@@ -6,22 +6,19 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   Home,
-  MessageSquare,
   Users,
   Book,
   Settings,
   User,
   HelpCircle,
   FileText,
-  ShieldCheck,
   ChevronRight,
   Bookmark,
   Bell,
   LayoutDashboard,
-  ChevronLeft
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { IconRight } from 'react-day-picker';
+import { motion } from 'framer-motion';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -57,27 +54,43 @@ const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavI
     );
   }
 
+  // Desktop NavItem
   return (
-    <Link to={href} onClick={onClick} className="w-full">
-      <Button
-        variant="ghost"
-        className={cn(
-          "w-full justify-start gap-3 font-normal relative rounded-md",
-          isActive 
-            ? "bg-primary/10 text-primary hover:bg-primary/20 font-medium" 
-            : "hover:bg-muted"
-        )}
-      >
-        {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-primary rounded-full" />}
-        <span className={cn("flex items-center justify-center", isActive ? "text-primary" : "text-muted-foreground")}>{icon}</span>
-        <span className={isActive ? "text-primary" : ""}>{label}</span>
-        {badge && (
-          <span className="ml-auto bg-primary/15 text-primary text-xs font-medium rounded-full px-2 py-0.5 min-w-5 text-center">
-            {badge}
-          </span>
-        )}
-      </Button>
-    </Link>
+    <motion.div 
+      layout 
+      className="relative w-full px-3"
+      style={{ borderRadius: 'var(--radius)' }}
+    >
+      <Link to={href} onClick={onClick} className="w-full block">
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start gap-3 font-normal relative rounded-md py-2",
+            isActive 
+              ? "text-primary font-medium"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted",
+            isActive && "hover:bg-transparent"
+          )}
+        >
+          <span className={cn("flex items-center justify-center", isActive ? "text-primary" : "text-muted-foreground")}>{icon}</span>
+          <span className={isActive ? "text-primary" : ""}>{label}</span>
+          {badge && (
+            <span className="ml-auto bg-primary/15 text-primary text-xs font-medium rounded-full px-2 py-0.5 min-w-5 text-center">
+              {badge}
+            </span>
+          )}
+        </Button>
+      </Link>
+      {isActive && (
+        <motion.div
+          layoutId="activeIndicator" 
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-2/3 bg-primary rounded-r-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.25 } }}
+          exit={{ opacity: 0, transition: { duration: 0.1 } }}
+        />
+      )}
+    </motion.div>
   );
 };
 

@@ -135,11 +135,12 @@ function App() {
             </Route>
           </Routes>
 
-          {/*richcolors: to fix white text bug for later*/}
           <Toaster
+            swipeDirections={['right', 'left',]}
             richColors 
             expand={false} 
             duration={5000}
+            position="top-center"
             toastOptions={{
               classNames: {
                 toast: "group border border-border",
@@ -150,8 +151,6 @@ function App() {
               }
             }}
             />
-    
-
         </NotificationProvider>
       </AuthProvider>
     </Router>
