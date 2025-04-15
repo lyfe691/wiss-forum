@@ -136,7 +136,7 @@ function App() {
           </Routes>
 
           <Toaster
-            swipeDirections={['right', 'left',]}
+            swipeDirections={['right', 'left', 'top', 'bottom']}
             richColors 
             expand={false} 
             duration={5000}
