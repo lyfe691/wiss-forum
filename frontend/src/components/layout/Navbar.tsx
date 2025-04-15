@@ -66,10 +66,17 @@ export function Navbar() {
     )}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
+          {/* Left side: Logo (Desktop) + Mobile Menu Toggle */}
           <div className="flex items-center">
-            {/* Mobile Sidebar */}
+            {/* Logo - Fixed position on Desktop */}
+            <div className="hidden lg:flex items-center justify-center w-64 border-r fixed top-0 left-0 h-16 bg-background z-50">
+              <Link to="/">
+                <img src="/logo.png" alt="WISS Forum Logo" className=" h-25 w-auto" />
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */} 
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              {/* Mobile Menu Button - Only visible on mobile */}
               <SheetTrigger asChild className="lg:hidden mr-2">
                 <Button variant="ghost" size="icon" className="lg:hidden relative text-foreground">
                   <Menu className="h-5 w-5" />
@@ -81,10 +88,7 @@ export function Navbar() {
                 <div className="flex flex-col h-full">
                   <div className="p-4 border-b flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
-                      <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-                        <MessageSquare className="w-4 h-4" />
-                      </div>
-                      <span className="text-xl font-bold">WISS Forum</span>
+                      <img src="/logo.png" alt="WISS Forum Logo" className="h-25 w-auto" />
                     </Link>
                     <SheetClose asChild>
                       <Button variant="ghost" size="icon">
@@ -139,14 +143,6 @@ export function Navbar() {
                 </div>
               </SheetContent>
             </Sheet>
-
-            {/* Logo */}
-            <Link to="/" className="flex-shrink-0 flex items-center gap-2 relative group">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground group-hover:bg-primary/90 transition-colors duration-200">
-                <MessageSquare className="w-4 h-4" />
-              </div>
-              <span className="text-xl font-bold group-hover:text-primary transition-colors duration-200">WISS Forum</span>
-            </Link>
           </div>
           
           {/* Right side controls */}

@@ -278,14 +278,13 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
           )}
           {renderNavItems(helpNavItems)}
         </div>
-        <div className="absolute bottom-4 left-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ChevronRight className="h-4 w-4" />
-            {} v.1.0.0
-          </div>
-        </div>
-
       </ScrollArea>
+      {/* Version Indicator */}
+      <div className="px-6 py-3 border-t border-border mt-auto">
+        <span className="text-xs text-muted-foreground">
+          v1.0.0
+        </span>
+      </div>
     </div>
   );
 
@@ -298,8 +297,13 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     <>
       {/* Desktop Sidebar */}
       {!isMobile && (
-        <aside className="hidden lg:block w-64 shrink-0 border-r fixed top-16 bottom-0 overflow-hidden z-40 bg-background/95 backdrop-blur-sm">
-          {sidebarContent}
+        <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r fixed top-16 bottom-0 z-30">
+          {/* Logo Area - Removed from here, now part of Navbar logic */}
+          
+          {/* Navigation Area */}
+          <div className="flex-1 overflow-y-auto bg-background/95 backdrop-blur-sm">
+            {sidebarContent}
+          </div>
         </aside>
       )}
       
