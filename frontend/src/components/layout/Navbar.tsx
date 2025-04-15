@@ -21,13 +21,11 @@ import {
   Settings, 
   Bell,
   MessageSquare,
-  Search,
   Plus,
   Shield
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { SideNav } from './SideNav';
-import { Input } from '@/components/ui/input';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -35,7 +33,6 @@ export function Navbar() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
 
   // Detect scroll for navbar appearance change
   useEffect(() => {
@@ -60,14 +57,6 @@ export function Navbar() {
       .map(n => n[0])
       .join('')
       .toUpperCase();
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchValue)}`);
-      setSearchValue('');
-    }
   };
 
   return (
@@ -159,20 +148,6 @@ export function Navbar() {
               <span className="text-xl font-bold group-hover:text-primary transition-colors duration-200">WISS Forum</span>
             </Link>
           </div>
-
-          {/* Search bar - only on desktop */}
-          <form onSubmit={handleSearch} className="hidden md:flex mx-4 flex-1 max-w-md relative">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search topics, categories, users..."
-                className="pl-10 pr-4 w-full bg-muted/40 border-muted focus-visible:bg-background"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-              />
-            </div>
-          </form>
           
           {/* Right side controls */}
           <div className="flex items-center gap-2">
