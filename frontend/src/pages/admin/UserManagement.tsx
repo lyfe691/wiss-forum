@@ -70,21 +70,20 @@ export function UserManagement() {
       setIsLoading(true);
       setError(null);
   
-      // First try with the public endpoint
-      const publicUsers = await userAPI.getPublicUsersList();
-      setUsers(publicUsers);
-      
-      // If admin, try to get the full user list with the bootstrap method
       if (user?.role === 'admin') {
         try {
-          const response = await axios.get('http://localhost:3000/api/users/public');
-          if (response.data && Array.isArray(response.data)) {
-            setUsers(response.data);
-          }
+          const adminUsers = await userAPI.getAllUsers();
+          setUsers(adminUsers);
         } catch (err) {
           console.error('Failed to get extended user data:', err);
-          // We still have the public users as fallback, so no need to set error
+          // Fallback to public user list
+          const publicUsers = await userAPI.getPublicUsersList();
+          setUsers(publicUsers);
         }
+      } else {
+        // For non-admins, use the public endpoint
+        const publicUsers = await userAPI.getPublicUsersList();
+        setUsers(publicUsers);
       }
     } catch (err) {
       console.error('Failed to fetch users:', err);
