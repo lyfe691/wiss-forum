@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
 export function Register() {
@@ -61,18 +60,41 @@ export function Register() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-          <CardDescription className="text-center">
-            Enter your information to create a new account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="p-4 flex justify-between items-center border-b border-border">
+        <Link to="/">
+          <img src="/logo.png" alt="Wiss Forum Logo" className="h-8 w-auto" /> {/* Adjusted size */}
+        </Link>
+        <nav className="space-x-4 flex items-center"> {/* Added flex items-center */} 
+           <Button 
+            variant="link"
+            onClick={() => navigate('/help')}
+          > 
+            Help
+          </Button>
+          <Button 
+          variant="outline"
+          onClick={() => navigate('/login')}
+          > 
+            Sign In
+          </Button>
+        </nav>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-grow flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-sm space-y-6"> {/* Container for form elements */}
+          <div className="text-center space-y-2">
+             <h1 className="text-3xl font-bold">Create an account</h1>
+            <p className="text-muted-foreground">
+              Enter your information to create a new account
+            </p>
+          </div>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 rounded-md bg-destructive/15 text-destructive flex items-center gap-2 text-sm">
+             {error && (
+              <div className="p-3 rounded-md bg-destructive/15 text-destructive flex items-center gap-2 text-sm mb-4">
                 <AlertCircle className="h-4 w-4" />
                 <p>{error}</p>
               </div>
@@ -117,7 +139,7 @@ export function Register() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Create a password"
+                placeholder="Create a password (min. 6 characters)"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -135,24 +157,23 @@ export function Register() {
                 required
               />
             </div>
-            <Button
+            <Button              
               type="submit"
-              className="w-full"
+              className="w-full mt-6"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Creating account...' : 'Sign up'}
             </Button>
           </form>
-        </CardContent>
-        <CardFooter className="justify-center">
-          <div className="text-sm text-center">
-            Already have an account?{' '}
-            <Link to="/login" className="text-primary hover:underline">
-              Sign in
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="p-4 text-center text-sm text-muted-foreground border-t border-border">
+      <Button variant="link" className="font-semibold" onClick={() => navigate('/login')}> 
+        Already have an account? Sign in
+        </Button>
+      </footer>
     </div>
   );
 } 
