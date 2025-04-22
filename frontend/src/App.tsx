@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { AuthLayout } from '@/components/layout/AuthLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { themeUtils } from '@/lib/theme';
 import { useEffect } from 'react';
@@ -39,10 +40,12 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <Routes>
-            {/* Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            
+            {/* Auth Routes with AuthLayout */}
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+            </Route>
+
             {/* Main Layout Routes */}
             <Route element={<MainLayout />}>
               {/* Public Routes */}

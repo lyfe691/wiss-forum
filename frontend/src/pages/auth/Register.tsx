@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,120 +60,87 @@ export function Register() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="p-4 flex justify-between items-center border-b border-border">
-        <Link to="/">
-          <img src="/logo.png" alt="Wiss Forum Logo" className="h-8 w-auto" /> {/* Adjusted size */}
-        </Link>
-        <nav className="space-x-4 flex items-center"> {/* Added flex items-center */} 
-           <Button 
-            variant="link"
-            onClick={() => navigate('/help')}
-          > 
-            Help
-          </Button>
-          <Button 
-          variant="outline"
-          onClick={() => navigate('/login')}
-          > 
-            Sign In
-          </Button>
-        </nav>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-grow flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-sm space-y-6"> {/* Container for form elements */}
-          <div className="text-center space-y-2">
-             <h1 className="text-3xl font-bold">Create an account</h1>
-            <p className="text-muted-foreground">
-              Enter your information to create a new account
-            </p>
+    <div className="w-full max-w-sm space-y-6"> {/* Container for form elements */}
+      <div className="text-center space-y-2">
+         <h1 className="text-3xl font-bold">Create an account</h1>
+        <p className="text-muted-foreground">
+          Enter your information to create a new account
+        </p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+         {error && (
+          <div className="p-3 rounded-md bg-destructive/15 text-destructive flex items-center gap-2 text-sm mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <p>{error}</p>
           </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-             {error && (
-              <div className="p-3 rounded-md bg-destructive/15 text-destructive flex items-center gap-2 text-sm mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <p>{error}</p>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                name="displayName"
-                placeholder="Enter your full name"
-                value={formData.displayName}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                placeholder="Choose a unique username"
-                value={formData.username}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email address"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Create a password (min. 6 characters)"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <Button              
-              type="submit"
-              className="w-full mt-6"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Creating account...' : 'Sign up'}
-            </Button>
-          </form>
+        )}
+        <div className="space-y-2">
+          <Label htmlFor="displayName">Display Name</Label>
+          <Input
+            id="displayName"
+            name="displayName"
+            placeholder="Enter your full name"
+            value={formData.displayName}
+            onChange={handleChange}
+            required
+          />
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="p-4 text-center text-sm text-muted-foreground border-t border-border">
-      <Button variant="link" className="font-semibold" onClick={() => navigate('/login')}> 
-        Already have an account? Sign in
+        <div className="space-y-2">
+          <Label htmlFor="username">Username</Label>
+          <Input
+            id="username"
+            name="username"
+            placeholder="Choose a unique username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Enter your email address"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Create a password (min. 6 characters)"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm your password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <Button              
+          type="submit"
+          className="w-full mt-6"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Creating account...' : 'Sign up'}
         </Button>
-      </footer>
+      </form>
     </div>
   );
 } 
