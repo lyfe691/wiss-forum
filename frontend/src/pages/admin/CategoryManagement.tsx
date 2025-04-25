@@ -29,7 +29,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { 
   DropdownMenu,
@@ -50,12 +49,8 @@ import {
   SearchIcon,
   ArrowLeft,
   ShieldCheck,
-  Check,
-  X,
   MessageSquare
 } from 'lucide-react';
-import axios from 'axios';
-import  api  from '@/lib/api';
 
 interface Category {
   _id: string;
@@ -163,33 +158,18 @@ export function CategoryManagement() {
       return;
     }
     
+    // Check if user is authenticated
+    if (!user) {
+      setError('Authentication required to create a category');
+      return;
+    }
+    
     try {
       setError(null);
       setSuccess(null);
       
-      // Try using the bootstrap endpoint first
-      try {
-        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/categories/bootstrap-create`, {
-          name: formData.name,
-          description: formData.description,
-          ...(formData.parentCategory && { parentCategory: formData.parentCategory }),
-          secretKey: 'WISS_ADMIN_SETUP_2024',
-          userId: user?._id // Pass current user ID if available
-        });
-        
-        if (response.data.success) {
-          setSuccess('Category created successfully');
-          setShowDialog(false);
-          setFormData({ name: '', description: '', parentCategory: '' });
-          await fetchCategories();
-          return;
-        }
-      } catch (err) {
-        console.error('Bootstrap category creation failed:', err);
-      }
-      
-      // Fallback to the standard method
-      await categoriesAPI.createCategory({
+      // Use the standard method for creating categories
+      const result = await categoriesAPI.createCategory({
         name: formData.name,
         description: formData.description,
         ...(formData.parentCategory && { parentCategory: formData.parentCategory })
@@ -199,15 +179,24 @@ export function CategoryManagement() {
       setShowDialog(false);
       setFormData({ name: '', description: '', parentCategory: '' });
       await fetchCategories();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to create category:', err);
-      setError('Failed to create category. Please try again.');
+      const errorMessage = err.response?.data?.message || 
+                         err.message || 
+                         'Failed to create category. Please try again.';
+      setError(errorMessage);
     }
   };
 
   const updateCategory = async () => {
     if (!editingCategory || !formData.name || !formData.description) {
       setError('Name and description are required');
+      return;
+    }
+    
+    // Check if user is authenticated
+    if (!user) {
+      setError('Authentication required to update a category');
       return;
     }
     
@@ -226,9 +215,12 @@ export function CategoryManagement() {
       setEditingCategory(null);
       setFormData({ name: '', description: '', parentCategory: '' });
       await fetchCategories();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update category:', err);
-      setError('Failed to update category. Please try again.');
+      const errorMessage = err.response?.data?.message || 
+                         err.message || 
+                         'Failed to update category. Please try again.';
+      setError(errorMessage);
     }
   };
 
@@ -241,35 +233,8 @@ export function CategoryManagement() {
       setError(null);
       setSuccess(null);
       
-      // First try the standard API method
-      try {
-        await categoriesAPI.deleteCategory(id);
-      } catch (originalError) {
-        console.error('Standard category deletion failed:', originalError);
-        
-        // If the standard method fails, try a direct API call
-        if (user) {
-          try {
-            // Try to use a bootstrap method if it exists
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/categories/bootstrap-delete`, {
-              categoryId: id,
-              secretKey: 'WISS_ADMIN_SETUP_2024',
-              userId: user._id
-            });
-            
-            if (response.data.success) {
-              setSuccess('Category deleted successfully');
-              await fetchCategories();
-              return;
-            }
-          } catch (bootstrapError) {
-            console.error('Bootstrap category deletion also failed:', bootstrapError);
-            throw bootstrapError; // Re-throw to be caught by the outer catch
-          }
-        } else {
-          throw originalError; // Re-throw if no user is available
-        }
-      }
+      // Use standard API method
+      await categoriesAPI.deleteCategory(id);
       
       setSuccess('Category deleted successfully');
       await fetchCategories();

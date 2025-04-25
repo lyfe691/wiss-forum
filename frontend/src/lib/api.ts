@@ -114,8 +114,17 @@ export const categoriesAPI = {
   },
   
   createCategory: async (data: { name: string; description: string; order?: number; parentCategory?: string }) => {
+    // Make sure we have a token before creating a category
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required to create a category');
+    }
+    
+    // The token will be automatically added by the axios interceptor
     const response = await api.post('/categories', data);
-    return response.data;
+    
+    // Return the category data or created category
+    return response.data.category || response.data;
   },
   
   updateCategory: async (
@@ -261,41 +270,11 @@ export const topicsAPI = {
   
   deleteTopic: async (id: string) => {
     try {
-      // First try the standard method
       const response = await api.delete(`/topics/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Standard topic deletion failed:', error);
-      
-      // Get the current user
-      const userString = localStorage.getItem('user');
-      if (!userString) throw error;
-      
-      const user = JSON.parse(userString);
-      
-      // Try using bootstrap method
-      try {
-        const bootstrapResponse = await fetch('http://localhost:3000/api/topics/bootstrap-delete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            topicId: id,
-            userId: user._id,
-            secretKey: 'WISS_ADMIN_SETUP_2024'
-          })
-        });
-        
-        if (!bootstrapResponse.ok) {
-          throw new Error(`Bootstrap deletion failed with status: ${bootstrapResponse.status}`);
-        }
-        
-        return await bootstrapResponse.json();
-      } catch (bootstrapError) {
-        console.error('Bootstrap topic deletion also failed:', bootstrapError);
-        throw bootstrapError;
-      }
+      console.error('Error deleting topic:', error);
+      throw error;
     }
   },
 };

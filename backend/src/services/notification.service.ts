@@ -8,8 +8,8 @@ class NotificationService {
    * Create a notification for a user
    */
   async createNotification(data: {
-    recipient: string | ObjectId;
-    sender?: string | ObjectId;
+    userId: string | ObjectId;
+    actorId?: string | ObjectId;
     type: NotificationType;
     content: string;
     link?: string;
@@ -18,7 +18,7 @@ class NotificationService {
     try {
       // Create notification object
       const notification: Partial<Notification> = {
-        userId: typeof data.recipient === 'string' ? new ObjectId(data.recipient) : data.recipient,
+        userId: typeof data.userId === 'string' ? new ObjectId(data.userId) : data.userId,
         type: data.type,
         title: this.getTitleFromType(data.type),
         message: data.content,
@@ -26,8 +26,8 @@ class NotificationService {
         createdAt: new Date()
       };
       
-      if (data.sender) {
-        notification.actorId = typeof data.sender === 'string' ? new ObjectId(data.sender) : data.sender;
+      if (data.actorId) {
+        notification.actorId = typeof data.actorId === 'string' ? new ObjectId(data.actorId) : data.actorId;
       }
       
       if (data.link) {
@@ -92,8 +92,8 @@ class NotificationService {
 
       // Create notification
       return this.createNotification({
-        recipient: post.authorId,
-        sender: reply.authorId,
+        userId: post.authorId,
+        actorId: reply.authorId,
         type: 'reply',
         content: `${replyAuthor.username} replied to your post in "${topic.title}"`,
         link: `/topics/${topic.slug}#post-${replyId}`,
@@ -131,8 +131,8 @@ class NotificationService {
       
       // Create notification
       return this.createNotification({
-        recipient: mentionedUser._id,
-        sender: post.authorId,
+        userId: mentionedUser._id,
+        actorId: post.authorId,
         type: 'mention',
         content: `${mentioner.username} mentioned you in "${topic.title}"`,
         link: `/topics/${topic.slug}#post-${postId}`,
@@ -168,8 +168,8 @@ class NotificationService {
 
       // Create notification
       return this.createNotification({
-        recipient: post.authorId,
-        sender: new ObjectId(likerId),
+        userId: post.authorId,
+        actorId: new ObjectId(likerId),
         type: 'like',
         content: `${liker.username} liked your post in "${topic.title}"`,
         link: `/topics/${topic.slug}#post-${postId}`,
@@ -201,8 +201,8 @@ class NotificationService {
 
       // Create notification
       return this.createNotification({
-        recipient: topic.authorId,
-        sender: new ObjectId(repliedBy),
+        userId: topic.authorId,
+        actorId: new ObjectId(repliedBy),
         type: 'topic_reply',
         content: `${replier.username} replied to your topic "${topic.title}"`,
         link: `/topics/${topic.slug}#post-${postId}`,
@@ -238,8 +238,8 @@ class NotificationService {
       
       // Create notification
       return this.createNotification({
-        recipient: userObjId,
-        sender: adminObjId,
+        userId: userObjId,
+        actorId: adminObjId,
         type: 'role_change',
         content: `Your role has been updated to ${newRole} by ${adminName}.`,
         link: '/profile',

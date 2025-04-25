@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, MoreVertical, Trash, Check, Eye } from 'lucide-react';
+import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, MoreVertical, Trash, Eye } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
