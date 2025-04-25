@@ -1,4 +1,4 @@
-import { Notification, INotification } from '../models/notification.model';
+import { Notification, NotificationType } from '../models/Notification';
 import { User, Topic, Post } from '../models';
 import { ObjectId } from 'mongodb';
 import { collections } from '../lib/database';
@@ -10,34 +10,32 @@ class NotificationService {
   async createNotification(data: {
     recipient: string | ObjectId;
     sender?: string | ObjectId;
-    type: 'reply' | 'mention' | 'like' | 'topic_reply' | 'role_change' | 'system';
+    type: NotificationType;
     content: string;
     link?: string;
     read: boolean;
-  }): Promise<INotification | null> {
+  }): Promise<Notification | null> {
     try {
-      // Create notification instance
-      const notification = new Notification(data);
+      // Create notification object
+      const notification: Partial<Notification> = {
+        userId: typeof data.recipient === 'string' ? new ObjectId(data.recipient) : data.recipient,
+        type: data.type,
+        title: this.getTitleFromType(data.type),
+        message: data.content,
+        read: data.read,
+        createdAt: new Date()
+      };
       
-      // Convert to plain object for MongoDB
-      const notificationDoc = {
-        recipient: notification.recipient,
-        type: notification.type,
-        content: notification.content,
-        read: notification.read,
-        createdAt: notification.createdAt
-      } as any;
-      
-      if (notification.sender) {
-        notificationDoc.sender = notification.sender;
+      if (data.sender) {
+        notification.actorId = typeof data.sender === 'string' ? new ObjectId(data.sender) : data.sender;
       }
       
-      if (notification.link) {
-        notificationDoc.link = notification.link;
+      if (data.link) {
+        notification.targetUrl = data.link;
       }
       
       // Insert into database
-      const result = await collections.notifications?.insertOne(notificationDoc);
+      const result = await collections.notifications?.insertOne(notification as Notification);
       
       if (!result) {
         throw new Error('Failed to create notification');
@@ -46,17 +44,30 @@ class NotificationService {
       return {
         ...notification,
         _id: result.insertedId
-      };
+      } as Notification;
     } catch (error) {
       console.error('Error creating notification:', error);
       throw error;
     }
   }
 
+  // Helper method to get a title based on notification type
+  private getTitleFromType(type: NotificationType): string {
+    switch (type) {
+      case 'reply': return 'New Reply';
+      case 'mention': return 'You were mentioned';
+      case 'like': return 'New Like';
+      case 'topic_reply': return 'New Topic Reply';
+      case 'role_change': return 'Role Update';
+      case 'system': return 'System Notification';
+      default: return 'Notification';
+    }
+  }
+
   /**
    * Notify a user when someone replies to their post
    */
-  async notifyReply(postId: string, replyId: string): Promise<INotification | null> {
+  async notifyReply(postId: string, replyId: string): Promise<Notification | null> {
     try {
       // Get the reply post
       const reply = await collections.posts?.findOne({ _id: new ObjectId(replyId) });
@@ -97,7 +108,7 @@ class NotificationService {
   /**
    * Notify a user when someone mentions them in a post
    */
-  async notifyMention(username: string, postId: string): Promise<INotification | null> {
+  async notifyMention(username: string, postId: string): Promise<Notification | null> {
     try {
       // Get the mentioned user
       const mentionedUser = await collections.users?.findOne({ username });
@@ -136,7 +147,7 @@ class NotificationService {
   /**
    * Notify a user when someone likes their post
    */
-  async notifyLike(postId: string, likerId: string): Promise<INotification | null> {
+  async notifyLike(postId: string, likerId: string): Promise<Notification | null> {
     try {
       // Get the post
       const post = await collections.posts?.findOne({ _id: new ObjectId(postId) });
@@ -173,7 +184,7 @@ class NotificationService {
   /**
    * Notify a topic author when someone replies to their topic
    */
-  async notifyTopicReply(topicId: string, postId: string, repliedBy: string): Promise<INotification | null> {
+  async notifyTopicReply(topicId: string, postId: string, repliedBy: string): Promise<Notification | null> {
     try {
       // Get the topic
       const topic = await collections.topics?.findOne({ _id: new ObjectId(topicId) });
@@ -206,7 +217,7 @@ class NotificationService {
   /**
    * Notify a user about a role change
    */
-  async notifyRoleChange(userId: string | ObjectId, adminId: string | ObjectId, newRole: string): Promise<INotification | null> {
+  async notifyRoleChange(userId: string | ObjectId, adminId: string | ObjectId, newRole: string): Promise<Notification | null> {
     try {
       // Convert IDs to ObjectId if they are strings
       const userObjId = typeof userId === 'string' ? new ObjectId(userId) : userId;
@@ -252,16 +263,16 @@ class NotificationService {
       const objectId = new ObjectId(userId);
       
       // Get total count for pagination
-      const totalNotifications = await collections.notifications?.countDocuments({ recipient: objectId });
+      const totalNotifications = await collections.notifications?.countDocuments({ userId: objectId });
       
       // Get unread count
       const unreadCount = await collections.notifications?.countDocuments({ 
-        recipient: objectId,
+        userId: objectId,
         read: false
       });
       
       // Get notifications with pagination
-      const notifications = await collections.notifications?.find({ recipient: objectId })
+      const notifications = await collections.notifications?.find({ userId: objectId })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -269,22 +280,20 @@ class NotificationService {
       
       // Add sender information
       const processedNotifications = await Promise.all((notifications || []).map(async (notification) => {
-        // Use type assertion to access sender property
-        const typedNotification = notification as any;
-        
-        if (typedNotification && typedNotification.sender) {
-          const sender = await collections.users?.findOne(
-            { _id: typedNotification.sender },
+        // Use type assertion to access actorId property
+        if (notification.actorId) {
+          const actor = await collections.users?.findOne(
+            { _id: notification.actorId },
             { projection: { username: 1, avatar: 1 } }
           );
           
-          if (sender) {
+          if (actor) {
             return {
               ...notification,
-              sender: {
-                _id: sender._id,
-                username: sender.username,
-                avatar: sender.avatar
+              actor: {
+                _id: actor._id,
+                username: actor.username,
+                avatar: actor.avatar
               }
             };
           }
@@ -311,7 +320,7 @@ class NotificationService {
    */
   async markAsRead(userId: string, notificationIds?: string[]) {
     try {
-      const query: any = { recipient: new ObjectId(userId) };
+      const query: any = { userId: new ObjectId(userId) };
       
       // If specific IDs are provided, only mark those as read
       if (notificationIds && notificationIds.length > 0) {
@@ -334,7 +343,7 @@ class NotificationService {
     try {
       const result = await collections.notifications?.deleteOne({ 
         _id: new ObjectId(notificationId),
-        recipient: new ObjectId(userId)
+        userId: new ObjectId(userId)
       });
       
       return { deletedCount: result?.deletedCount || 0 };
@@ -350,7 +359,7 @@ class NotificationService {
   async deleteAllNotifications(userId: string) {
     try {
       const result = await collections.notifications?.deleteMany({ 
-        recipient: new ObjectId(userId) 
+        userId: new ObjectId(userId) 
       });
       
       return { deletedCount: result?.deletedCount || 0 };

@@ -1,5 +1,3 @@
-// temprary to test connection to mongoDB and frontend
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -21,7 +19,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:8080',
+  credentials: true
+}));
 app.use(express.json());
 
 // Connect to MongoDB
@@ -39,11 +40,6 @@ app.use('/api/topics', topicRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
-
-// Test connection endpoint (for frontend testing)
-app.get('/api/test-connection', (req, res) => {
-  res.json({ message: 'Backend connection successful!' });
-});
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -11,10 +11,6 @@ router.get('/category/:categoryId', asyncHandler(topicController.getTopicsByCate
 router.get('/:idOrSlug', asyncHandler(topicController.getTopicByIdOrSlug));
 router.post('/:id/view', asyncHandler(topicController.incrementViewCount));
 
-// Bootstrap routes - temporary, remove in production
-router.post('/bootstrap-create', asyncHandler(topicController.bootstrapCreateTopic));
-router.post('/bootstrap-delete', asyncHandler(topicController.bootstrapDeleteTopic));
-
 // Protected routes (require authentication & proper role)
 router.post('/', authenticate, authAsyncHandler(topicController.createTopic));
 router.put('/:id', authenticate, isTeacherOrAdmin, authAsyncHandler(topicController.updateTopic));

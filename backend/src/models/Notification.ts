@@ -11,8 +11,8 @@ export type NotificationType =
 
 export interface Notification {
   _id?: ObjectId;
-  userId: ObjectId;     // User receiving the notification
-  actorId?: ObjectId;   // User who triggered the notification (null for system notifications)
+  userId: ObjectId;     // User receiving the notification (also called recipient)
+  actorId?: ObjectId;   // User who triggered the notification (also called sender, null for system notifications)
   type: NotificationType;
   title: string;
   message: string;
@@ -21,9 +21,10 @@ export interface Notification {
   topicId?: ObjectId;   // Related topic if applicable
   postId?: ObjectId;    // Related post if applicable
   createdAt: Date;
+  updatedAt?: Date;
 }
 
-// Export this so we can reference it in the database.ts
+// Settings for user notification preferences
 export interface NotificationSettings {
   _id?: ObjectId;
   userId: ObjectId;
