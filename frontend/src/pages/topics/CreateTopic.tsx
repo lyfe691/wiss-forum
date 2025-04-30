@@ -12,7 +12,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, Breadc
 import { Send, FileText, Loader2, ChevronLeft, AlertCircle, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
+import { toast } from 'sonner';
 interface Category {
   _id: string;
   name: string;
@@ -138,16 +138,16 @@ export function CreateTopic() {
       const newTopic = response.topic || response;
       
       // Show success message
-      setSuccessMessage('Topic created successfully!');
+      toast.success('Topic created successfully!');
       
       // Reset form
       setTitle('');
       setContent('');
       
-      // Redirect to the new topic after a short delay
-      setTimeout(() => {
-        navigate(`/topics/${newTopic.slug || newTopic._id}`);
-      }, 1500);
+      // Redirect to the new topic
+      
+      navigate(`/topics/${newTopic.slug || newTopic._id}`);
+
     } catch (error) {
       console.error('Failed to create topic:', error);
       setError('Failed to create topic. Please try again.');
