@@ -130,15 +130,6 @@ function App() {
           richColors 
           duration={5000}
           position="top-center"
-          toastOptions={{
-            classNames: {
-              toast: "group border border-border",
-              title: "font-medium text-foreground",
-              description: "text-muted-foreground text-sm",
-              actionButton: "bg-primary text-primary-foreground",
-              cancelButton: "bg-muted text-foreground"
-            }
-          }}
         />
       </AuthProvider>
     </Router>
