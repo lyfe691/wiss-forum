@@ -19,12 +19,9 @@ import {
   User, 
   LogOut, 
   Settings, 
-  Bell,
-  MessageSquare,
   Plus,
   Shield
 } from 'lucide-react';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { SideNav } from './SideNav';
 
 export function Navbar() {
@@ -156,9 +153,6 @@ export function Navbar() {
                   </Link>
                 </Button>
                 
-                {/* Notifications */}
-                <NotificationBell />
-                
                 {/* User profile dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -196,12 +190,6 @@ export function Navbar() {
                       <Link to="/settings" className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Settings</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/notifications" className="cursor-pointer">
-                        <Bell className="mr-2 h-4 w-4" />
-                        <span>Notifications</span>
                       </Link>
                     </DropdownMenuItem>
                     

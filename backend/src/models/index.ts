@@ -1,5 +1,4 @@
 export * from './User';
 export * from './Category';
 export * from './Topic';
-export * from './Post';
-export * from './Notification'; 
+export * from './Post'; 

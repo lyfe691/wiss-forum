@@ -14,7 +14,6 @@ import {
   FileText,
   ChevronRight,
   Bookmark,
-  Bell,
   LayoutDashboard,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -143,11 +142,6 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
       icon: <User className="h-5 w-5" />,
       label: "Profile",
       href: "/profile"
-    },
-    {
-      icon: <Bell className="h-5 w-5" />,
-      label: "Notifications",
-      href: "/notifications"
     },
     {
       icon: <Settings className="h-5 w-5" />,

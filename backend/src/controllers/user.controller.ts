@@ -5,8 +5,6 @@ import { collections } from '../lib/database';
 import { AuthRequest } from '../lib/auth';
 import { User } from '../models';
 import { Request } from 'express';
-import NotificationService from '../services/notification.service';
-import { Notification, NotificationType } from '../models/Notification';
 
 // Get all users (admin only)
 export async function getAllUsers(req: AuthRequest, res: Response) {
@@ -19,26 +17,21 @@ export async function getAllUsers(req: AuthRequest, res: Response) {
  */
 export async function updateUserRole(req: AuthRequest, res: Response) {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
     const { role } = req.body;
     const adminId = new ObjectId(req.user?.userId);
     
-    console.log(`Updating user ${id} to role: ${role}`);
-    console.log('Request body:', req.body);
-    
-    // Validate role
+    // Validate input
     if (!role || !['student', 'teacher', 'admin'].includes(role)) {
-      console.error('Invalid role provided:', role);
-      return res.status(400).json({ message: 'Invalid role. Role must be student, teacher, or admin' });
+      return res.status(400).json({ message: 'Valid role is required' });
     }
     
-    // Validate ID
+    // Ensure the ID is valid
     if (!ObjectId.isValid(id)) {
-      console.error('Invalid user ID provided:', id);
       return res.status(400).json({ message: 'Invalid user ID' });
     }
     
-    // Update user role
+    // Update the user's role
     const result = await collections.users?.updateOne(
       { _id: new ObjectId(id) },
       { $set: { role } }
@@ -49,27 +42,6 @@ export async function updateUserRole(req: AuthRequest, res: Response) {
     if (!result?.matchedCount) {
       console.error('User not found:', id);
       return res.status(404).json({ message: 'User not found' });
-    }
-    
-    // Send notification to the user
-    try {
-      // Create notification directly
-      const notification: Omit<Notification, '_id'> = {
-        userId: new ObjectId(id),
-        actorId: adminId,
-        type: 'role_change' as NotificationType,
-        title: 'Role Update',
-        message: `Your role has been updated to ${role} by an administrator.`,
-        read: false,
-        targetUrl: '/profile',
-        createdAt: new Date()
-      };
-      
-      await collections.notifications?.insertOne(notification);
-      console.log('Role change notification created');
-    } catch (error) {
-      // Don't fail if notification fails
-      console.error('Failed to send role change notification:', error);
     }
     
     return res.json({ 

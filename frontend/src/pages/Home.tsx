@@ -9,12 +9,6 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList
-} from '@/components/ui/breadcrumb';
 
 interface Category {
   _id: string;

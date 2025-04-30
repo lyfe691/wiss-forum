@@ -1,5 +1,3 @@
-import React from 'react';
-import { ExternalLink } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -68,7 +66,6 @@ export function Help() {
               <li>Browse topics organized by categories</li>
               <li>Create new discussion topics</li>
               <li>Reply to existing discussions</li>
-              <li>Receive notifications for replies and mentions</li>
               <li>Customize your profile</li>
             </ul>
           </CardContent>
@@ -108,19 +105,6 @@ export function Help() {
                     <li>Click "Post Reply" to submit your response</li>
                   </ol>
                   <p className="mt-2">You can also reply directly to a specific post by clicking the "Reply" button on that post.</p>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3">
-                <AccordionTrigger>How do notifications work?</AccordionTrigger>
-                <AccordionContent>
-                  <p>You will receive notifications for the following events:</p>
-                  <ul className="list-disc pl-6 space-y-1 my-2">
-                    <li>When someone replies to your topic</li>
-                    <li>When someone replies to your post</li>
-                    <li>When someone mentions you in a post</li>
-                  </ul>
-                  <p>You can view all notifications by clicking the bell icon in the navigation bar.</p>
                 </AccordionContent>
               </AccordionItem>
 

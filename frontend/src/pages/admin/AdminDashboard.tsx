@@ -296,7 +296,6 @@ export function AdminDashboard() {
                 <li>Forum name and branding</li>
                 <li>Registration settings and requirements</li>
                 <li>Default user permissions</li>
-                <li>Email notification settings</li>
                 <li>System maintenance options</li>
               </ul>
               <p className="text-muted-foreground mt-4">
