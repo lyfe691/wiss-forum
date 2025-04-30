@@ -220,22 +220,14 @@ export function LatestTopics() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
+
                 <Link to="/create-topic">
                   <Button className="gap-2" size="sm">
                     <PlusCircle className="h-4 w-4" />
                     <span>Create Topic</span>
                   </Button>
                 </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Start a new discussion</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                  
         </div>
       </div>
 

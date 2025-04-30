@@ -139,9 +139,7 @@ function App() {
           </Routes>
 
           <Toaster
-            swipeDirections={['right', 'left', 'top', 'bottom']}
             richColors 
-            expand={false} 
             duration={5000}
             position="top-center"
             toastOptions={{
