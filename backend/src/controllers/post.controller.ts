@@ -19,15 +19,11 @@ export async function createPost(req: AuthRequest, res: Response) {
     return res.status(400).json({ message: 'Invalid topic ID' });
   }
   
-  // Check if topic exists and is not locked
+  // Check if topic exists
   const topic = await collections.topics?.findOne({ _id: new ObjectId(topicId) });
   
   if (!topic) {
     return res.status(404).json({ message: 'Topic not found' });
-  }
-  
-  if (topic.isLocked && req.user?.role !== 'admin' && req.user?.role !== 'teacher') {
-    return res.status(403).json({ message: 'This topic is locked and new posts cannot be created' });
   }
   
   // Validate replyTo if provided
@@ -199,13 +195,6 @@ export async function updatePost(req: AuthRequest, res: Response) {
     return res.status(403).json({ message: 'You do not have permission to update this post' });
   }
   
-  // Get the topic to check if it's locked
-  const topic = await collections.topics?.findOne({ _id: post.topicId });
-  
-  if (topic?.isLocked && !isAdminOrTeacher) {
-    return res.status(403).json({ message: 'This topic is locked and posts cannot be edited' });
-  }
-  
   // Update the post
   const result = await collections.posts?.updateOne(
     { _id: new ObjectId(id) },
@@ -276,12 +265,8 @@ export async function deletePost(req: AuthRequest, res: Response) {
     return res.status(403).json({ message: 'You do not have permission to delete this post' });
   }
   
-  // Get the topic to check if it's locked
+  // Get the topic
   const topic = await collections.topics?.findOne({ _id: post.topicId });
-  
-  if (topic?.isLocked && !isAdminOrTeacher) {
-    return res.status(403).json({ message: 'This topic is locked and posts cannot be deleted' });
-  }
   
   // Check if this post is referenced by other posts as a reply
   const referencingPosts = await collections.posts?.countDocuments({ replyTo: new ObjectId(id) });

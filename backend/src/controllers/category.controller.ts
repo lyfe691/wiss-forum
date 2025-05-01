@@ -6,7 +6,7 @@ import { AuthRequest } from '../lib/auth';
 
 // Create a new category
 export async function createCategory(req: AuthRequest, res: Response) {
-  const { name, description, order, parentCategory } = req.body;
+  const { name, description, order } = req.body;
   
   // Validate input
   if (!name || !description) {
@@ -34,17 +34,6 @@ export async function createCategory(req: AuthRequest, res: Response) {
     createdBy: new ObjectId(req.user?.userId)
   };
   
-  // Add parent category reference if provided
-  if (parentCategory && ObjectId.isValid(parentCategory)) {
-    // Check if parent category exists
-    const parent = await collections.categories?.findOne({ _id: new ObjectId(parentCategory) });
-    if (!parent) {
-      return res.status(404).json({ message: 'Parent category not found' });
-    }
-    
-    newCategory.parentCategory = new ObjectId(parentCategory);
-  }
-  
   // Insert category into database
   const result = await collections.categories?.insertOne(newCategory);
   
@@ -61,30 +50,7 @@ export async function createCategory(req: AuthRequest, res: Response) {
 // Get all categories
 export async function getAllCategories(req: Request, res: Response) {
   const categories = await collections.categories?.find({}).toArray();
-  
-  // Group categories by parent
-  const categoryMap = new Map<string, any>();
-  const rootCategories: any[] = [];
-  
-  // First pass: store all categories in a map
-  categories?.forEach(category => {
-    categoryMap.set(category._id.toString(), { ...category, subcategories: [] });
-  });
-  
-  // Second pass: organize into hierarchy
-  categories?.forEach(category => {
-    if (category.parentCategory) {
-      const parentId = category.parentCategory.toString();
-      const parent = categoryMap.get(parentId);
-      if (parent) {
-        parent.subcategories.push(categoryMap.get(category._id.toString()));
-      }
-    } else {
-      rootCategories.push(categoryMap.get(category._id.toString()));
-    }
-  });
-  
-  return res.json(rootCategories);
+  return res.json(categories);
 }
 
 // Get category by ID or slug
@@ -106,11 +72,6 @@ export async function getCategoryByIdOrSlug(req: Request, res: Response) {
   if (!category) {
     return res.status(404).json({ message: 'Category not found' });
   }
-  
-  // Get subcategories
-  const subcategories = await collections.categories?.find({ 
-    parentCategory: category._id 
-  }).toArray();
   
   // Get topics
   const topics = await collections.topics?.find({ 
@@ -143,7 +104,6 @@ export async function getCategoryByIdOrSlug(req: Request, res: Response) {
   
   return res.json({
     ...category,
-    subcategories,
     topics: topicsWithCounts
   });
 }
@@ -151,7 +111,7 @@ export async function getCategoryByIdOrSlug(req: Request, res: Response) {
 // Update a category
 export async function updateCategory(req: AuthRequest, res: Response) {
   const { id } = req.params;
-  const { name, description, order, parentCategory, isActive } = req.body;
+  const { name, description, order, isActive } = req.body;
   
   // Validate ID
   if (!ObjectId.isValid(id)) {
@@ -201,42 +161,6 @@ export async function updateCategory(req: AuthRequest, res: Response) {
     updateFields.isActive = isActive;
   }
   
-  // Handle parent category updates
-  if (parentCategory !== undefined) {
-    if (parentCategory === null || parentCategory === '') {
-      // Remove parent category
-      updateFields.parentCategory = undefined;
-    } else if (ObjectId.isValid(parentCategory)) {
-      // Verify parent exists and is not the category itself
-      if (parentCategory === id) {
-        return res.status(400).json({ message: 'A category cannot be its own parent' });
-      }
-      
-      // Check for circular reference
-      let currentParent = parentCategory;
-      let depthCheck = 0;
-      const maxDepth = 10; // Prevent infinite loops
-      
-      while (currentParent && depthCheck < maxDepth) {
-        const parent = await collections.categories?.findOne({ _id: new ObjectId(currentParent) });
-        if (!parent) {
-          return res.status(404).json({ message: 'Parent category not found' });
-        }
-        
-        if (parent.parentCategory?.toString() === id) {
-          return res.status(400).json({ message: 'Circular reference detected in category hierarchy' });
-        }
-        
-        currentParent = parent.parentCategory?.toString();
-        depthCheck++;
-      }
-      
-      updateFields.parentCategory = new ObjectId(parentCategory);
-    } else {
-      return res.status(400).json({ message: 'Invalid parent category ID' });
-    }
-  }
-  
   // Update category
   const result = await collections.categories?.updateOne(
     { _id: new ObjectId(id) },
@@ -270,15 +194,6 @@ export async function deleteCategory(req: AuthRequest, res: Response) {
   
   if (!category) {
     return res.status(404).json({ message: 'Category not found' });
-  }
-  
-  // Check for subcategories
-  const subcategories = await collections.categories?.countDocuments({ parentCategory: new ObjectId(id) });
-  
-  if (subcategories && subcategories > 0) {
-    return res.status(400).json({ 
-      message: 'Cannot delete category with subcategories. Remove or reassign subcategories first.'
-    });
   }
   
   // Check for topics

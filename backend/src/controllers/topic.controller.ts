@@ -37,8 +37,6 @@ export async function createTopic(req: AuthRequest, res: Response) {
     tags: tags || [],
     viewCount: 0,
     replyCount: 0,
-    isLocked: false,
-    isPinned: false,
     createdAt: new Date(),
     updatedAt: new Date()
   };
@@ -109,7 +107,7 @@ export async function getTopicsByCategory(req: Request, res: Response) {
     
     // Get topics with pagination
     const topics = await collections.topics?.find({ categoryId: new ObjectId(categoryId) })
-      .sort({ isPinned: -1, lastPostAt: -1 })
+      .sort({ lastPostAt: -1 })
       .skip(skip)
       .limit(limit)
       .toArray();
@@ -217,54 +215,49 @@ export async function getTopicByIdOrSlug(req: Request, res: Response) {
 export async function updateTopic(req: AuthRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { title, content, isPinned, isLocked, tags } = req.body;
-    const userId = new ObjectId(req.user?.userId);
+    const { title, content, tags } = req.body;
     
     // Validate ID
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid topic ID' });
     }
     
-    // Find the topic
+    // Get the topic
     const topic = await collections.topics?.findOne({ _id: new ObjectId(id) });
     
     if (!topic) {
       return res.status(404).json({ message: 'Topic not found' });
     }
     
-    // Check if user is the author or admin/teacher
-    const isAuthor = topic.authorId.toString() === userId.toString();
-    const isAdminOrTeacher = req.user?.role === 'admin' || req.user?.role === 'teacher';
+    // Check if the user is the author or an admin
+    const isAuthor = topic.authorId.toString() === req.user?.userId?.toString();
+    const isAdmin = req.user?.role === 'admin';
+    const isTeacher = req.user?.role === 'teacher';
     
-    if (!isAuthor && !isAdminOrTeacher) {
-      return res.status(403).json({ message: 'You do not have permission to update this topic' });
+    if (!isAuthor && !isAdmin && !isTeacher) {
+      return res.status(403).json({ message: 'Not authorized to update this topic' });
     }
     
-    // Create update object
+    // Build update object
     const updateData: Partial<Topic> = {
       updatedAt: new Date()
     };
     
-    // Add fields to update if provided
-    if (isAuthor) {
-      // Regular users can only update title, content, and tags
-      if (title) updateData.title = title;
-      if (content) updateData.content = content;
-      if (tags) updateData.tags = tags;
-    }
-    
-    if (isAdminOrTeacher) {
-      // Admins/teachers can update all fields
-      if (title) updateData.title = title;
-      if (content) updateData.content = content;
-      if (tags) updateData.tags = tags;
-      if (typeof isPinned === 'boolean') updateData.isPinned = isPinned;
-      if (typeof isLocked === 'boolean') updateData.isLocked = isLocked;
-    }
-    
-    // Update slug if title was changed
     if (title) {
-      updateData.slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+      updateData.title = title;
+      
+      // Update slug if title changes
+      if (title !== topic.title) {
+        updateData.slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+      }
+    }
+    
+    if (content) {
+      updateData.content = content;
+    }
+    
+    if (tags) {
+      updateData.tags = tags;
     }
     
     // Update the topic
@@ -277,22 +270,38 @@ export async function updateTopic(req: AuthRequest, res: Response) {
       return res.status(404).json({ message: 'Topic not found' });
     }
     
+    // If the content was updated, also update the first post
+    if (content) {
+      const firstPost = await collections.posts?.findOne({
+        topicId: new ObjectId(id)
+      }, {
+        sort: { createdAt: 1 }
+      });
+      
+      if (firstPost) {
+        await collections.posts?.updateOne(
+          { _id: firstPost._id },
+          { 
+            $set: { 
+              content,
+              isEdited: true,
+              updatedAt: new Date()
+            } 
+          }
+        );
+      }
+    }
+    
     // Get the updated topic
     const updatedTopic = await collections.topics?.findOne({ _id: new ObjectId(id) });
     
-    // Get author information
-    const author = await collections.users?.findOne(
-      { _id: updatedTopic?.authorId },
-      { projection: { password: 0 } }
-    );
-    
-    res.json({
+    return res.json({
       message: 'Topic updated successfully',
-      topic: { ...updatedTopic, author }
+      topic: updatedTopic
     });
   } catch (error) {
     console.error('Update topic error:', error);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 }
 

@@ -78,8 +78,6 @@ interface Topic {
   };
   viewCount?: number;
   replyCount?: number;
-  isPinned?: boolean;
-  isLocked?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -630,18 +628,6 @@ export function TopicDetail() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              {topic.isPinned && (
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 gap-1">
-                  <Pin className="h-3 w-3" />
-                  <span>Pinned</span>
-                </Badge>
-              )}
-              {topic.isLocked && (
-                <Badge variant="outline" className="bg-muted text-muted-foreground gap-1">
-                  <Lock className="h-3 w-3" />
-                  <span>Locked</span>
-                </Badge>
-              )}
               {topic.category && (
                 <Badge variant="secondary" className="hover:bg-secondary/80">
                   {topic.category.name}
@@ -829,7 +815,6 @@ export function TopicDetail() {
               value={newPostContent}
               onChange={(e) => setNewPostContent(e.target.value)}
               className="min-h-[120px] resize-y"
-              disabled={isSubmitting || topic?.isLocked}
             />
             {replyToPostId && (
               <div className="mt-2 text-sm text-muted-foreground">
@@ -840,7 +825,7 @@ export function TopicDetail() {
           <CardFooter>
             <Button 
               onClick={handleNewPost}
-              disabled={isSubmitting || !newPostContent.trim() || topic?.isLocked}
+              disabled={isSubmitting || !newPostContent.trim()}
               className="gap-2 transition-all duration-200"
             >
               {isSubmitting ? (

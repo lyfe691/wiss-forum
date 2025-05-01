@@ -10,5 +10,4 @@ export interface Category {
   createdAt: Date;
   updatedAt: Date;
   createdBy?: ObjectId; // Reference to User
-  parentCategory?: ObjectId; // For subcategories (optional)
 } 

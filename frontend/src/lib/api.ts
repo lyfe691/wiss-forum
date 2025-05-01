@@ -113,7 +113,7 @@ export const categoriesAPI = {
     return response.data;
   },
   
-  createCategory: async (data: { name: string; description: string; order?: number; parentCategory?: string }) => {
+  createCategory: async (data: { name: string; description: string; order?: number }) => {
     // Make sure we have a token before creating a category
     const token = localStorage.getItem('token');
     if (!token) {
@@ -132,8 +132,7 @@ export const categoriesAPI = {
     data: { 
       name?: string; 
       description?: string; 
-      order?: number; 
-      parentCategory?: string | null; 
+      order?: number;
       isActive?: boolean 
     }
   ) => {
@@ -259,8 +258,6 @@ export const topicsAPI = {
     data: { 
       title?: string; 
       categoryId?: string; 
-      isPinned?: boolean; 
-      isLocked?: boolean; 
       tags?: string[] 
     }
   ) => {

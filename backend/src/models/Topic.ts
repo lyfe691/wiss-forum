@@ -7,8 +7,6 @@ export interface Topic {
   slug: string;
   categoryId: ObjectId; // Reference to Category
   authorId: ObjectId; // Reference to User
-  isPinned: boolean;
-  isLocked: boolean;
   viewCount: number;
   replyCount: number; // Count of replies
   lastPostId?: ObjectId; // Reference to latest Post

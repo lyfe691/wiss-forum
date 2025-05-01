@@ -12,8 +12,6 @@ import {
   Tag,
   Calendar,
   MessageSquare,
-  Pin,
-  Lock,
   PlusCircle,
   RefreshCcw,
   Filter
@@ -29,7 +27,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PaginationControls } from '@/components/PaginationControls';
 import {
   Breadcrumb,
@@ -64,8 +61,6 @@ interface Topic {
   tags: string[];
   viewCount?: number;
   replyCount?: number;
-  isPinned: boolean;
-  isLocked: boolean;
   createdAt: string;
   updatedAt: string;
   author?: Author;
@@ -264,39 +259,12 @@ export function LatestTopics() {
             {topics.map((topic) => (
               <div key={topic._id}>
                 <Card 
-                  className={cn(
-                    "border hover:border-primary/20 transition-all duration-200 overflow-hidden",
-                    topic.isPinned && "bg-primary/5 border-primary/10"
-                  )}
+                  className="border hover:border-primary/20 transition-all duration-200 overflow-hidden"
                 >
                   <CardHeader className="pb-3 pt-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start gap-2">
-                          {topic.isPinned && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Pin className="h-4 w-4 text-primary shrink-0 mt-1" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Pinned topic</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                          {topic.isLocked && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Lock className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Locked topic</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
                           <CardTitle className="text-lg hover:text-primary transition-colors">
                             <Link to={`/topics/${topic.slug}`} className="hover:underline">
                               {topic.title}

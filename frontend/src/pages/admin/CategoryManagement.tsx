@@ -59,12 +59,6 @@ interface Category {
   slug: string;
   order?: number;
   isActive?: boolean;
-  parent?: {
-    _id: string;
-    name: string;
-    slug: string;
-  };
-  parentCategory?: string;
   subcategories?: Category[];
   createdAt: string;
   updatedAt: string;
@@ -83,7 +77,6 @@ export function CategoryManagement() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    parentCategory: '',
   });
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -97,13 +90,11 @@ export function CategoryManagement() {
       setFormData({
         name: editingCategory.name,
         description: editingCategory.description,
-        parentCategory: editingCategory.parentCategory || '',
       });
     } else {
       setFormData({
         name: '',
         description: '',
-        parentCategory: '',
       });
     }
   }, [editingCategory]);
@@ -172,12 +163,11 @@ export function CategoryManagement() {
       const result = await categoriesAPI.createCategory({
         name: formData.name,
         description: formData.description,
-        ...(formData.parentCategory && { parentCategory: formData.parentCategory })
       });
       
       setSuccess('Category created successfully');
       setShowDialog(false);
-      setFormData({ name: '', description: '', parentCategory: '' });
+      setFormData({ name: '', description: '' });
       await fetchCategories();
     } catch (err: any) {
       console.error('Failed to create category:', err);
@@ -207,13 +197,12 @@ export function CategoryManagement() {
       await categoriesAPI.updateCategory(editingCategory._id, {
         name: formData.name,
         description: formData.description,
-        parentCategory: formData.parentCategory || null
       });
       
       setSuccess('Category updated successfully');
       setShowDialog(false);
       setEditingCategory(null);
-      setFormData({ name: '', description: '', parentCategory: '' });
+      setFormData({ name: '', description: '' });
       await fetchCategories();
     } catch (err: any) {
       console.error('Failed to update category:', err);
@@ -447,7 +436,6 @@ export function CategoryManagement() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead>Parent</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -463,9 +451,6 @@ export function CategoryManagement() {
                         <div className="max-w-xs truncate">
                           {category.description}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {category.parentName || '-'}
                       </TableCell>
                       <TableCell>{formatDate(category.createdAt)}</TableCell>
                       <TableCell className="text-right">
@@ -546,29 +531,6 @@ export function CategoryManagement() {
                   rows={3}
                   required
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="parentCategory">Parent Category (Optional)</Label>
-                <select
-                  id="parentCategory"
-                  name="parentCategory"
-                  value={formData.parentCategory}
-                  onChange={handleInputChange}
-                  className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">None (Top Level)</option>
-                  {allCategories.map(cat => (
-                    // Don't allow setting the category itself as a parent when editing
-                    (editingCategory && cat._id === editingCategory._id) ? null : (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </option>
-                    )
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground">
-                  Optional. Select a parent to create a subcategory.
-                </p>
               </div>
             </div>
             <DialogFooter>

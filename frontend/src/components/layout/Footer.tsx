@@ -20,24 +20,16 @@ export function Footer() {
             </p>
             
             <div className="flex items-center gap-4 mt-6">
-              <a 
-                href="https://twitter.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://github.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="GitHub"
-              >
-                <Github className="h-5 w-5" />
-              </a>
+            <a
+              href="https://github.com/barkintaco/wiss-forum"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center font-semibold text-sm gap-2 bg-background/40 border border-primary/20 hover:border-primary/30 hover:bg-primary/5 px-3 py-2 rounded-md transition-colors"
+            >
+              <Github className="h-5 w-5 text-primary" />
+              <span className="text-primary">Contribute to the project</span>
+              <span className="sr-only">GitHub</span>
+            </a>
             </div>
           </div>
           
