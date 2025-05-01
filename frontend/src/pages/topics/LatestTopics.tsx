@@ -167,15 +167,12 @@ export function LatestTopics() {
           <p className="text-muted-foreground mt-1">Browse the most recent discussions in our community</p>
         </div>
         <div className="flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-9 w-9 p-0" 
-                  onClick={handleRefresh}
-                  disabled={isLoading || isRefreshing}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-9 w-9 p-0" 
+              onClick={handleRefresh}
+              disabled={isLoading || isRefreshing}
                 >
                   <RefreshCcw className={cn(
                     "h-4 w-4",
@@ -183,12 +180,6 @@ export function LatestTopics() {
                   )} />
                   <span className="sr-only">Refresh</span>
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Refresh topics</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

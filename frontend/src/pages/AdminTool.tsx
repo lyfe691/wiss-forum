@@ -49,7 +49,7 @@ export function AdminTool() {
       const endpoint = role === 'admin' ? 'bootstrap-admin' : 'bootstrap-teacher';
       
       try {
-        const response = await axios.post(`http://localhost:3000/api/users/${endpoint}`, {
+        const response = await axios.post(`http://localhost:8080/api/users/${endpoint}`, {
           userId,
           secretKey
         });

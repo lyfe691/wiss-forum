@@ -254,7 +254,7 @@ export function CategoryManagement() {
       setSuccess(null);
       
       // Get all topics for this category
-      const response = await fetch(`http://localhost:3000/api/topics/category/${categoryId}`);
+      const response = await fetch(`http://localhost:8080/api/topics/category/${categoryId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch topics: ${response.status}`);
       }

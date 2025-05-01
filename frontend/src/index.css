@@ -173,7 +173,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50 selection:bg-primary/50 selection:text-primary-foreground;
+    @apply border-border outline-ring/50 selection:bg-primary/30 selection:text-primary-foreground;
   }
   body {
     @apply bg-background text-foreground;

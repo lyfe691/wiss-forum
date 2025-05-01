@@ -25,12 +25,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { 
   AlertCircle, 
   ArrowLeft, 
@@ -440,9 +434,6 @@ export function TopicDetail() {
               
               <CardFooter className="pt-3 border-t flex justify-between items-center">
                 <div className="flex gap-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -460,17 +451,9 @@ export function TopicDetail() {
                           )}
                           <span>{reply.likes || 0}</span>
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{reply.isLiked ? 'Unlike' : 'Like'} this reply</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                   
                   {isAuthenticated && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
+                
                           <Button
                             variant="ghost"
                             size="sm"
@@ -488,12 +471,6 @@ export function TopicDetail() {
                             <Reply className="h-4 w-4 mr-1.5" />
                             Reply
                           </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Reply to this comment</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
                   )}
                 </div>
                 
@@ -777,9 +754,6 @@ export function TopicDetail() {
                 <CardFooter className="pt-3 border-t flex justify-between items-center">
                   <div className="flex gap-2">
                     {post._id !== 'topic-content' && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -797,19 +771,11 @@ export function TopicDetail() {
                               )}
                               <span>{post.likes || 0}</span>
                             </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{post.isLiked ? 'Unlike' : 'Like'} this post</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+
                     )}
                     
                     {isAuthenticated && post._id !== 'topic-content' && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
+                      <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => {
@@ -826,12 +792,6 @@ export function TopicDetail() {
                               <Reply className="h-4 w-4 mr-1.5" />
                               Reply
                             </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Reply to this post</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
                     )}
                   </div>
                   
