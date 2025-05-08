@@ -160,4 +160,14 @@ public class UserController {
         
         return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
     }
+    
+    @GetMapping("/profile/{idOrUsername}")
+    public ResponseEntity<?> getUserProfileByIdOrUsername(@PathVariable String idOrUsername) {
+        try {
+            User user = userService.getUserByIdOrUsername(idOrUsername);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
 } 

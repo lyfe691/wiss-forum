@@ -35,8 +35,6 @@ import {
   Reply,
   Send,
   Trash,
-  Lock,
-  Pin,
   CalendarDays,
   Eye,
   Loader2
@@ -362,7 +360,7 @@ export function TopicDetail() {
     if (!isAuthenticated || !user) return false;
     
     // Admin can manage all posts
-    if (user.role === 'admin') return true;
+    if (user.role === 'ADMIN') return true;
     
     // A user can manage their own posts
     return user._id === postAuthorId;

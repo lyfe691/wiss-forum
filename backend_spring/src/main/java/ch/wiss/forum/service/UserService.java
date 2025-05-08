@@ -53,6 +53,20 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
     }
     
+    public User getUserByIdOrUsername(String idOrUsername) {
+        // Try to find by ID first
+        try {
+            return getUserById(idOrUsername);
+        } catch (RuntimeException e) {
+            // If not found by ID, try by username
+            try {
+                return getUserByUsername(idOrUsername);
+            } catch (RuntimeException e2) {
+                throw new RuntimeException("User not found with ID or username: " + idOrUsername);
+            }
+        }
+    }
+    
     public User updateUser(String id, User userDetails, User currentUser) {
         // Check if the user is updating their own profile or is an admin
         if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {

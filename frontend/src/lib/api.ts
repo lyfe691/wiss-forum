@@ -154,8 +154,13 @@ export const userAPI = {
   },
   
   getPublicUserProfile: async (idOrUsername: string) => {
-    const response = await api.get(`/users/profile/${idOrUsername}`);
-    return response.data;
+    try {
+      const response = await api.get(`/users/profile/${idOrUsername}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to get user profile for ${idOrUsername}:`, error);
+      throw error;
+    }
   },
   
   updateUserRole: async (userId: string, role: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
