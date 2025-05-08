@@ -117,4 +117,47 @@ public class UserController {
         
         return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
     }
+    
+    @PutMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updateCurrentUserProfile(@Valid @RequestBody User userDetails) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication != null && authentication.getPrincipal() instanceof User) {
+            User currentUser = (User) authentication.getPrincipal();
+            
+            try {
+                User updatedUser = userService.updateUser(currentUser.getId(), userDetails, currentUser);
+                return ResponseEntity.ok(updatedUser);
+            } catch (RuntimeException e) {
+                return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            }
+        }
+        
+        return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
+    }
+    
+    @PutMapping("/profile/password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updateCurrentUserPassword(@Valid @RequestBody PasswordUpdateRequest passwordRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication != null && authentication.getPrincipal() instanceof User) {
+            User currentUser = (User) authentication.getPrincipal();
+            
+            try {
+                User updatedUser = userService.updatePassword(
+                        currentUser.getId(), 
+                        passwordRequest.getCurrentPassword(), 
+                        passwordRequest.getNewPassword(),
+                        currentUser);
+                
+                return ResponseEntity.ok(new MessageResponse("Password updated successfully"));
+            } catch (RuntimeException e) {
+                return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            }
+        }
+        
+        return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
+    }
 } 

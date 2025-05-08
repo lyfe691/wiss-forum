@@ -62,6 +62,24 @@ public class UserService {
         User user = getUserById(id);
         
         // Only update fields that are allowed
+        if (userDetails.getUsername() != null) {
+            // Check if username is already taken
+            if (!userDetails.getUsername().equals(user.getUsername()) && 
+                userRepository.existsByUsername(userDetails.getUsername())) {
+                throw new RuntimeException("Username is already taken");
+            }
+            user.setUsername(userDetails.getUsername());
+        }
+        
+        if (userDetails.getEmail() != null) {
+            // Check if email is already taken
+            if (!userDetails.getEmail().equals(user.getEmail()) && 
+                userRepository.existsByEmail(userDetails.getEmail())) {
+                throw new RuntimeException("Email is already taken");
+            }
+            user.setEmail(userDetails.getEmail());
+        }
+        
         if (userDetails.getDisplayName() != null) {
             user.setDisplayName(userDetails.getDisplayName());
         }

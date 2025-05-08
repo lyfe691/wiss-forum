@@ -71,17 +71,14 @@ export function LatestTopics() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalTopics: 0,
-    hasMore: false
-  });
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalTopics, setTotalTopics] = useState(0);
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'mostReplies'>('latest');
 
   useEffect(() => {
     fetchTopics();
-  }, [pagination.currentPage, sortBy]);
+  }, [page, sortBy]);
 
   const fetchTopics = async () => {
     if (isRefreshing) {
@@ -93,21 +90,26 @@ export function LatestTopics() {
     try {
       let data;
       if (sortBy === 'latest') {
-        data = await topicsAPI.getLatestTopics(pagination.currentPage);
+        data = await topicsAPI.getLatestTopics(page);
       } else if (sortBy === 'popular') {
-        // Sort by viewCount on the frontend
-        data = await topicsAPI.getLatestTopics(pagination.currentPage);
+        data = await topicsAPI.getLatestTopics(page);
         data.topics = [...data.topics].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
       } else {
-        // Sort by replyCount on the frontend
-        data = await topicsAPI.getLatestTopics(pagination.currentPage);
+        data = await topicsAPI.getLatestTopics(page);
         data.topics = [...data.topics].sort((a, b) => (b.replyCount || 0) - (a.replyCount || 0));
       }
       
-      setTopics(data.topics);
-      setPagination(data.pagination);
+      const topicsArray = Array.isArray(data.topics) ? data.topics : [];
+      setTopics(topicsArray);
+      
+      setTotalPages(data.totalPages || 1);
+      setTotalTopics(data.totalTopics || topicsArray.length);
+      
     } catch (error) {
       console.error('Failed to fetch topics:', error);
+      setTopics([]);
+      setTotalPages(1);
+      setTotalTopics(0);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -119,9 +121,8 @@ export function LatestTopics() {
     fetchTopics();
   };
 
-  const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-    // Scroll to top when changing pages
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -348,11 +349,11 @@ export function LatestTopics() {
             ))}
           </div>
           
-          {pagination.totalPages > 1 && (
+          {totalPages > 1 && (
             <div className="mt-8 flex justify-center">
               <PaginationControls
-                currentPage={pagination.currentPage}
-                totalPages={pagination.totalPages}
+                currentPage={page}
+                totalPages={totalPages}
                 onPageChange={handlePageChange}
                 maxVisible={5}
               />

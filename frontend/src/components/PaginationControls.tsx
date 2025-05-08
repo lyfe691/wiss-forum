@@ -13,22 +13,25 @@ interface PaginationControlsProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   maxVisible?: number;
+  isZeroBased?: boolean;
 }
 
 export function PaginationControls({
   currentPage,
   totalPages,
   onPageChange,
-  maxVisible = 5
+  maxVisible = 5,
+  isZeroBased = true
 }: PaginationControlsProps) {
   if (totalPages <= 1) return null;
 
-  // Generate an array of page numbers to display
+  const displayPage = isZeroBased ? currentPage + 1 : currentPage;
+  
   const getPageNumbers = () => {
     const pages = [];
     const halfVisible = Math.floor(maxVisible / 2);
-
-    let startPage = Math.max(1, currentPage - halfVisible);
+    
+    let startPage = Math.max(1, displayPage - halfVisible);
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
     if (endPage - startPage + 1 < maxVisible) {
@@ -57,14 +60,19 @@ export function PaginationControls({
   };
 
   const pageNumbers = getPageNumbers();
+  
+  const handlePageClick = (page: number) => {
+    const internalPage = isZeroBased ? page - 1 : page;
+    onPageChange(internalPage);
+  };
 
   return (
     <Pagination>
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-            style={{ cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
+            onClick={() => displayPage > 1 && handlePageClick(displayPage - 1)}
+            style={{ cursor: displayPage === 1 ? "not-allowed" : "pointer", opacity: displayPage === 1 ? 0.5 : 1 }}
           />
         </PaginationItem>
 
@@ -80,8 +88,8 @@ export function PaginationControls({
           return (
             <PaginationItem key={index}>
               <PaginationLink
-                isActive={page === currentPage}
-                onClick={() => onPageChange(page as number)}
+                isActive={page === displayPage}
+                onClick={() => handlePageClick(page as number)}
                 style={{ cursor: "pointer" }}
               >
                 {page}
@@ -92,8 +100,8 @@ export function PaginationControls({
 
         <PaginationItem>
           <PaginationNext
-            onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-            style={{ cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.5 : 1 }}
+            onClick={() => displayPage < totalPages && handlePageClick(displayPage + 1)}
+            style={{ cursor: displayPage === totalPages ? "not-allowed" : "pointer", opacity: displayPage === totalPages ? 0.5 : 1 }}
           />
         </PaginationItem>
       </PaginationContent>

@@ -187,13 +187,23 @@ export const userAPI = {
   },
   
   updateUserProfile: async (data: { username?: string; email?: string; displayName?: string; bio?: string }) => {
-    const response = await api.put('/users/profile', data);
-    return response.data;
+    try {
+      const response = await api.put('/users/profile', data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update user profile:', error);
+      throw error;
+    }
   },
   
   changePassword: async (data: { currentPassword: string; newPassword: string }) => {
-    const response = await api.put('/users/password', data);
-    return response.data;
+    try {
+      const response = await api.put('/users/profile/password', data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      throw error;
+    }
   },
 };
 
