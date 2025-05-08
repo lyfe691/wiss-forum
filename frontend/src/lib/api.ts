@@ -561,6 +561,12 @@ export const topicsAPI = {
       throw new Error('Topic ID or slug is required');
     }
     
+    // Don't make API calls with null/undefined values
+    if (idOrSlug === 'null' || idOrSlug === 'undefined') {
+      console.error('Invalid topic ID/slug:', idOrSlug);
+      throw new Error('Invalid topic identifier');
+    }
+    
     try {
       console.log(`Requesting topic with ID/Slug: ${idOrSlug}`);
       const response = await api.get(`/topics/${idOrSlug}`);
@@ -575,20 +581,41 @@ export const topicsAPI = {
         console.log('Extracted nested topic data:', topicData);
       }
       
+      // Normalize the data structure (Spring returns 'id', frontend expects '_id')
+      if (topicData && topicData.id && !topicData._id) {
+        topicData = {
+          ...topicData,
+          _id: topicData.id
+        };
+      }
+      
+      // Generate a slug if missing
+      if (topicData && (!topicData.slug || topicData.slug === 'null')) {
+        const timestamp = new Date().getTime();
+        topicData.slug = `${topicData.title.toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim()}-${timestamp}`;
+        
+        console.log('Generated slug for topic:', topicData.slug);
+      }
+      
       // Validate the topic data
-      if (!topicData || !topicData._id) {
+      if (!topicData || (!topicData._id && !topicData.id)) {
         console.error('Invalid or missing topic data:', topicData);
         throw new Error('Invalid topic data received from server');
       }
       
       // Increment the view count by calling the backend
       try {
-        await api.post(`/topics/${topicData._id}/view`);
+        await api.post(`/topics/${topicData._id || topicData.id}/view`);
       } catch (viewError) {
         console.warn('Failed to increment view count:', viewError);
         // Continue anyway even if view count update fails
       }
       
+      console.log('Normalized topic data:', topicData);
       return topicData;
     } catch (error) {
       console.error(`Error fetching topic ${idOrSlug}:`, error);

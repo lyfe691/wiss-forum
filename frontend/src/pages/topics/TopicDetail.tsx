@@ -106,7 +106,18 @@ export function TopicDetail() {
 
   useEffect(() => {
     const fetchTopicAndPosts = async () => {
-      if (!slug) return;
+      if (!slug) {
+        console.log('No slug provided, not fetching topic');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Don't fetch if slug is literally "null" or "undefined"
+      if (slug === "null" || slug === "undefined") {
+        console.log('Invalid slug value:', slug);
+        setIsLoading(false);
+        return;
+      }
       
       setIsLoading(true);
       try {

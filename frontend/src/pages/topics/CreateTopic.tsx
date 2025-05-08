@@ -137,6 +137,8 @@ export function CreateTopic() {
       // Extract topic information
       const newTopic = response.topic || response;
       
+      console.log('Topic created successfully:', newTopic);
+      
       // Show success message
       toast.success('Topic created successfully!');
       
@@ -144,9 +146,29 @@ export function CreateTopic() {
       setTitle('');
       setContent('');
       
-      // Redirect to the new topic
-      
-      navigate(`/topics/${newTopic.slug || newTopic._id}`);
+      // Make sure we have a valid identifier before redirecting
+      if (newTopic) {
+        // Check for a valid slug first
+        if (newTopic.slug && newTopic.slug !== 'null' && newTopic.slug !== 'undefined') {
+          console.log('Using topic slug for navigation:', newTopic.slug);
+          navigate(`/topics/${newTopic.slug}`);
+        } 
+        // Otherwise use ID
+        else if (newTopic._id || newTopic.id) {
+          const topicId = newTopic._id || newTopic.id;
+          console.log('Using topic ID for navigation:', topicId);
+          navigate(`/topics/${topicId}`);
+        }
+        // Last resort, just go to the topics page
+        else {
+          console.warn('No valid slug or ID found, redirecting to topics list');
+          toast.info('Topic created, but redirecting to topics list');
+          navigate('/topics/latest');
+        }
+      } else {
+        console.warn('No topic data returned, redirecting to topics list');
+        navigate('/topics/latest');
+      }
 
     } catch (error) {
       console.error('Failed to create topic:', error);

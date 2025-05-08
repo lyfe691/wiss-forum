@@ -125,20 +125,34 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
     
     private boolean isPublicEndpoint(String uri, HttpServletRequest request) {
-        // Check if the URI contains specific public endpoints
-        boolean isPublicUri = uri.contains("/api/auth/login") || 
-               uri.contains("/api/auth/register") || 
-               uri.contains("/api/users/public") || 
-               uri.contains("/api/topics") || 
-               uri.contains("/api/posts");
+        String method = request.getMethod();
+        
+        // Public authentication endpoints
+        if (uri.contains("/api/auth/login") || uri.contains("/api/auth/register")) {
+            return true;
+        }
+        
+        // Public user endpoints
+        if (uri.contains("/api/users/public")) {
+            return true;
+        }
+        
+        // Special case for topics: only GET requests should be public
+        if (uri.contains("/api/topics")) {
+            return "GET".equals(method);
+        }
+        
+        // Special case for posts: only GET requests should be public  
+        if (uri.contains("/api/posts")) {
+            return "GET".equals(method);
+        }
                
         // Special case for categories: only GET requests should be public
         if (uri.contains("/api/categories")) {
-            String method = request.getMethod();
             // Only GET requests to categories are public
             return "GET".equals(method);
         }
         
-        return isPublicUri;
+        return false;
     }
 } 

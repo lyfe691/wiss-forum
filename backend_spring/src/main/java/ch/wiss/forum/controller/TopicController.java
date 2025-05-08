@@ -82,16 +82,62 @@ public class TopicController {
         return ResponseEntity.ok(topics);
     }
     
-    @GetMapping("/{id}")
-    public ResponseEntity<Topic> getTopicById(@PathVariable String id) {
-        Topic topic = topicService.getTopicById(id);
-        return ResponseEntity.ok(topic);
+    @GetMapping("/{idOrSlug}")
+    public ResponseEntity<?> getTopicById(@PathVariable String idOrSlug) {
+        try {
+            // Check for null or invalid id
+            if (idOrSlug == null || idOrSlug.equals("null") || idOrSlug.equals("undefined") || idOrSlug.trim().isEmpty()) {
+                log.warn("Invalid topic ID/slug requested: {}", idOrSlug);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("Topic not found: Invalid ID/slug"));
+            }
+            
+            try {
+                // First try to look up by ID
+                Topic topic = topicService.getTopicById(idOrSlug);
+                return ResponseEntity.ok(topic);
+            } catch (Exception idError) {
+                log.info("Topic not found by ID {}, trying as slug", idOrSlug);
+                
+                try {
+                    // If ID lookup fails, try to find by slug
+                    Topic topic = topicService.getTopicBySlug(idOrSlug);
+                    return ResponseEntity.ok(topic);
+                } catch (Exception slugError) {
+                    // If both lookups fail, return 404
+                    log.warn("Topic not found by ID or slug: {}", idOrSlug);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new MessageResponse("Topic not found with ID or slug: " + idOrSlug));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching topic with ID/slug {}: {}", idOrSlug, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Error retrieving topic: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/slug/{slug}")
-    public ResponseEntity<Topic> getTopicBySlug(@PathVariable String slug) {
-        Topic topic = topicService.getTopicBySlug(slug);
-        return ResponseEntity.ok(topic);
+    public ResponseEntity<?> getTopicBySlug(@PathVariable String slug) {
+        try {
+            // Check for null or invalid slug
+            if (slug == null || slug.equals("null") || slug.equals("undefined") || slug.trim().isEmpty()) {
+                log.warn("Invalid topic slug requested: {}", slug);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("Topic not found: Invalid slug"));
+            }
+            
+            Topic topic = topicService.getTopicBySlug(slug);
+            return ResponseEntity.ok(topic);
+        } catch (Exception e) {
+            log.error("Error fetching topic with slug {}: {}", slug, e.getMessage());
+            if (e.getMessage() != null && e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse(e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Error retrieving topic: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/{id}/view")

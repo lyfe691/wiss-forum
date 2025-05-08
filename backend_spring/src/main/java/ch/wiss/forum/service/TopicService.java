@@ -51,9 +51,23 @@ public class TopicService {
         topic.setViewCount(0);
         topic.setReplyCount(0);
         
-        // Ensure slug is unique
-        if (topicRepository.existsBySlug(topic.getSlug())) {
-            throw new IllegalArgumentException("Topic with slug '" + topic.getSlug() + "' already exists");
+        // Generate a slug if not provided
+        if (topic.getSlug() == null || topic.getSlug().isEmpty()) {
+            String baseSlug = topic.getTitle().toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "") // Remove special characters
+                .replaceAll("\\s+", "-")         // Replace spaces with hyphens
+                .replaceAll("-+", "-")           // Replace multiple hyphens with single one
+                .trim();                         // Trim spaces
+            
+            // Add timestamp to ensure uniqueness
+            String uniqueSlug = baseSlug + "-" + System.currentTimeMillis();
+            topic.setSlug(uniqueSlug);
+        }
+        
+        // Ensure slug is unique - only check if slug is non-null
+        if (topic.getSlug() != null && topicRepository.existsBySlug(topic.getSlug())) {
+            // Make it unique by adding timestamp
+            topic.setSlug(topic.getSlug() + "-" + System.currentTimeMillis());
         }
         
         return topicRepository.save(topic);
