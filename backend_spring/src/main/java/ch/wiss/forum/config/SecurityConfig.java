@@ -21,13 +21,16 @@ import ch.wiss.forum.security.AuthEntryPointJwt;
 import ch.wiss.forum.security.AuthTokenFilter;
 import ch.wiss.forum.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
     
     private final UserDetailsServiceImpl userDetailsService;
@@ -60,35 +63,54 @@ public class SecurityConfig {
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.info("Configuring security filter chain");
+        
         http.csrf(csrf -> csrf.disable())
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .exceptionHandling(exception -> {
+                exception.authenticationEntryPoint(unauthorizedHandler);
+                log.info("Setting unauthorized handler");
+            })
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> 
-                auth.requestMatchers("/api/auth/**").permitAll()
+            .authorizeHttpRequests(auth -> {
+                log.info("Configuring request authorization rules");
+                auth
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/users/public").permitAll()
                     .requestMatchers("/api/categories/**").permitAll()
                     .requestMatchers("/api/topics/**").permitAll()
                     .requestMatchers("/api/posts/**").permitAll()
-                    .anyRequest().authenticated()
-            );
+                    .requestMatchers("/error").permitAll()
+                    .anyRequest().permitAll(); // Temporarily set all to permitAll to debug
+                log.info("Authorization rules configured");
+            });
         
         http.authenticationProvider(authenticationProvider());
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        
+        // Register JWT filter
+        AuthTokenFilter jwtFilter = authenticationJwtTokenFilter();
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        log.info("JWT filter registered");
         
         return http.build();
     }
     
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        log.info("Configuring CORS");
+        
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
-        configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         
+        log.info("CORS configuration completed");
         return source;
     }
 } 

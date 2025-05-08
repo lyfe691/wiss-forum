@@ -34,7 +34,7 @@ public class User implements UserDetails {
     
     private String password;
     
-    private String role; // "student", "teacher", "admin"
+    private Role role;
     
     private String displayName;
     
@@ -50,7 +50,7 @@ public class User implements UserDetails {
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
     
     @Override

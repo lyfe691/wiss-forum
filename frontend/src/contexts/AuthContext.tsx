@@ -2,12 +2,15 @@ import { createContext, useState, useContext, useEffect, ReactNode } from 'react
 import { toast } from 'sonner';
 import { authAPI } from '@/lib/api';
 
+// Update the role type to match the backend enum
+type Role = 'STUDENT' | 'TEACHER' | 'ADMIN';
+
 interface User {
   _id: string;
   username: string;
   email: string;
   displayName: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: Role;
   avatar?: string;
   bio?: string;
   createdAt?: string;
@@ -35,10 +38,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initialize = async () => {
       setIsLoading(true);
       const storedUser = localStorage.getItem('user');
-      if (storedUser) {
+      const token = localStorage.getItem('token');
+      
+      console.log('Auth initialization - token exists:', !!token);
+      
+      if (storedUser && token) {
         try {
           // Set from localStorage first for quick UI rendering
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          console.log('Initial user from localStorage:', parsedUser.username);
+          setUser(parsedUser);
           
           // Then immediately check with server for the latest user data
           await checkAuth();
@@ -49,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
         }
       } else {
+        console.log('No stored credentials found');
         setIsLoading(false);
       }
     };
@@ -64,23 +74,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = localStorage.getItem('token');
       
       if (!token) {
+        console.log('No token found during auth check');
         setUser(null);
         setIsLoading(false);
         return;
       }
       
-      // Use refreshToken instead of getCurrentUser to ensure we get a fresh token with updated role
-      const { token: newToken, user } = await authAPI.refreshToken();
+      console.log('Checking auth with token');
       
-      // Update token and user in localStorage
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(user));
+      try {
+        // First try to get current user
+        const currentUser = await authAPI.getCurrentUser();
+        console.log('Current user retrieved:', currentUser.username);
+        
+        // If successful, update user
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Failed to get current user, trying to refresh token:', error);
+        
+        // If current user fails, try to refresh token
+        try {
+          const { token: newToken, user } = await authAPI.refreshToken();
+          console.log('Token refreshed for user:', user.username);
+          
+          // Update token and user in localStorage
+          localStorage.setItem('token', newToken);
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          // Update state
+          setUser(user);
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+          throw refreshError;
+        }
+      }
       
-      // Update state
-      setUser(user);
-      console.log('Auth check complete - user role:', user.role);
+      console.log('Auth check complete');
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('Auth check failed completely:', error);
       setUser(null);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -92,9 +124,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Refresh user data from the server
   const refreshUser = async () => {
     try {
+      console.log('Refreshing user data');
       // First refresh the token to get latest role
       const tokenResponse = await authAPI.refreshToken();
       const { token, user } = tokenResponse;
+      
+      console.log('User refreshed:', user.username);
       
       // Update token and user in localStorage
       localStorage.setItem('token', token);
@@ -114,17 +149,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
+      console.log('Attempting to register user:', username);
       const response = await authAPI.register({ username, email, password, displayName });
+      console.log('Registration successful, response:', response);
+      
       const { user, token } = response;
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       
+      console.log('User registered and stored:', user.username);
+      
       toast.success("Registration successful!", {
         description: `Welcome, ${user.displayName}!`,
       });
     } catch (error: any) {
+      console.error('Registration error:', error);
       const message = error.response?.data?.message || 'Registration failed. Please try again.';
       toast.error("Registration failed", {
         description: message,
@@ -140,17 +181,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
+      console.log('Attempting to login user:', username);
       const response = await authAPI.login({ username, password });
+      console.log('Login successful, response:', response);
+      
       const { user, token } = response;
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       
+      console.log('User logged in and stored:', user.username);
+      
       toast.success("Login successful!", {
         description: `Welcome back, ${user.displayName}!`,
       });
     } catch (error: any) {
+      console.error('Login error:', error);
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
       toast.error("Login failed", {
         description: message,
@@ -166,6 +213,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    
+    console.log('User logged out');
     
     toast.success("Logged out", {
       description: "You have been successfully logged out.",

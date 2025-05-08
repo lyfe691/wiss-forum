@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import ch.wiss.forum.model.Role;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.LoginRequest;
 import ch.wiss.forum.payload.request.RegisterRequest;
@@ -51,21 +52,40 @@ public class AuthService {
         );
     }
     
-    public MessageResponse registerUser(RegisterRequest registerRequest) {
+    public JwtResponse refreshToken(User user) {
+        // Generate a new JWT token for the user
+        String jwt = jwtUtils.generateJwtToken(user.getUsername());
+        
+        // Update last active time
+        user.setLastActive(LocalDateTime.now());
+        userRepository.save(user);
+        
+        return new JwtResponse(
+                jwt,
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole(),
+                user.getDisplayName(),
+                user.getAvatar()
+        );
+    }
+    
+    public JwtResponse registerUser(RegisterRequest registerRequest) {
         // Check if username is already taken
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            return new MessageResponse("Error: Username is already taken!");
+            throw new RuntimeException("Error: Username is already taken!");
         }
         
         // Check if email is already in use
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            return new MessageResponse("Error: Email is already in use!");
+            throw new RuntimeException("Error: Email is already in use!");
         }
         
         // Set default role if not provided
-        String role = registerRequest.getRole();
-        if (role == null || role.isEmpty()) {
-            role = "student";
+        Role role = registerRequest.getRole();
+        if (role == null) {
+            role = Role.STUDENT;
         }
         
         // Create new user
@@ -82,8 +102,19 @@ public class AuthService {
                 .lastActive(LocalDateTime.now())
                 .build();
         
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
         
-        return new MessageResponse("User registered successfully!");
+        // Generate JWT token for the new user
+        String jwt = jwtUtils.generateJwtToken(savedUser.getUsername());
+        
+        return new JwtResponse(
+                jwt,
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getEmail(),
+                savedUser.getRole(),
+                savedUser.getDisplayName(),
+                savedUser.getAvatar()
+        );
     }
 } 

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -6,7 +6,21 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // When using specific origins in CORS, we don't need withCredentials
+  withCredentials: false
 });
+
+// Log all requests for debugging
+const logRequest = (config: any): any => {
+  console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+  return config;
+};
+
+// Log all responses for debugging
+const logResponse = (response: any): any => {
+  console.log(`API Response: ${response.status} ${response.config.url}`);
+  return response;
+};
 
 // Add a request interceptor to attach the auth token
 api.interceptors.request.use(
@@ -14,21 +28,31 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('Added token to request');
+    } else {
+      console.log('No token available');
     }
-    return config;
+    return logRequest(config);
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Request error interceptor:', error);
+    return Promise.reject(error);
+  }
 );
 
 // Add a response interceptor to handle auth errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => logResponse(response),
   (error) => {
-    // Skip auth redirects for auth endpoints to allow proper error handling in components
+    const errorStatus = error.response?.status;
     const isAuthEndpoint = error.config?.url?.includes('/auth/');
     
+    console.error(`API Error ${errorStatus}: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, 
+                  error.response?.data || error.message);
+    
     // Only redirect for non-auth endpoints with 401 errors
-    if (error.response?.status === 401 && !isAuthEndpoint) {
+    if (errorStatus === 401 && !isAuthEndpoint) {
+      console.warn('Authentication error, redirecting to login');
       // Clear localStorage and redirect to login on auth error
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -41,23 +65,43 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   register: async (data: { username: string; email: string; password: string; displayName: string }) => {
-    const response = await api.post('/auth/register', data);
-    return response.data;
+    try {
+      const response = await api.post('/auth/register', data);
+      return response.data;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   },
   
   login: async (data: { username: string; password: string }) => {
-    const response = await api.post('/auth/login', data);
-    return response.data;
+    try {
+      const response = await api.post('/auth/login', data);
+      return response.data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   },
   
   getCurrentUser: async () => {
-    const response = await api.get('/auth/me');
-    return response.data;
+    try {
+      const response = await api.get('/auth/me');
+      return response.data;
+    } catch (error) {
+      console.error('Get current user error:', error);
+      throw error;
+    }
   },
   
   refreshToken: async () => {
-    const response = await api.post('/auth/refresh-token');
-    return response.data;
+    try {
+      const response = await api.post('/auth/refresh-token');
+      return response.data;
+    } catch (error) {
+      console.error('Refresh token error:', error);
+      throw error;
+    }
   },
 };
 
@@ -78,7 +122,7 @@ export const userAPI = {
     return response.data;
   },
   
-  updateUserRole: async (userId: string, role: 'student' | 'teacher' | 'admin') => {
+  updateUserRole: async (userId: string, role: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
     console.log(`API: Updating user ${userId} to role ${role}`);
     const response = await api.put(`/users/${userId}/role`, { role });
     console.log('API: Update role response:', response.data);

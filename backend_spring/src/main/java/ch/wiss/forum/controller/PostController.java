@@ -26,7 +26,7 @@ import ch.wiss.forum.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, maxAge = 3600)
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor

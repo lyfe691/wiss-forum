@@ -1,5 +1,6 @@
 package ch.wiss.forum.payload.response;
 
+import ch.wiss.forum.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,11 +15,11 @@ public class JwtResponse {
     private String id;
     private String username;
     private String email;
-    private String role;
+    private Role role;
     private String displayName;
     private String avatar;
     
-    public JwtResponse(String token, String id, String username, String email, String role, String displayName, String avatar) {
+    public JwtResponse(String token, String id, String username, String email, Role role, String displayName, String avatar) {
         this.token = token;
         this.id = id;
         this.username = username;

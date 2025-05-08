@@ -1,10 +1,7 @@
 package ch.wiss.forum.security;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -20,21 +17,37 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthEntryPointJwt implements AuthenticationEntryPoint {
     
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException authException) throws IOException, ServletException {
-        log.error("Unauthorized error: {}", authException.getMessage());
+            AuthenticationException authException) throws IOException, ServletException {
         
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        log.error("Unauthorized error: {}", authException.getMessage());
+        log.debug("Request URI: {}", request.getRequestURI());
+        
+        response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         
-        final Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
-        body.put("error", "Unauthorized");
-        body.put("message", authException.getMessage());
-        body.put("path", request.getServletPath());
+        final String errorMessage = "You need to be logged in to access this resource";
         
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getOutputStream(), body);
+        objectMapper.writeValue(response.getOutputStream(), 
+                new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, errorMessage, 
+                                 request.getRequestURI(), System.currentTimeMillis()));
+    }
+    
+    // Simple error response class
+    private static class ErrorResponse {
+        public int status;
+        public String message;
+        public String path;
+        public long timestamp;
+        
+        public ErrorResponse(int status, String message, String path, long timestamp) {
+            this.status = status;
+            this.message = message;
+            this.path = path;
+            this.timestamp = timestamp;
+        }
     }
 } 

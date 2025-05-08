@@ -2,10 +2,12 @@ package ch.wiss.forum.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import ch.wiss.forum.model.Role;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,26 @@ public class UserService {
         return userRepository.findAll();
     }
     
+    public List<User> getPublicUsersList() {
+        return userRepository.findAll().stream()
+            .map(this::sanitizeUserForPublic)
+            .collect(Collectors.toList());
+    }
+    
+    // Helper method to remove sensitive data from User objects
+    private User sanitizeUserForPublic(User user) {
+        User sanitizedUser = new User();
+        sanitizedUser.setId(user.getId());
+        sanitizedUser.setUsername(user.getUsername());
+        sanitizedUser.setDisplayName(user.getDisplayName());
+        sanitizedUser.setRole(user.getRole());
+        sanitizedUser.setAvatar(user.getAvatar());
+        sanitizedUser.setBio(user.getBio());
+        sanitizedUser.setCreatedAt(user.getCreatedAt());
+        sanitizedUser.setLastActive(user.getLastActive());
+        return sanitizedUser;
+    }
+    
     public User getUserById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
@@ -33,7 +55,7 @@ public class UserService {
     
     public User updateUser(String id, User userDetails, User currentUser) {
         // Check if the user is updating their own profile or is an admin
-        if (!id.equals(currentUser.getId()) && !"admin".equals(currentUser.getRole())) {
+        if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {
             throw new RuntimeException("Not authorized to update this user");
         }
         
@@ -53,7 +75,7 @@ public class UserService {
         }
         
         // Only admin can update roles
-        if ("admin".equals(currentUser.getRole()) && userDetails.getRole() != null) {
+        if (Role.ADMIN.equals(currentUser.getRole()) && userDetails.getRole() != null) {
             user.setRole(userDetails.getRole());
         }
         
@@ -64,7 +86,7 @@ public class UserService {
     
     public User updatePassword(String id, String currentPassword, String newPassword, User currentUser) {
         // Check if the user is updating their own password or is an admin
-        if (!id.equals(currentUser.getId()) && !"admin".equals(currentUser.getRole())) {
+        if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {
             throw new RuntimeException("Not authorized to update this user's password");
         }
         
@@ -82,7 +104,7 @@ public class UserService {
     
     public void deleteUser(String id, User currentUser) {
         // Only admin or the user themselves can delete their account
-        if (!id.equals(currentUser.getId()) && !"admin".equals(currentUser.getRole())) {
+        if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {
             throw new RuntimeException("Not authorized to delete this user");
         }
         

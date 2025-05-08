@@ -1,5 +1,6 @@
 package ch.wiss.forum.payload.request;
 
+import ch.wiss.forum.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -24,7 +25,7 @@ public class RegisterRequest {
     @NotBlank
     private String displayName;
     
-    private String role;
+    private Role role;
     
     private String bio;
     
