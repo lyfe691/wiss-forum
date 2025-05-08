@@ -96,30 +96,51 @@ export function CategoryDetail() {
   useEffect(() => {
     const fetchCategoryAndTopics = async () => {
       setIsLoading(true);
+      setError(null);
       try {
-        if (!slug) return;
+        if (!slug) {
+          console.error('No slug provided in URL parameters');
+          setCategory(null);
+          setIsLoading(false);
+          return;
+        }
         
         // Fetch category details - using the correct method name
-        const categoryData = await categoriesAPI.getCategoryByIdOrSlug(slug);
-        setCategory(categoryData);
-        
-        // Fetch topics for the category
         try {
-          console.log('Fetching topics for category:', categoryData._id);
-          const topicsData = await topicsAPI.getTopicsByCategory(categoryData._id);
-          console.log('Topics data received:', topicsData);
+          console.log(`Fetching category with slug: ${slug}`);
+          const categoryData = await categoriesAPI.getCategoryByIdOrSlug(slug);
           
-          if (Array.isArray(topicsData)) {
-            setTopics(topicsData);
-          } else if (topicsData && Array.isArray(topicsData.topics)) {
-            setTopics(topicsData.topics);
-          } else {
-            console.warn('Unexpected topics data structure:', topicsData);
+          if (!categoryData || !categoryData._id) {
+            console.error('Invalid category data received:', categoryData);
+            setCategory(null);
+            setIsLoading(false);
+            return;
+          }
+          
+          console.log('Category data received:', categoryData);
+          setCategory(categoryData);
+          
+          // Fetch topics for the category
+          try {
+            console.log('Fetching topics for category:', categoryData._id);
+            const topicsData = await topicsAPI.getTopicsByCategory(categoryData._id);
+            console.log('Topics data received:', topicsData);
+            
+            if (Array.isArray(topicsData)) {
+              setTopics(topicsData);
+            } else if (topicsData && Array.isArray(topicsData.topics)) {
+              setTopics(topicsData.topics);
+            } else {
+              console.warn('Unexpected topics data structure:', topicsData);
+              setTopics([]);
+            }
+          } catch (topicsError) {
+            console.error('Failed to fetch topics:', topicsError);
             setTopics([]);
           }
-        } catch (topicsError) {
-          console.error('Failed to fetch topics:', topicsError);
-          setTopics([]);
+        } catch (categoryError) {
+          console.error(`Failed to fetch category with slug "${slug}":`, categoryError);
+          setCategory(null);
         }
       } catch (error) {
         console.error('Failed to fetch category details:', error);

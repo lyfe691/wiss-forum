@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.wiss.forum.model.Category;
 import ch.wiss.forum.model.User;
+import ch.wiss.forum.payload.response.MessageResponse;
 import ch.wiss.forum.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,15 +39,44 @@ public class CategoryController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable String id) {
-        Category category = categoryService.getCategoryById(id);
-        return ResponseEntity.ok(category);
+    public ResponseEntity<?> getCategoryById(@PathVariable String id) {
+        try {
+            Category category = categoryService.getCategoryById(id);
+            return ResponseEntity.ok(category);
+        } catch (RuntimeException e) {
+            // Check if it's a "not found" exception
+            if (e.getMessage() != null && e.getMessage().contains("not found")) {
+                // Try to find by slug instead
+                try {
+                    Category category = categoryService.getCategoryBySlug(id);
+                    return ResponseEntity.ok(category);
+                } catch (RuntimeException slugEx) {
+                    // Return 404 if neither ID nor slug was found
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new MessageResponse("Category not found: " + id));
+                }
+            }
+            // For other errors, return 500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse(e.getMessage()));
+        }
     }
     
     @GetMapping("/slug/{slug}")
-    public ResponseEntity<Category> getCategoryBySlug(@PathVariable String slug) {
-        Category category = categoryService.getCategoryBySlug(slug);
-        return ResponseEntity.ok(category);
+    public ResponseEntity<?> getCategoryBySlug(@PathVariable String slug) {
+        try {
+            Category category = categoryService.getCategoryBySlug(slug);
+            return ResponseEntity.ok(category);
+        } catch (RuntimeException e) {
+            // Return 404 if slug was not found
+            if (e.getMessage() != null && e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new MessageResponse("Category not found with slug: " + slug));
+            }
+            // For other errors, return 500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse(e.getMessage()));
+        }
     }
     
     @PostMapping

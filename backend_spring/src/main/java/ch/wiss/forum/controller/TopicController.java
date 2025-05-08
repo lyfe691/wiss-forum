@@ -24,9 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
+import ch.wiss.forum.payload.response.MessageResponse;
 import ch.wiss.forum.service.TopicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, maxAge = 3600)
 @RestController
@@ -35,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class TopicController {
     
     private final TopicService topicService;
+    private static final Logger log = LoggerFactory.getLogger(TopicController.class);
     
     @GetMapping
     public ResponseEntity<Page<Topic>> getAllTopics(
@@ -98,12 +102,35 @@ public class TopicController {
     
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Topic> createTopic(@Valid @RequestBody Topic topic) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
-        
-        Topic createdTopic = topicService.createTopic(topic, currentUser);
-        return new ResponseEntity<>(createdTopic, HttpStatus.CREATED);
+    public ResponseEntity<?> createTopic(@Valid @RequestBody Topic topic) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Authentication required to create a topic"));
+            }
+            
+            if (!(authentication.getPrincipal() instanceof User)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Invalid authentication type"));
+            }
+            
+            User currentUser = (User) authentication.getPrincipal();
+            
+            // Debug logging to help identify issues
+            log.info("Creating topic for user: {} with role: {}", 
+                currentUser.getUsername(), currentUser.getRole());
+            
+            Topic createdTopic = topicService.createTopic(topic, currentUser);
+            
+            log.info("Topic created successfully: {}", createdTopic.getId());
+            return new ResponseEntity<>(createdTopic, HttpStatus.CREATED);
+        } catch (Exception e) {
+            log.error("Error creating topic: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Failed to create topic: " + e.getMessage()));
+        }
     }
     
     @PutMapping("/{id}")

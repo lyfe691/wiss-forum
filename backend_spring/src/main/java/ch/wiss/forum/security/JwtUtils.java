@@ -55,7 +55,7 @@ public class JwtUtils {
         
         return generateJwtToken(userPrincipal.getUsername());
     }
-    
+        
     public String generateJwtToken(String username) {
         return Jwts.builder()
                 .setSubject(username)

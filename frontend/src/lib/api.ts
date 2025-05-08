@@ -54,13 +54,14 @@ api.interceptors.response.use(
     const isAdminEndpoint = error.config?.url?.includes('/admin') || 
                           error.config?.url?.includes('/categories') && 
                           (error.config?.method === 'post' || error.config?.method === 'put' || error.config?.method === 'delete');
+    const isTopicCreateEndpoint = error.config?.url?.includes('/topics') && error.config?.method === 'post';
     
     console.error(`API Error ${errorStatus}: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, 
                   error.response?.data || error.message);
     
-    // For admin endpoints, try token refresh once
-    if (isAdminEndpoint && errorStatus === 401 && !error.config?.__isRetry) {
-      console.warn('Admin endpoint authentication error, attempting token refresh');
+    // For admin endpoints or topic creation, try token refresh once
+    if ((isAdminEndpoint || isTopicCreateEndpoint) && errorStatus === 401 && !error.config?.__isRetry) {
+      console.warn('Admin or topic creation endpoint authentication error, attempting token refresh');
       
       try {
         // Try direct token refresh
@@ -109,7 +110,7 @@ api.interceptors.response.use(
     
     // Only redirect for non-auth endpoints with 401 errors
     // Skip redirects for auth-related endpoints to avoid loops
-    if (errorStatus === 401 && !isAuthEndpoint && !isAdminEndpoint) {
+    if (errorStatus === 401 && !isAuthEndpoint && !isAdminEndpoint && !isTopicCreateEndpoint) {
       console.warn('Authentication error on non-auth endpoint, redirecting to login');
       // Clear localStorage and redirect to login on auth error
       localStorage.removeItem('token');
@@ -307,8 +308,44 @@ export const categoriesAPI = {
   },
   
   getCategoryByIdOrSlug: async (idOrSlug: string) => {
-    const response = await api.get(`/categories/${idOrSlug}`);
-    return response.data;
+    try {
+      console.log(`Fetching category with ID/Slug: ${idOrSlug}`);
+      const response = await api.get(`/categories/${idOrSlug}`);
+      
+      if (!response.data) {
+        console.warn('Empty response from category API');
+        throw new Error('Category not found');
+      }
+      
+      // Spring returns objects with 'id' field, frontend expects '_id'
+      let categoryData = response.data;
+      
+      // Normalize the data structure
+      if (categoryData.id && !categoryData._id) {
+        categoryData = {
+          ...categoryData,
+          _id: categoryData.id  // Ensure _id exists for frontend compatibility
+        };
+      }
+      
+      console.log('Retrieved category data:', categoryData);
+      return categoryData;
+    } catch (error: any) {
+      // Convert 500 errors to 404 when the message indicates "not found"
+      if (error.response?.status === 500 && 
+          error.response?.data?.message?.toLowerCase().includes('not found')) {
+        console.warn(`Category not found (${idOrSlug}), converting 500 to 404 error`);
+        const notFoundError = new Error('Category not found');
+        notFoundError.name = 'NotFoundError';
+        throw notFoundError;
+      }
+      
+      console.error(`Failed to fetch category with ID/Slug ${idOrSlug}:`, 
+        error.response?.status,
+        error.response?.data || error.message
+      );
+      throw error;
+    }
   },
   
   createCategory: async (data: { name: string; description: string; order?: number }) => {
@@ -560,8 +597,91 @@ export const topicsAPI = {
   },
   
   createTopic: async (data: { title: string; content: string; categoryId: string; tags?: string[] }) => {
-    const response = await api.post('/topics', data);
-    return response.data;
+    try {
+      // Make sure we have a token before creating a topic
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required to create a topic');
+      }
+      
+      console.log('Creating topic with data:', { ...data, contentLength: data.content.length });
+      
+      // Always refresh token before topic creation
+      try {
+        console.log('Refreshing token before topic creation...');
+        const refreshResponse = await api.post('/auth/refresh-token');
+        if (refreshResponse.data && refreshResponse.data.token) {
+          // Store the fresh token
+          const newToken = refreshResponse.data.token.replace(/^Bearer\s+/i, '').trim();
+          localStorage.setItem('token', newToken);
+          console.log('Token successfully refreshed for topic creation:', newToken.substring(0, 10) + '...');
+          
+          // Update user data if available in the response
+          if (refreshResponse.data.id || refreshResponse.data._id) {
+            const userData = {
+              _id: refreshResponse.data.id || refreshResponse.data._id,
+              username: refreshResponse.data.username,
+              email: refreshResponse.data.email,
+              displayName: refreshResponse.data.displayName,
+              role: (refreshResponse.data.role || '').toLowerCase(),
+              avatar: refreshResponse.data.avatar
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('User data updated during topic creation for', userData.username, 'with role', userData.role);
+          }
+        }
+      } catch (refreshError: any) {
+        console.warn('Token refresh attempt failed before topic creation:', 
+          refreshError.response?.status, 
+          refreshError.response?.data || refreshError.message
+        );
+      }
+      
+      // Manually prepare the request with the latest token
+      const currentToken = localStorage.getItem('token');
+      const cleanToken = currentToken ? currentToken.replace(/^Bearer\s+/i, '').trim() : '';
+      
+      console.log('Making topic creation request with token:', cleanToken.substring(0, 10) + '...');
+      
+      // Make the request with explicit headers
+      const response = await axios.post(
+        `${api.defaults.baseURL}/topics`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${cleanToken}`
+          },
+          withCredentials: true
+        }
+      );
+      
+      console.log('Topic creation raw response:', response.data);
+      
+      // Normalize response data
+      let topicResponse = response.data;
+      
+      // If the topic is nested under a property
+      if (response.data && response.data.topic) {
+        topicResponse = response.data.topic;
+      }
+      
+      // Ensure the response has _id (Spring might use id)
+      if (topicResponse && topicResponse.id && !topicResponse._id) {
+        topicResponse = {
+          ...topicResponse,
+          _id: topicResponse.id
+        };
+      }
+      
+      return topicResponse;
+    } catch (error: any) {
+      console.error('Topic creation failed:', 
+        error.response?.status,
+        error.response?.data || error.message
+      );
+      throw error;
+    }
   },
   
   updateTopic: async (
