@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
 
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.LoginRequest;
@@ -61,10 +62,12 @@ public class AuthController {
                 return ResponseEntity.ok(authService.refreshToken(user));
             }
             log.warn("Token refresh failed: No authenticated user found");
-            return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse("User not authenticated"));
         } catch (Exception e) {
             log.error("Token refresh failed", e);
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse(e.getMessage()));
         }
     }
     
@@ -78,10 +81,12 @@ public class AuthController {
                 return ResponseEntity.ok(user);
             }
             log.warn("Current user request failed: No authenticated user found");
-            return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse("User not authenticated"));
         } catch (Exception e) {
             log.error("Failed to get current user", e);
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse(e.getMessage()));
         }
     }
 } 

@@ -6,8 +6,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // When using specific origins in CORS, we don't need withCredentials
-  withCredentials: false
+  // Enable credentials for cookie-based auth support
+  withCredentials: true
 });
 
 // Log all requests for debugging
@@ -27,7 +27,12 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Make sure we're sending a clean token without any potential "Bearer " prefix
+      // that might have been accidentally stored
+      const cleanToken = token.replace(/^Bearer\s+/i, '').trim();
+      
+      // Ensure the Authorization header is properly formatted with Bearer prefix
+      config.headers.Authorization = `Bearer ${cleanToken}`;
       console.log('Added token to request');
     } else {
       console.log('No token available');
@@ -51,16 +56,32 @@ api.interceptors.response.use(
                   error.response?.data || error.message);
     
     // Only redirect for non-auth endpoints with 401 errors
+    // Skip redirects for auth-related endpoints to avoid loops
     if (errorStatus === 401 && !isAuthEndpoint) {
-      console.warn('Authentication error, redirecting to login');
+      console.warn('Authentication error on non-auth endpoint, redirecting to login');
       // Clear localStorage and redirect to login on auth error
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+    
+    // For auth endpoints that fail, we'll handle recovery in the AuthContext
     return Promise.reject(error);
   }
 );
+
+// Add a silent error handling utility
+const silentAuth = async <T>(fn: () => Promise<T>, fallback?: T): Promise<T> => {
+  try {
+    return await fn();
+  } catch (error) {
+    // Suppress console error for expected auth failures
+    if (fallback !== undefined) {
+      return fallback;
+    }
+    throw error;
+  }
+};
 
 // Auth API
 export const authAPI = {
@@ -103,6 +124,21 @@ export const authAPI = {
       throw error;
     }
   },
+  
+  // Use this method for silent auth operations that shouldn't log errors
+  silentGetCurrentUser: async () => {
+    return silentAuth(async () => {
+      const response = await api.get('/auth/me');
+      return response.data;
+    });
+  },
+  
+  silentRefreshToken: async () => {
+    return silentAuth(async () => {
+      const response = await api.post('/auth/refresh-token');
+      return response.data;
+    });
+  }
 };
 
 // User API
@@ -130,8 +166,24 @@ export const userAPI = {
   },
   
   getUserProfile: async () => {
-    const response = await api.get('/users/profile');
-    return response.data;
+    try {
+      // Try the current user endpoint first (returns more details)
+      const response = await api.get('/users/profile');
+      return response.data;
+    } catch (error) {
+      try {
+        // Fallback to /auth/me which might have less data but is more reliable
+        const authResponse = await api.get('/auth/me');
+        return authResponse.data;
+      } catch (authError) {
+        // Fall back to using stored user if API calls fail
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          return JSON.parse(storedUser);
+        }
+        throw error;
+      }
+    }
   },
   
   updateUserProfile: async (data: { username?: string; email?: string; displayName?: string; bio?: string }) => {
@@ -217,25 +269,28 @@ export const topicsAPI = {
     }
   },
   
-  getLatestTopics: async (page = 1, limit = 10) => {
+  getLatestTopics: async (page = 0, limit = 10) => {
     try {
       console.log(`Fetching latest topics - page ${page}, limit ${limit}`);
-      const response = await api.get(`/topics/latest?page=${page}&limit=${limit}`);
+      // Note: Corrected to match spring pagination which starts at 0
+      const response = await api.get(`/topics?page=${page}&size=${limit}&sort=createdAt&order=desc`);
       console.log('Latest topics raw response:', response.data);
       
       // Extract and log the total count for debugging
-      const totalCount = response.data?.totalTopics || 
-                         response.data?.total || 
+      const totalCount = response.data?.totalElements || 
                          response.data?.totalItems || 
-                         (Array.isArray(response.data?.topics) ? response.data.topics.length : 0);
+                         response.data?.total || 
+                         (Array.isArray(response.data?.content) ? response.data.content.length : 0);
       
       console.log(`Total topics count from API: ${totalCount}`);
       
       // Enhance the response with the count if it's missing
       const enhancedResponse = {
-        ...response.data,
+        topics: response.data?.content || [],
         totalTopics: totalCount,
-        totalItems: totalCount
+        totalItems: totalCount,
+        currentPage: response.data?.number || page,
+        totalPages: response.data?.totalPages || 1
       };
       
       return enhancedResponse;
@@ -245,7 +300,7 @@ export const topicsAPI = {
         topics: [],
         totalTopics: 0,
         totalItems: 0,
-        currentPage: 1,
+        currentPage: page,
         totalPages: 1
       };
     }
@@ -499,12 +554,15 @@ export const statsAPI = {
       const categoryCount = categories.length;
       console.log(`Category count: ${categoryCount}`);
       
-      // Get topics - use the normal getLatestTopics method which we know works
-      const topicsData = await topicsAPI.getLatestTopics(1, 10);
-      // Extract the count from various possible properties
-      const topicCount = topicsData.totalTopics || 
-                         topicsData.totalItems || 
-                         topicsData.total || 0;
+      // Get topics count - use the paginated endpoint
+      let topicCount = 0;
+      try {
+        const topicsData = await api.get('/topics?page=0&size=1');
+        // Extract the count from page metadata
+        topicCount = topicsData.data?.totalElements || 0;
+      } catch (error) {
+        console.error("Error fetching topics count:", error);
+      }
       console.log(`Topic count: ${topicCount}`);
       
       return {

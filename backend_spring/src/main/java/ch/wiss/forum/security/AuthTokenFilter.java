@@ -42,6 +42,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 return;
             }
             
+            // Handle special case for /auth/refresh-token and /auth/me
+            boolean isAuthMeEndpoint = requestUri.contains("/api/auth/me");
+            boolean isRefreshEndpoint = requestUri.contains("/api/auth/refresh-token");
+            
             String jwt = parseJwt(request);
             log.debug("JWT token found: {}", jwt != null);
             
@@ -61,15 +65,40 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                             log.debug("User authenticated successfully: {}", username);
                         } catch (UsernameNotFoundException e) {
                             log.error("User not found for token: {}", e.getMessage());
+                            if (isAuthMeEndpoint || isRefreshEndpoint) {
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.getWriter().write("{\"message\":\"User not found\"}");
+                                response.getWriter().flush();
+                                return;
+                            }
                         }
                     } else {
                         log.debug("JWT token validation failed");
+                        if (isAuthMeEndpoint || isRefreshEndpoint) {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"message\":\"Token validation failed\"}");
+                            response.getWriter().flush();
+                            return;
+                        }
                     }
                 } catch (Exception e) {
                     log.error("JWT token processing error: {}", e.getMessage());
+                    if (isAuthMeEndpoint || isRefreshEndpoint) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("{\"message\":\"Token processing error\"}");
+                        response.getWriter().flush();
+                        return;
+                    }
                 }
             } else {
                 log.debug("No JWT token found in request");
+                if (isAuthMeEndpoint || isRefreshEndpoint) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"message\":\"No authentication token found\"}");
+                    response.getWriter().flush();
+                    return;
+                }
             }
         } catch (Exception e) {
             log.error("Cannot set user authentication: {}", e.getMessage());
@@ -79,17 +108,25 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
     
     private String parseJwt(HttpServletRequest request) {
+        // Try to get from Authorization header first
         String headerAuth = request.getHeader("Authorization");
         
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
             return headerAuth.substring(7);
         }
         
+        // If no Authorization header, check for token parameter
+        String tokenParam = request.getParameter("token");
+        if (StringUtils.hasText(tokenParam)) {
+            return tokenParam;
+        }
+        
         return null;
     }
     
     private boolean isPublicEndpoint(String uri) {
-        return uri.contains("/api/auth/") || 
+        return uri.contains("/api/auth/login") || 
+               uri.contains("/api/auth/register") || 
                uri.contains("/api/users/public") || 
                uri.contains("/api/categories") || 
                uri.contains("/api/topics") || 

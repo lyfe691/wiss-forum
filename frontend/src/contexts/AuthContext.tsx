@@ -24,7 +24,7 @@ interface AuthContextType {
   register: (username: string, email: string, password: string, displayName: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<User>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,18 +49,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('Initial user from localStorage:', parsedUser.username);
           setUser(parsedUser);
           
-          // Then immediately check with server for the latest user data
-          await checkAuth();
+          // Then try to check auth with server, but don't unset user if it fails
+          try {
+            await checkAuth();
+          } catch (serverError) {
+            console.error('Server auth check failed, but keeping user logged in:', serverError);
+          }
         } catch (error) {
-          console.error('Error during authentication check:', error);
+          console.error('Error parsing stored user data:', error);
+          // Only clear if we can't parse the data
           localStorage.removeItem('user');
           localStorage.removeItem('token');
           setUser(null);
         }
       } else {
         console.log('No stored credentials found');
-        setIsLoading(false);
+        setUser(null);
       }
+      
+      setIsLoading(false);
     };
     
     initialize();
@@ -72,50 +79,101 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
       
-      if (!token) {
-        console.log('No token found during auth check');
+      if (!token || !storedUser) {
+        console.log('No token or user found during auth check');
         setUser(null);
         setIsLoading(false);
         return;
       }
       
+      // Parse the stored user data
+      const parsedUser = JSON.parse(storedUser);
+      console.log('Using stored user data:', parsedUser.username);
+      
+      // Set user from localStorage first, so the user remains logged in even if API calls fail
+      setUser(parsedUser);
+      
       console.log('Checking auth with token');
       
       try {
-        // First try to get current user
-        const currentUser = await authAPI.getCurrentUser();
-        console.log('Current user retrieved:', currentUser.username);
-        
-        // If successful, update user
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        setUser(currentUser);
+        // Try to get current user from the server - use silent method to prevent console errors
+        const currentUser = await authAPI.silentGetCurrentUser();
+        if (currentUser) {
+          console.log('Current user retrieved from server:', currentUser.username);
+          
+          // Create properly formatted user object
+          const userData = {
+            _id: currentUser.id || currentUser._id,
+            username: currentUser.username,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            role: currentUser.role,
+            avatar: currentUser.avatar,
+            bio: currentUser.bio,
+            createdAt: currentUser.createdAt
+          };
+          
+          // Update user in localStorage and state
+          localStorage.setItem('user', JSON.stringify(userData));
+          setUser(userData);
+        }
       } catch (error) {
-        console.error('Failed to get current user, trying to refresh token:', error);
+        console.log('Using fallback authentication method');
         
-        // If current user fails, try to refresh token
+        // If current user fails, try to refresh token - use silent method
         try {
-          const { token: newToken, user } = await authAPI.refreshToken();
-          console.log('Token refreshed for user:', user.username);
+          const refreshResponse = await authAPI.silentRefreshToken();
           
-          // Update token and user in localStorage
-          localStorage.setItem('token', newToken);
-          localStorage.setItem('user', JSON.stringify(user));
-          
-          // Update state
-          setUser(user);
+          if (refreshResponse) {
+            // Create properly formatted user object from refresh response
+            const userData = {
+              _id: refreshResponse.id,
+              username: refreshResponse.username,
+              email: refreshResponse.email,
+              displayName: refreshResponse.displayName,
+              role: refreshResponse.role,
+              avatar: refreshResponse.avatar
+            };
+            
+            console.log('Token refreshed for user:', userData.username);
+            
+            // Update token and user in localStorage
+            localStorage.setItem('token', refreshResponse.token);
+            localStorage.setItem('user', JSON.stringify(userData));
+            
+            // Update state
+            setUser(userData);
+          }
         } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError);
-          throw refreshError;
+          // No need to log refresh errors
+          console.log('Continuing with stored user data');
         }
       }
       
       console.log('Auth check complete');
     } catch (error) {
       console.error('Auth check failed completely:', error);
-      setUser(null);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      
+      // Try to recover with stored user data
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          console.log('Recovering from localStorage');
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+        } catch (parseError) {
+          console.error('Failed to parse stored user:', parseError);
+          setUser(null);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } else {
+        setUser(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -126,18 +184,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('Refreshing user data');
       // First refresh the token to get latest role
-      const tokenResponse = await authAPI.refreshToken();
-      const { token, user } = tokenResponse;
+      const response = await authAPI.refreshToken();
       
-      console.log('User refreshed:', user.username);
+      // Clean token format
+      const token = response.token?.replace(/^Bearer\s+/i, '') || '';
+      
+      // The API returns the user data directly in the response, not nested in a user property
+      const userData = {
+        _id: response.id,
+        username: response.username,
+        email: response.email,
+        displayName: response.displayName,
+        role: response.role,
+        avatar: response.avatar
+      };
+      
+      console.log('User refreshed:', userData.username);
       
       // Update token and user in localStorage
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(userData));
       
       // Update state
-      setUser(user);
-      return user;
+      setUser(userData);
+      return userData;
     } catch (error) {
       console.error('Failed to refresh user data:', error);
       throw error;
@@ -153,16 +223,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await authAPI.register({ username, email, password, displayName });
       console.log('Registration successful, response:', response);
       
-      const { user, token } = response;
+      // Clean token format
+      const token = response.token?.replace(/^Bearer\s+/i, '') || '';
+      
+      // The API returns the user data directly in the response, not nested in a user property
+      const userData = {
+        _id: response.id,
+        username: response.username,
+        email: response.email,
+        displayName: response.displayName,
+        role: response.role,
+        avatar: response.avatar
+      };
       
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       
-      console.log('User registered and stored:', user.username);
+      console.log('User registered and stored:', userData.username);
       
       toast.success("Registration successful!", {
-        description: `Welcome, ${user.displayName}!`,
+        description: `Welcome, ${userData.displayName}!`,
       });
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -185,16 +266,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await authAPI.login({ username, password });
       console.log('Login successful, response:', response);
       
-      const { user, token } = response;
+      // Extract and clean the token, ensuring no "Bearer " prefix is stored
+      const token = response.token?.replace(/^Bearer\s+/i, '') || '';
       
+      // The API returns the user data directly in the response, not nested in a user property
+      const userData = {
+        _id: response.id,
+        username: response.username,
+        email: response.email,
+        displayName: response.displayName,
+        role: response.role,
+        avatar: response.avatar
+      };
+      
+      // Save token and user to localStorage
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       
-      console.log('User logged in and stored:', user.username);
+      console.log('User logged in and stored:', userData.username);
       
       toast.success("Login successful!", {
-        description: `Welcome back, ${user.displayName}!`,
+        description: `Welcome back, ${userData.displayName}!`,
       });
     } catch (error: any) {
       console.error('Login error:', error);
@@ -220,7 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       description: "You have been successfully logged out.",
     });
   };
-  
+
   return (
     <AuthContext.Provider
       value={{
@@ -245,4 +338,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

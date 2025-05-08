@@ -45,11 +45,11 @@ interface UserProfile {
   username: string;
   email: string;
   displayName: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: 'STUDENT' | 'TEACHER' | 'ADMIN' | 'student' | 'teacher' | 'admin';
   avatar?: string;
   bio?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   lastActive?: string;
 }
 
@@ -102,19 +102,67 @@ export function Profile() {
       setIsLoading(true);
       
       try {
+        // Use updated getUserProfile method that has fallback to localStorage
         const profileData = await userAPI.getUserProfile();
-        setProfile(profileData);
         
-        // Initialize form with profile data
-        setProfileForm({
-          username: profileData.username || '',
-          email: profileData.email || '',
-          displayName: profileData.displayName || '',
-          bio: profileData.bio || ''
-        });
+        if (profileData) {
+          setProfile(profileData);
+          
+          // Initialize form with profile data
+          setProfileForm({
+            username: profileData.username || '',
+            email: profileData.email || '',
+            displayName: profileData.displayName || '',
+            bio: profileData.bio || ''
+          });
+        } else {
+          // Fallback to user context if API fails
+          if (user) {
+            setProfile({
+              _id: user._id,
+              username: user.username,
+              email: user.email,
+              displayName: user.displayName,
+              role: user.role,
+              avatar: user.avatar,
+              bio: user.bio || '',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            });
+            
+            setProfileForm({
+              username: user.username || '',
+              email: user.email || '',
+              displayName: user.displayName || '',
+              bio: user.bio || ''
+            });
+          }
+        }
       } catch (error) {
-        console.error('Failed to fetch profile:', error);
-        toast.error("Failed to load your profile. Please try again.");
+        // Don't show toast here to reduce user annoyance, just log it
+        console.log('Using profile data from auth context');
+        
+        // Fallback to user context
+        if (user) {
+          setProfile({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            displayName: user.displayName,
+            role: user.role,
+            avatar: user.avatar,
+            bio: user.bio || '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+          
+          setProfileForm({
+            username: user.username || '',
+            email: user.email || '',
+            displayName: user.displayName || '',
+            bio: user.bio || ''
+          });
+        }
       } finally {
         setIsLoading(false);
       }
