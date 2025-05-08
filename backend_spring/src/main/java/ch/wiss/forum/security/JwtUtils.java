@@ -1,6 +1,7 @@
 package ch.wiss.forum.security;
 
 import java.util.Date;
+import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKey;
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 
 @Component
@@ -29,6 +31,25 @@ public class JwtUtils {
     @Value("${app.jwt.expiration-ms}")
     private int jwtExpirationMs;
     
+    private SecretKey key;
+    
+    @PostConstruct
+    public void init() {
+        // Use Keys.secretKeyFor to generate a key guaranteed to be secure enough for HS512
+        if (jwtSecret.startsWith("base64:")) {
+            // If the secret is a Base64 encoded key
+            String base64Key = jwtSecret.substring(7);
+            byte[] decodedKey = Base64.getDecoder().decode(base64Key);
+            key = Keys.hmacShaKeyFor(decodedKey);
+        } else {
+            // Generate a secure key for HS512
+            key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+            // Log the encoded key for potential use in properties
+            String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
+            log.info("Generated secure key for HS512. Consider adding this to your properties: base64:{}", encodedKey);
+        }
+    }
+    
     public String generateJwtToken(Authentication authentication) {
         User userPrincipal = (User) authentication.getPrincipal();
         
@@ -36,8 +57,6 @@ public class JwtUtils {
     }
     
     public String generateJwtToken(String username) {
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-        
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
@@ -47,8 +66,6 @@ public class JwtUtils {
     }
     
     public String getUsernameFromJwtToken(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-        
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -59,8 +76,6 @@ public class JwtUtils {
     
     public boolean validateJwtToken(String authToken) {
         try {
-            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-            
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
