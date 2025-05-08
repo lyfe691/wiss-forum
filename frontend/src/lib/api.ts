@@ -163,9 +163,11 @@ export const userAPI = {
     }
   },
   
-  updateUserRole: async (userId: string, role: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
-    console.log(`API: Updating user ${userId} to role ${role}`);
-    const response = await api.put(`/users/${userId}/role`, { role });
+  updateUserRole: async (userId: string, role: 'student' | 'teacher' | 'admin' | 'STUDENT' | 'TEACHER' | 'ADMIN') => {
+    // Convert lowercase roles to uppercase for the backend
+    const normalizedRole = role.toUpperCase();
+    console.log(`API: Updating user ${userId} to role ${normalizedRole}`);
+    const response = await api.put(`/users/${userId}/role`, { role: normalizedRole });
     console.log('API: Update role response:', response.data);
     return response.data;
   },

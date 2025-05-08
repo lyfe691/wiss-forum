@@ -50,6 +50,10 @@ export function UserProfile() {
       
       try {
         const data = await userAPI.getPublicUserProfile(idOrUsername);
+        // Normalize role to lowercase for consistency
+        if (data && data.role) {
+          data.role = data.role.toLowerCase();
+        }
         setProfile(data);
       } catch (error: any) {
         console.error('Failed to fetch user profile:', error);

@@ -2,8 +2,8 @@ import { createContext, useState, useContext, useEffect, ReactNode } from 'react
 import { toast } from 'sonner';
 import { authAPI } from '@/lib/api';
 
-// Update the role type to match the backend enum
-type Role = 'STUDENT' | 'TEACHER' | 'ADMIN';
+// Update the role type to include both cases
+type Role = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'student' | 'teacher' | 'admin';
 
 interface User {
   _id: string;
@@ -28,6 +28,24 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Normalize the role format for consistent comparisons
+const normalizeUserData = (userData: any) => {
+  if (!userData) return null;
+  
+  // Make a copy to avoid mutating the original
+  const normalizedData = { ...userData };
+  
+  // Ensure ID consistency
+  normalizedData._id = normalizedData._id || normalizedData.id;
+  
+  // Normalize role to lowercase for frontend consistency
+  if (normalizedData.role) {
+    normalizedData.role = normalizedData.role.toLowerCase();
+  }
+  
+  return normalizedData;
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -104,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('Current user retrieved from server:', currentUser.username);
           
           // Create properly formatted user object
-          const userData = {
+          const userData = normalizeUserData({
             _id: currentUser.id || currentUser._id,
             username: currentUser.username,
             email: currentUser.email,
@@ -113,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             avatar: currentUser.avatar,
             bio: currentUser.bio,
             createdAt: currentUser.createdAt
-          };
+          });
           
           // Update user in localStorage and state
           localStorage.setItem('user', JSON.stringify(userData));
@@ -128,14 +146,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           if (refreshResponse) {
             // Create properly formatted user object from refresh response
-            const userData = {
+            const userData = normalizeUserData({
               _id: refreshResponse.id,
               username: refreshResponse.username,
               email: refreshResponse.email,
               displayName: refreshResponse.displayName,
               role: refreshResponse.role,
               avatar: refreshResponse.avatar
-            };
+            });
             
             console.log('Token refreshed for user:', userData.username);
             
@@ -190,14 +208,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = response.token?.replace(/^Bearer\s+/i, '') || '';
       
       // The API returns the user data directly in the response, not nested in a user property
-      const userData = {
+      const userData = normalizeUserData({
         _id: response.id,
         username: response.username,
         email: response.email,
         displayName: response.displayName,
         role: response.role,
         avatar: response.avatar
-      };
+      });
       
       console.log('User refreshed:', userData.username);
       
@@ -227,14 +245,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = response.token?.replace(/^Bearer\s+/i, '') || '';
       
       // The API returns the user data directly in the response, not nested in a user property
-      const userData = {
+      const userData = normalizeUserData({
         _id: response.id,
         username: response.username,
         email: response.email,
         displayName: response.displayName,
         role: response.role,
         avatar: response.avatar
-      };
+      });
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -270,14 +288,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = response.token?.replace(/^Bearer\s+/i, '') || '';
       
       // The API returns the user data directly in the response, not nested in a user property
-      const userData = {
+      const userData = normalizeUserData({
         _id: response.id,
         username: response.username,
         email: response.email,
         displayName: response.displayName,
         role: response.role,
         avatar: response.avatar
-      };
+      });
       
       // Save token and user to localStorage
       localStorage.setItem('token', token);

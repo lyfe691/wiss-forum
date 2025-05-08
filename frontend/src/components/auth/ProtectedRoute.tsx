@@ -22,7 +22,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
   // Check role if required
   if (requiredRole && user) {
-    const normalizedUserRole = user.role.toLowerCase();
+    const normalizedUserRole = user.role?.toLowerCase() || '';
     const normalizedRequiredRole = requiredRole.toLowerCase();
     
     // For admin routes, redirect to home if not admin

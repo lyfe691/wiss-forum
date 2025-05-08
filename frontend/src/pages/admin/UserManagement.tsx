@@ -65,6 +65,15 @@ export function UserManagement() {
     fetchUsers();
   }, []);
 
+  // Add a function to normalize user objects when fetched
+  const normalizeUsers = (users: UserData[]) => {
+    return users.map(user => ({
+      ...user,
+      // Ensure role is consistently lowercase for the frontend
+      role: user.role?.toLowerCase() as 'student' | 'teacher' | 'admin'
+    }));
+  };
+
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
@@ -73,17 +82,17 @@ export function UserManagement() {
       if (user?.role === 'admin') {
         try {
           const adminUsers = await userAPI.getAllUsers();
-          setUsers(adminUsers);
+          setUsers(normalizeUsers(adminUsers));
         } catch (err) {
           console.error('Failed to get extended user data:', err);
           // Fallback to public user list
           const publicUsers = await userAPI.getPublicUsersList();
-          setUsers(publicUsers);
+          setUsers(normalizeUsers(publicUsers));
         }
       } else {
         // For non-admins, use the public endpoint
         const publicUsers = await userAPI.getPublicUsersList();
-        setUsers(publicUsers);
+        setUsers(normalizeUsers(publicUsers));
       }
     } catch (err) {
       console.error('Failed to fetch users:', err);

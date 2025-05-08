@@ -193,7 +193,7 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     
-                    {(user?.role === 'ADMIN' || user?.role === 'admin') && (
+                    {(user?.role?.toLowerCase() === 'admin') && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
