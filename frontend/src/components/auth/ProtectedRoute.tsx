@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'user' | 'teacher' | 'admin';
+  requiredRole?: 'user' | 'teacher' | 'admin' | 'STUDENT' | 'TEACHER' | 'ADMIN';
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
@@ -21,14 +21,19 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   // Check role if required
-  if (requiredRole && user?.role !== requiredRole) {
-    // For admin routes, redirect to home
-    if (requiredRole === 'admin') {
+  if (requiredRole && user) {
+    const normalizedUserRole = user.role.toLowerCase();
+    const normalizedRequiredRole = requiredRole.toLowerCase();
+    
+    // For admin routes, redirect to home if not admin
+    if (normalizedRequiredRole === 'admin' && normalizedUserRole !== 'admin') {
       return <Navigate to="/" replace />;
     }
     
     // For teacher routes, allow admin access too
-    if (requiredRole === 'teacher' && user?.role !== 'admin') {
+    if (normalizedRequiredRole === 'teacher' && 
+        normalizedUserRole !== 'teacher' && 
+        normalizedUserRole !== 'admin') {
       return <Navigate to="/" replace />;
     }
   }

@@ -97,7 +97,7 @@ function App() {
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute requiredRole="admin">
+                <ProtectedRoute requiredRole="ADMIN">
                   <AdminDashboard />
                 </ProtectedRoute>
               } 
@@ -106,7 +106,7 @@ function App() {
             <Route 
               path="/admin/users" 
               element={
-                <ProtectedRoute requiredRole="admin">
+                <ProtectedRoute requiredRole="ADMIN">
                   <UserManagement />
                 </ProtectedRoute>
               } 
@@ -115,7 +115,7 @@ function App() {
             <Route 
               path="/admin/categories" 
               element={
-                <ProtectedRoute requiredRole="teacher">
+                <ProtectedRoute requiredRole="TEACHER">
                   <CategoryManagement />
                 </ProtectedRoute>
               }

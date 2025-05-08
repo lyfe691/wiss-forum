@@ -12,8 +12,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export function AdminTool() {
   const [userId, setUserId] = useState('');
-  const [role, setRole] = useState<'admin' | 'teacher'>('admin');
-  const [secretKey, setSecretKey] = useState('WISS_ADMIN_SETUP_2024');
+  const [role, setRole] = useState<'ADMIN' | 'TEACHER'>('ADMIN');
+  const [secretKey, setSecretKey] = useState('key');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -45,17 +45,17 @@ export function AdminTool() {
       setError('');
       setSuccess('');
       
-      // Try using the bootstrap endpoint first
-      const endpoint = role === 'admin' ? 'bootstrap-admin' : 'bootstrap-teacher';
+      // Use the bootstrap endpoint for Spring
+      const endpoint = role === 'ADMIN' ? 'bootstrap-admin' : 'bootstrap-teacher';
       
       try {
-        const response = await axios.post(`http://localhost:8080/api/users/${endpoint}`, {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/users/${endpoint}`, {
           userId,
-          secretKey
+          key: secretKey
         });
         
         if (response.data.success) {
-          setSuccess(`User has been made a ${role} successfully! Please refresh the page or log out and back in to see changes.`);
+          setSuccess(`User has been made a ${role.toLowerCase()} successfully! Please refresh the page or log out and back in to see changes.`);
           
           // If the user updated their own role, refresh their auth context
           if (userId === user?._id) {
@@ -65,17 +65,10 @@ export function AdminTool() {
           return;
         }
       } catch (bootstrapError: any) {
-        console.error(`Bootstrap ${role} method failed:`, bootstrapError);
-        // If bootstrap method failed, try the normal method
-      }
-      
-      // Fall back to the standard method
-      await userAPI.updateUserRole(userId, role);
-      setSuccess(`User has been made a ${role} successfully!`);
-      
-      // If the user updated their own role, refresh their auth context
-      if (userId === user?._id) {
-        await refreshUser();
+        console.error(`Bootstrap ${role.toLowerCase()} method failed:`, bootstrapError);
+        const errorMessage = bootstrapError.response?.data?.message || `Failed to update user to ${role.toLowerCase()} role`;
+        setError(errorMessage);
+        return;
       }
     } catch (err: any) {
       console.error('Failed to update role:', err);
@@ -133,13 +126,13 @@ export function AdminTool() {
           
           <div className="space-y-2">
             <Label>Role</Label>
-            <RadioGroup value={role} onValueChange={(value) => setRole(value as 'admin' | 'teacher')}>
+            <RadioGroup value={role} onValueChange={(value) => setRole(value as 'ADMIN' | 'TEACHER')}>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="admin" id="admin" />
+                <RadioGroupItem value="ADMIN" id="admin" />
                 <Label htmlFor="admin">Admin</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="teacher" id="teacher" />
+                <RadioGroupItem value="TEACHER" id="teacher" />
                 <Label htmlFor="teacher">Teacher</Label>
               </div>
             </RadioGroup>
@@ -168,7 +161,7 @@ export function AdminTool() {
             disabled={isLoading || !userId || !secretKey}
             className="w-full"
           >
-            {isLoading ? 'Processing...' : `Make ${role.charAt(0).toUpperCase() + role.slice(1)}`}
+            {isLoading ? 'Processing...' : `Make ${role === 'ADMIN' ? 'Admin' : 'Teacher'}`}
           </Button>
         </CardFooter>
       </Card>

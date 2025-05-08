@@ -148,4 +148,21 @@ public class UserService {
         user.setLastActive(LocalDateTime.now());
         userRepository.save(user);
     }
+    
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+    
+    public User updateUserRole(String id, Role newRole, User currentUser) {
+        // Only admin can update roles
+        if (!Role.ADMIN.equals(currentUser.getRole())) {
+            throw new RuntimeException("Only admin can update user roles");
+        }
+        
+        User user = getUserById(id);
+        user.setRole(newRole);
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        return userRepository.save(user);
+    }
 } 

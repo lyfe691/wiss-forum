@@ -17,6 +17,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
+import { getAvatarUrl } from '@/lib/utils';
 
 interface UserProfile {
   _id: string;
@@ -147,7 +148,7 @@ export function UserProfile() {
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
               <Avatar className="h-24 w-24 border">
                 {profile.avatar ? (
-                  <AvatarImage src={profile.avatar} alt={profile.displayName || profile.username} />
+                  <AvatarImage src={getAvatarUrl(profile.username, profile.avatar)} alt={profile.displayName || profile.username} />
                 ) : (
                   <AvatarFallback className="text-lg bg-primary/10 text-primary">
                     {getInitials(profile.displayName || profile.username)}

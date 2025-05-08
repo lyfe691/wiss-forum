@@ -1,6 +1,8 @@
 package ch.wiss.forum.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,11 +12,13 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.wiss.forum.model.Role;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.PasswordUpdateRequest;
 import ch.wiss.forum.payload.response.MessageResponse;
@@ -112,7 +116,21 @@ public class UserController {
         
         if (authentication != null && authentication.getPrincipal() instanceof User) {
             User currentUser = (User) authentication.getPrincipal();
-            return ResponseEntity.ok(currentUser);
+            
+            // Create a map with the correct field names for frontend compatibility
+            Map<String, Object> userResponse = new HashMap<>();
+            userResponse.put("_id", currentUser.getId());
+            userResponse.put("id", currentUser.getId());
+            userResponse.put("username", currentUser.getUsername());
+            userResponse.put("email", currentUser.getEmail());
+            userResponse.put("displayName", currentUser.getDisplayName());
+            userResponse.put("role", currentUser.getRole());
+            userResponse.put("avatar", currentUser.getAvatar());
+            userResponse.put("bio", currentUser.getBio());
+            userResponse.put("createdAt", currentUser.getCreatedAt());
+            userResponse.put("updatedAt", currentUser.getUpdatedAt());
+            
+            return ResponseEntity.ok(userResponse);
         }
         
         return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
@@ -165,7 +183,121 @@ public class UserController {
     public ResponseEntity<?> getUserProfileByIdOrUsername(@PathVariable String idOrUsername) {
         try {
             User user = userService.getUserByIdOrUsername(idOrUsername);
-            return ResponseEntity.ok(user);
+            
+            // Create a map with the correct field names for frontend compatibility
+            Map<String, Object> userResponse = new HashMap<>();
+            userResponse.put("_id", user.getId());
+            userResponse.put("id", user.getId());
+            userResponse.put("username", user.getUsername());
+            userResponse.put("email", user.getEmail());
+            userResponse.put("displayName", user.getDisplayName());
+            userResponse.put("role", user.getRole());
+            userResponse.put("avatar", user.getAvatar());
+            userResponse.put("bio", user.getBio());
+            userResponse.put("createdAt", user.getCreatedAt());
+            userResponse.put("updatedAt", user.getUpdatedAt());
+            
+            return ResponseEntity.ok(userResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+    
+    @PutMapping("/{id}/role")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> updateUserRole(@PathVariable String id, @Valid @RequestBody Map<String, String> roleRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+        
+        try {
+            String newRoleStr = roleRequest.get("role");
+            if (newRoleStr == null) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Role is required"));
+            }
+            
+            Role newRole;
+            try {
+                newRole = Role.valueOf(newRoleStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Invalid role: " + newRoleStr));
+            }
+            
+            User updatedUser = userService.updateUserRole(id, newRole, currentUser);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/bootstrap-admin")
+    public ResponseEntity<?> bootstrapAdmin(@Valid @RequestBody Map<String, String> request) {
+        try {
+            String userId = request.get("userId");
+            String secretKey = request.get("key");
+            
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(new MessageResponse("User ID is required"));
+            }
+            
+            if (secretKey == null || !secretKey.equals("key")) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Invalid or missing secret key"));
+            }
+            
+            User user = userService.getUserById(userId);
+            user.setRole(Role.ADMIN);
+            user = userService.save(user);
+            
+            // Create user response map
+            Map<String, Object> userResponse = new HashMap<>();
+            userResponse.put("_id", user.getId());
+            userResponse.put("id", user.getId());
+            userResponse.put("username", user.getUsername());
+            userResponse.put("email", user.getEmail());
+            userResponse.put("displayName", user.getDisplayName());
+            userResponse.put("role", user.getRole());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "User has been updated to ADMIN role",
+                "user", userResponse
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/bootstrap-teacher")
+    public ResponseEntity<?> bootstrapTeacher(@Valid @RequestBody Map<String, String> request) {
+        try {
+            String userId = request.get("userId");
+            String secretKey = request.get("key");
+            
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(new MessageResponse("User ID is required"));
+            }
+            
+            if (secretKey == null || !secretKey.equals("key")) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Invalid or missing secret key"));
+            }
+            
+            User user = userService.getUserById(userId);
+            user.setRole(Role.TEACHER);
+            user = userService.save(user);
+            
+            // Create user response map
+            Map<String, Object> userResponse = new HashMap<>();
+            userResponse.put("_id", user.getId());
+            userResponse.put("id", user.getId());
+            userResponse.put("username", user.getUsername());
+            userResponse.put("email", user.getEmail());
+            userResponse.put("displayName", user.getDisplayName());
+            userResponse.put("role", user.getRole());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "User has been updated to TEACHER role",
+                "user", userResponse
+            ));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }

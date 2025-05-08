@@ -19,6 +19,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { getAvatarUrl } from '@/lib/utils';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -323,7 +324,7 @@ export function LatestTopics() {
                       <div className="flex items-center gap-2">
                         {topic.author?.avatar ? (
                           <Avatar className="h-6 w-6 border border-border">
-                            <AvatarImage src={topic.author.avatar} alt={topic.author.displayName || topic.author.username} />
+                            <AvatarImage src={getAvatarUrl(topic.author.username, topic.author.avatar)} alt={topic.author.displayName || topic.author.username} />
                             <AvatarFallback className="text-xs">
                               {getInitials(topic.author.displayName || topic.author.username)}
                             </AvatarFallback>

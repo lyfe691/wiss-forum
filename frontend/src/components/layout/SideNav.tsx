@@ -151,7 +151,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
   ] : [];
   
   const adminNavItems = isAuthenticated ? (
-    user?.role === 'admin' ? [
+    user?.role === 'ADMIN' || user?.role === 'admin' ? [
       {
         icon: <LayoutDashboard className="h-5 w-5" />,
         label: "Dashboard",
@@ -167,7 +167,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
         label: "Users",
         href: "/admin/users"
       }
-    ] : user?.role === 'teacher' ? [
+    ] : user?.role === 'TEACHER' || user?.role === 'teacher' ? [
       {
         icon: <Book className="h-5 w-5" />,
         label: "Categories",

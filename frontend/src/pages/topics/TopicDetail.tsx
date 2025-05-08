@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { getAvatarUrl } from '@/lib/utils';
 
 interface Author {
   _id: string;
@@ -571,7 +572,10 @@ export function TopicDetail() {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Avatar className="h-5 w-5">
-                  <AvatarImage src={topic.author?.avatar} alt={topic.author?.displayName || topic.author?.username || 'Unknown'} />
+                  <AvatarImage 
+                    src={getAvatarUrl(topic.author?.username || 'unknown', topic.author?.avatar)} 
+                    alt={topic.author?.displayName || topic.author?.username || 'Unknown'} 
+                  />
                   <AvatarFallback className="text-xs">
                     {getInitials(topic.author?.displayName || topic.author?.username || 'U')}
                   </AvatarFallback>
@@ -611,7 +615,10 @@ export function TopicDetail() {
             <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <Avatar className="h-10 w-10 border border-border rounded-full">
-                  <AvatarImage src={topicPost.author?.avatar} alt={topicPost.author?.displayName || topicPost.author?.username || 'Unknown'} />
+                  <AvatarImage 
+                    src={getAvatarUrl(topicPost.author?.username || 'unknown', topicPost.author?.avatar)} 
+                    alt={topicPost.author?.displayName || topicPost.author?.username || 'Unknown'} 
+                  />
                   <AvatarFallback className="bg-primary/10 text-primary">
                     {getInitials(topicPost.author?.displayName || topicPost.author?.username || 'U')}
                   </AvatarFallback>
@@ -673,7 +680,10 @@ export function TopicDetail() {
             <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <Avatar className="h-10 w-10 border border-border rounded-full">
-                  <AvatarImage src={post.author?.avatar} alt={post.author?.displayName || post.author?.username || 'Unknown'} />
+                  <AvatarImage 
+                    src={getAvatarUrl(post.author?.username || 'unknown', post.author?.avatar)}
+                    alt={post.author?.displayName || post.author?.username || 'Unknown'} 
+                  />
                   <AvatarFallback className="bg-primary/10 text-primary">
                     {getInitials(post.author?.displayName || post.author?.username || 'U')}
                   </AvatarFallback>

@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getAvatarUrl } from '@/lib/utils';
 
 interface UserProfile {
   _id: string;
@@ -420,9 +421,9 @@ export function Profile() {
             <Card className="mb-6">
               <CardContent className="p-6 flex flex-col items-center text-center">
                 <Avatar className="h-24 w-24 mb-4 border-2 border-primary/20">
-                  <AvatarImage src={profile.avatar || `https://api.dicebear.com/9.x/thumbs/svg?seed=${profile.username}`} alt={profile.displayName} />
+                  <AvatarImage src={getAvatarUrl(profile.username, profile.avatar)} alt={profile.displayName} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                    {getInitials(profile.displayName)}
+                    {getInitials(profile.displayName || profile.username)}
                   </AvatarFallback>
                 </Avatar>
                 <h2 className="text-2xl font-bold">{profile.displayName}</h2>

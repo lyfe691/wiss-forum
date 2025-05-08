@@ -16,3 +16,14 @@ export function formatDate(date: Date) {
   });
 }
 
+/**
+ * Generates a consistent avatar URL from username using Dicebear
+ * @param username - The username to generate avatar for
+ * @param fallback - Optional fallback avatar URL
+ * @returns URL to the avatar image
+ */
+export function getAvatarUrl(username: string, fallback?: string): string {
+  if (fallback) return fallback;
+  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(username)}`;
+}
+
