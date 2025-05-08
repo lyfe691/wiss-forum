@@ -33,9 +33,9 @@ api.interceptors.request.use(
       
       // Ensure the Authorization header is properly formatted with Bearer prefix
       config.headers.Authorization = `Bearer ${cleanToken}`;
-      console.log('Added token to request');
+      console.log('Added token to request', config.url, cleanToken.substring(0, 10) + '...');
     } else {
-      console.log('No token available');
+      console.log('No token available for request to', config.url);
     }
     return logRequest(config);
   },
@@ -48,16 +48,68 @@ api.interceptors.request.use(
 // Add a response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => logResponse(response),
-  (error) => {
+  async (error) => {
     const errorStatus = error.response?.status;
     const isAuthEndpoint = error.config?.url?.includes('/auth/');
+    const isAdminEndpoint = error.config?.url?.includes('/admin') || 
+                          error.config?.url?.includes('/categories') && 
+                          (error.config?.method === 'post' || error.config?.method === 'put' || error.config?.method === 'delete');
     
     console.error(`API Error ${errorStatus}: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, 
                   error.response?.data || error.message);
     
+    // For admin endpoints, try token refresh once
+    if (isAdminEndpoint && errorStatus === 401 && !error.config?.__isRetry) {
+      console.warn('Admin endpoint authentication error, attempting token refresh');
+      
+      try {
+        // Try direct token refresh
+        const originalRequest = error.config;
+        originalRequest.__isRetry = true;
+        
+        // Get a new token
+        const refreshResponse = await api.post('/auth/refresh-token');
+        
+        if (refreshResponse.data && refreshResponse.data.token) {
+          const newToken = refreshResponse.data.token.replace(/^Bearer\s+/i, '').trim();
+          localStorage.setItem('token', newToken);
+          console.log('New token obtained:', newToken.substring(0, 10) + '...');
+          
+          // Update user data if available
+          if (refreshResponse.data.id || refreshResponse.data._id) {
+            const userData = {
+              _id: refreshResponse.data.id || refreshResponse.data._id,
+              username: refreshResponse.data.username,
+              email: refreshResponse.data.email,
+              displayName: refreshResponse.data.displayName,
+              role: refreshResponse.data.role.toLowerCase(),
+              avatar: refreshResponse.data.avatar
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('Updated user data in localStorage for', userData.username, 'with role', userData.role);
+          }
+          
+          // Explicitly set the Authorization header with the new token
+          originalRequest.headers = {
+            ...originalRequest.headers,
+            Authorization: `Bearer ${newToken}`
+          };
+          
+          // Retry the original request with the new token
+          console.log('Retrying request with new token...');
+          return axios(originalRequest);  // Use axios directly, not the api instance
+        }
+      } catch (refreshError) {
+        console.warn('Token refresh failed, letting component handle the error', refreshError);
+      }
+      
+      // Let the component handle the error if refresh fails
+      return Promise.reject(error);
+    }
+    
     // Only redirect for non-auth endpoints with 401 errors
     // Skip redirects for auth-related endpoints to avoid loops
-    if (errorStatus === 401 && !isAuthEndpoint) {
+    if (errorStatus === 401 && !isAuthEndpoint && !isAdminEndpoint) {
       console.warn('Authentication error on non-auth endpoint, redirecting to login');
       // Clear localStorage and redirect to login on auth error
       localStorage.removeItem('token');
@@ -217,8 +269,41 @@ export const userAPI = {
 // Categories API
 export const categoriesAPI = {
   getAllCategories: async () => {
-    const response = await api.get('/categories');
-    return response.data;
+    try {
+      console.log('Fetching all categories...');
+      const response = await api.get('/categories');
+      
+      if (!response.data || !Array.isArray(response.data)) {
+        console.warn('Unexpected response format from categories API:', response.data);
+        return [];
+      }
+      
+      // Normalize all categories to have both id and _id fields for consistency
+      const normalizedCategories = response.data.map(category => {
+        // Spring returns objects with 'id' field, frontend expects '_id'
+        if (category.id && !category._id) {
+          return {
+            ...category,
+            _id: category.id  // Ensure _id exists for frontend compatibility
+          };
+        }
+        return category;
+      });
+      
+      // Add some logging for debugging
+      console.log(`Retrieved ${normalizedCategories.length} categories:`, 
+        normalizedCategories.map(c => ({name: c.name, slug: c.slug, id: c.id, _id: c._id}))
+      );
+      
+      return normalizedCategories;
+    } catch (error: any) {
+      console.error('Failed to fetch categories:', 
+        error.response?.status,
+        error.response?.data || error.message
+      );
+      // Return empty array instead of failing to avoid breaking the UI
+      return [];
+    }
   },
   
   getCategoryByIdOrSlug: async (idOrSlug: string) => {
@@ -227,17 +312,127 @@ export const categoriesAPI = {
   },
   
   createCategory: async (data: { name: string; description: string; order?: number }) => {
-    // Make sure we have a token before creating a category
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication required to create a category');
+    try {
+      // Make sure we have a token before creating a category
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required to create a category');
+      }
+      
+      // Verify we have user data with correct role
+      const userStr = localStorage.getItem('user');
+      const userData = userStr ? JSON.parse(userStr) : null;
+      if (!userData) {
+        console.warn('No user data found in localStorage when creating category');
+      } else {
+        console.log('Creating category with user role:', userData.role);
+        if (userData.role !== 'admin' && userData.role !== 'teacher') {
+          throw new Error('You do not have permission to create categories');
+        }
+      }
+      
+      // Generate a slug from the name
+      const slug = data.name
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')     // Replace spaces with hyphens
+        .replace(/-+/g, '-')      // Replace multiple hyphens with a single one
+        .trim();                  // Trim any leading/trailing spaces or hyphens
+      
+      // Add the slug to the data
+      const categoryData = {
+        ...data,
+        slug,
+        isActive: true
+      };
+      
+      console.log('Creating category with data including slug:', categoryData);
+      
+      // Always try to refresh the token first before creating a category
+      try {
+        console.log('Refreshing token before category creation...');
+        const refreshResponse = await api.post('/auth/refresh-token');
+        if (refreshResponse.data && refreshResponse.data.token) {
+          // Store the fresh token
+          const newToken = refreshResponse.data.token.replace(/^Bearer\s+/i, '').trim();
+          localStorage.setItem('token', newToken);
+          console.log('Token successfully refreshed for category creation:', newToken.substring(0, 10) + '...');
+          
+          // Update user data if available in the response
+          if (refreshResponse.data.id || refreshResponse.data._id) {
+            const userData = {
+              _id: refreshResponse.data.id || refreshResponse.data._id,
+              username: refreshResponse.data.username,
+              email: refreshResponse.data.email,
+              displayName: refreshResponse.data.displayName,
+              role: (refreshResponse.data.role || '').toLowerCase(),
+              avatar: refreshResponse.data.avatar
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('User data updated during category creation for', userData.username, 'with role', userData.role);
+          }
+        }
+      } catch (refreshError: any) {
+        console.warn('Token refresh attempt failed before category creation:', 
+          refreshError.response?.status, 
+          refreshError.response?.data || refreshError.message
+        );
+      }
+      
+      // Manually prepare the request with the latest token
+      const currentToken = localStorage.getItem('token');
+      const cleanToken = currentToken ? currentToken.replace(/^Bearer\s+/i, '').trim() : '';
+      
+      console.log('Making category creation request with token:', cleanToken.substring(0, 10) + '...');
+      
+      // Make the request with explicit headers
+      const response = await axios.post(
+        `${api.defaults.baseURL}/categories`,
+        categoryData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${cleanToken}`
+          },
+          withCredentials: true
+        }
+      );
+      
+      // Log raw response
+      console.log('Category creation raw response:', response.data);
+      
+      // Spring returns objects with 'id' field, not '_id'
+      let categoryResponse = response.data;
+      
+      // Normalize the category data to have both id and _id fields
+      if (categoryResponse && categoryResponse.id) {
+        // Create a normalized category object with both id and _id fields
+        const normalizedCategory = {
+          ...categoryResponse,
+          _id: categoryResponse.id, // Ensure _id exists since frontend expects it
+          slug: categoryResponse.slug || slug // Use the server's slug or fallback to our generated one
+        };
+        
+        console.log('Normalized category data:', normalizedCategory);
+        return normalizedCategory;
+      } else {
+        console.error('Invalid category data received from server:', response.data);
+        throw new Error('Server returned invalid category data');
+      }
+    } catch (error: any) {
+      // Better error handling to prevent redirects
+      console.error('Category creation failed:', 
+        error.response?.status,
+        error.response?.data
+      );
+      
+      if (error.response?.status === 401) {
+        console.error('Authentication error when creating category. Please log in again.');
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      
+      throw error;
     }
-    
-    // The token will be automatically added by the axios interceptor
-    const response = await api.post('/categories', data);
-    
-    // Return the category data or created category
-    return response.data.category || response.data;
   },
   
   updateCategory: async (

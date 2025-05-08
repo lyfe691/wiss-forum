@@ -77,12 +77,16 @@ public class SecurityConfig {
                 auth
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/users/public").permitAll()
-                    .requestMatchers("/api/categories/**").permitAll()
+                    // Only allow GET requests for categories to be public
+                    .requestMatchers("GET", "/api/categories/**").permitAll()
+                    .requestMatchers("POST", "/api/categories/**").authenticated()
+                    .requestMatchers("PUT", "/api/categories/**").authenticated()
+                    .requestMatchers("DELETE", "/api/categories/**").authenticated()
                     .requestMatchers("/api/topics/**").permitAll()
                     .requestMatchers("/api/posts/**").permitAll()
                     .requestMatchers("/error").permitAll()
-                    .anyRequest().permitAll(); // Temporarily set all to permitAll to debug
-                log.info("Authorization rules configured");
+                    .anyRequest().authenticated(); // Change to authenticated to enforce login
+                log.info("Authorization rules configured with category protection");
             });
         
         http.authenticationProvider(authenticationProvider());

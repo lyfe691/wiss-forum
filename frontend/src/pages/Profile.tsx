@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAvatarUrl } from '@/lib/utils';
+import { getAvatarUrl, getRoleBadgeColor, formatRoleName } from '@/lib/utils';
 
 interface UserProfile {
   _id: string;
@@ -428,8 +428,8 @@ export function Profile() {
                 </Avatar>
                 <h2 className="text-2xl font-bold">{profile.displayName}</h2>
                 <p className="text-muted-foreground mb-3">@{profile.username}</p>
-                <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
-                  {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+                <Badge className={getRoleBadgeColor(profile.role)}>
+                  {formatRoleName(profile.role)}
                 </Badge>
                 
                 <Separator className="my-4" />

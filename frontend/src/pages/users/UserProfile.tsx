@@ -17,7 +17,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
-import { getAvatarUrl } from '@/lib/utils';
+import { getAvatarUrl, getRoleBadgeColor, formatRoleName } from '@/lib/utils';
 
 interface UserProfile {
   _id: string;
@@ -65,18 +65,6 @@ export function UserProfile() {
 
     fetchUserProfile();
   }, [idOrUsername]);
-
-  // Get role badge color
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-      case 'teacher':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      default:
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-    }
-  };
 
   // Get initials for avatar fallback
   const getInitials = (name: string) => {
@@ -168,7 +156,7 @@ export function UserProfile() {
                 
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
                   <Badge className={`${getRoleBadgeColor(profile.role)}`}>
-                    {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+                    {formatRoleName(profile.role)}
                   </Badge>
                   
                   <div className="flex items-center text-xs text-muted-foreground">

@@ -23,6 +23,8 @@ import {
   Shield
 } from 'lucide-react';
 import { SideNav } from './SideNav';
+import { Badge } from '@/components/ui/badge';
+import { getRoleBadgeColor, formatRoleName } from '@/lib/utils';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -108,8 +110,8 @@ export function Navbar() {
                           <div>
                             <p className="text-sm font-medium">{user?.displayName || user?.username}</p>
                             <div className="inline-flex mt-1">
-                              <span className="text-xs font-medium px-1.5 py-0.5 rounded-sm bg-primary/15 text-primary">
-                                {user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'User'}
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded-sm ${getRoleBadgeColor(user?.role || '')}`}>
+                                {user?.role ? formatRoleName(user.role) : 'User'}
                               </span>
                             </div>
                           </div>

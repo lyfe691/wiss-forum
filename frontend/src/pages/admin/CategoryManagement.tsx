@@ -51,9 +51,12 @@ import {
   ShieldCheck,
   MessageSquare
 } from 'lucide-react';
+import { authAPI } from '@/lib/api';
+import axios from 'axios';
 
 interface Category {
   _id: string;
+  id?: string;
   name: string;
   description: string;
   slug: string;
@@ -155,9 +158,89 @@ export function CategoryManagement() {
       return;
     }
     
+    // Check permissions
+    if (user.role !== 'admin' && user.role !== 'teacher') {
+      setError('You do not have permission to create categories');
+      return;
+    }
+    
     try {
       setError(null);
       setSuccess(null);
+      
+      // Generate a slug manually to handle any backend issues
+      const generatedSlug = formData.name.trim()
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')     // Replace spaces with hyphens
+        .replace(/-+/g, '-')      // Replace multiple hyphens with a single one
+        .trim();                  // Trim any leading/trailing spaces or hyphens
+      
+      console.log('CategoryManagement: Generated slug locally:', generatedSlug);
+      
+      // First try to refresh auth token directly
+      let tokenRefreshed = false;
+      try {
+        console.log('CategoryManagement: Starting token refresh...');
+        const refreshResponse = await authAPI.refreshToken();
+        if (refreshResponse && refreshResponse.token) {
+          // Store the fresh token
+          const newToken = refreshResponse.token.replace(/^Bearer\s+/i, '').trim();
+          localStorage.setItem('token', newToken);
+          console.log('CategoryManagement: Token successfully refreshed:', newToken.substring(0, 10) + '...');
+          
+          // Update user data if available in the response
+          if (refreshResponse.id || refreshResponse._id) {
+            const userData = {
+              _id: refreshResponse.id || refreshResponse._id,
+              username: refreshResponse.username,
+              email: refreshResponse.email,
+              displayName: refreshResponse.displayName,
+              role: (refreshResponse.role || '').toLowerCase(),
+              avatar: refreshResponse.avatar
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('CategoryManagement: Updated user data for', userData.username, 'with role', userData.role);
+          }
+          tokenRefreshed = true;
+        }
+      } catch (refreshError: any) {
+        console.warn('CategoryManagement: Token refresh attempt failed:', 
+          refreshError.response?.status,
+          refreshError.response?.data || refreshError.message
+        );
+      }
+      
+      // If token refresh failed, try second approach with axios directly
+      if (!tokenRefreshed) {
+        try {
+          console.log('CategoryManagement: Trying alternative token refresh...');
+          const response = await axios.post(
+            'http://localhost:8080/api/auth/refresh-token',
+            {},
+            {
+              withCredentials: true,
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          
+          if (response.data && response.data.token) {
+            const newToken = response.data.token.replace(/^Bearer\s+/i, '').trim();
+            localStorage.setItem('token', newToken);
+            console.log('CategoryManagement: Direct token refresh successful:', newToken.substring(0, 10) + '...');
+            tokenRefreshed = true;
+          }
+        } catch (directRefreshError) {
+          console.error('CategoryManagement: Alternative token refresh also failed', directRefreshError);
+        }
+      }
+      
+      console.log('CategoryManagement: Creating category with data including slug:', {
+        ...formData,
+        slug: generatedSlug
+      });
       
       // Use the standard method for creating categories
       const result = await categoriesAPI.createCategory({
@@ -165,12 +248,50 @@ export function CategoryManagement() {
         description: formData.description,
       });
       
+      // Log complete result for debugging
+      console.log('CategoryManagement: Raw category result:', result);
+      
+      // Verify the result has the expected properties
+      if (!result) {
+        console.error('CategoryManagement: No category data returned');
+        throw new Error('Server returned no category data');
+      }
+      
+      // Check for ID (Spring uses 'id', we need both 'id' and '_id')
+      const categoryId = result.id || result._id;
+      if (!categoryId) {
+        console.error('CategoryManagement: Invalid category data returned - no ID field:', result);
+        throw new Error('Server returned category without ID');
+      }
+      
+      // Ensure we have a valid slug
+      const categorySlug = result.slug || generatedSlug;
+      
+      console.log('CategoryManagement: Category created successfully with ID:', categoryId, 'and slug:', categorySlug);
+      
       setSuccess('Category created successfully');
       setShowDialog(false);
       setFormData({ name: '', description: '' });
       await fetchCategories();
     } catch (err: any) {
-      console.error('Failed to create category:', err);
+      console.error('CategoryManagement: Failed to create category:', 
+        err.response?.status,
+        err.response?.data || err.message
+      );
+      
+      // Better error message for duplicate slug
+      if (err.response?.data?.message?.includes('slug') && err.response?.data?.message?.includes('exists')) {
+        setError('A category with this name already exists. Please choose a different name.');
+        return;
+      }
+      
+      // Special handling for auth errors
+      if (err.response?.status === 401 || err.message?.includes('session') || err.message?.includes('expired')) {
+        // Don't logout, just show a helpful message
+        setError('Your session has expired. Please refresh the page and try again, or log out and back in.');
+        return;
+      }
+      
       const errorMessage = err.response?.data?.message || 
                          err.message || 
                          'Failed to create category. Please try again.';

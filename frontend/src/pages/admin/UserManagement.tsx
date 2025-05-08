@@ -41,6 +41,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import axios from 'axios';
+import { getRoleBadgeColor, formatRoleName } from '@/lib/utils';
 
 interface UserData {
   _id: string;
@@ -149,17 +150,6 @@ export function UserManagement() {
     } catch (err) {
       console.error('Failed to update user role:', err);
       setError('Failed to update user role. Please try again.');
-    }
-  };
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-      case 'teacher':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      default:
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
     }
   };
 
@@ -313,7 +303,7 @@ export function UserManagement() {
                       <TableCell>{userData.email}</TableCell>
                       <TableCell>
                         <Badge className={`${getRoleBadgeColor(userData.role)}`}>
-                          {userData.role.charAt(0).toUpperCase() + userData.role.slice(1)}
+                          {formatRoleName(userData.role)}
                         </Badge>
                       </TableCell>
                       <TableCell>{userData.createdAt ? formatDate(userData.createdAt) : 'N/A'}</TableCell>

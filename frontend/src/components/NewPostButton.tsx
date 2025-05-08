@@ -1,5 +1,5 @@
 import { Plus, FolderPlus, AlertTriangle, Info } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,12 +22,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert as AlertComponent, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { categoriesAPI } from '@/lib/api';
+import { categoriesAPI, authAPI } from '@/lib/api';
+import axios from 'axios';
+
+// Define the interface for category objects
+interface Category {
+  _id: string;
+  id?: string;  // Add id field to support Spring's response format
+  name: string;
+  description: string;
+  slug: string;
+  createdAt?: string;
+  updatedAt?: string;
+  isActive?: boolean;
+}
 
 export function NewPostButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
+  
+  // Track when the selected category changes
+  useEffect(() => {
+    console.log('NewPostButton: Selected category changed to:', selectedCategory);
+  }, [selectedCategory]);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [categoryName, setCategoryName] = useState('');
@@ -73,9 +92,90 @@ export function NewPostButton() {
       return;
     }
     
+    // Check if user has sufficient permissions
+    if (user.role !== 'admin' && user.role !== 'teacher') {
+      setError('You do not have permission to create categories');
+      return;
+    }
+    
     try {
       setIsCreatingCategory(true);
       setError('');
+      
+      // Generate a slug manually to handle any backend issues
+      const generatedSlug = categoryName.trim()
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')     // Replace spaces with hyphens
+        .replace(/-+/g, '-')      // Replace multiple hyphens with a single one
+        .trim();                  // Trim any leading/trailing spaces or hyphens
+      
+      console.log('NewPostButton: Generated slug locally:', generatedSlug);
+      
+      // Try to refresh the token directly before proceeding
+      let tokenRefreshed = false;
+      try {
+        console.log('NewPostButton: Starting token refresh...');
+        const refreshResponse = await authAPI.refreshToken();
+        if (refreshResponse && refreshResponse.token) {
+          // Store the fresh token
+          const newToken = refreshResponse.token.replace(/^Bearer\s+/i, '').trim();
+          localStorage.setItem('token', newToken);
+          console.log('NewPostButton: Token successfully refreshed:', newToken.substring(0, 10) + '...');
+          
+          // Update user data if available in the response
+          if (refreshResponse.id || refreshResponse._id) {
+            const userData = {
+              _id: refreshResponse.id || refreshResponse._id,
+              username: refreshResponse.username,
+              email: refreshResponse.email,
+              displayName: refreshResponse.displayName,
+              role: (refreshResponse.role || '').toLowerCase(),
+              avatar: refreshResponse.avatar
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('NewPostButton: Updated user data for', userData.username, 'with role', userData.role);
+          }
+          tokenRefreshed = true;
+        }
+      } catch (refreshError: any) {
+        console.warn('NewPostButton: Token refresh attempt failed:', 
+          refreshError.response?.status,
+          refreshError.response?.data || refreshError.message
+        );
+      }
+      
+      // If token refresh failed, try second approach with axios directly
+      if (!tokenRefreshed) {
+        try {
+          console.log('NewPostButton: Trying alternative token refresh...');
+          const response = await axios.post(
+            'http://localhost:8080/api/auth/refresh-token',
+            {},
+            {
+              withCredentials: true,
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          
+          if (response.data && response.data.token) {
+            const newToken = response.data.token.replace(/^Bearer\s+/i, '').trim();
+            localStorage.setItem('token', newToken);
+            console.log('NewPostButton: Direct token refresh successful:', newToken.substring(0, 10) + '...');
+            tokenRefreshed = true;
+          }
+        } catch (directRefreshError) {
+          console.error('NewPostButton: Alternative token refresh also failed', directRefreshError);
+        }
+      }
+      
+      console.log('NewPostButton: Creating category with data:', { 
+        name: categoryName.trim(), 
+        description: categoryDescription.trim(),
+        slug: generatedSlug // Pass the generated slug
+      });
       
       // Create category using the standard API method
       const newCategory = await categoriesAPI.createCategory({
@@ -83,17 +183,102 @@ export function NewPostButton() {
         description: categoryDescription.trim()
       });
       
+      // Log every property to see what we're working with
+      console.log('NewPostButton: Received category from server:', newCategory);
+      for (const [key, value] of Object.entries(newCategory)) {
+        console.log(`  ${key}: ${value}`);
+      }
+      
+      // Ensure the category has the required properties
+      if (!newCategory) {
+        throw new Error('No category data returned from server');
+      }
+      
+      // Ensure both ID properties exist (id from Spring, _id for frontend)
+      const categoryId = newCategory.id || newCategory._id;
+      if (!categoryId) {
+        throw new Error('Category ID is missing');
+      }
+      
+      // Use the server returned slug or fall back to our generated one
+      const categorySlug = newCategory.slug || generatedSlug;
+      if (!categorySlug) {
+        throw new Error('Category slug is missing');
+      }
+      
+      console.log(`NewPostButton: Successfully created category '${newCategory.name}' with ID: ${categoryId}, slug: ${categorySlug}`);
+      
       // Reset form and go back to category selection
       setCategoryName('');
       setCategoryDescription('');
       setShowCreateCategory(false);
       
-      // Refresh categories and select the new one
-      const updatedCategories = await categoriesAPI.getAllCategories();
-      setCategories(updatedCategories);
-      setSelectedCategory(newCategory.slug);
+      // Create a normalized category with required fields for the UI
+      const normalizedCategory: Category = {
+        _id: categoryId,
+        id: categoryId,
+        name: newCategory.name,
+        description: newCategory.description,
+        slug: categorySlug,
+        createdAt: newCategory.createdAt || new Date().toISOString(),
+        updatedAt: newCategory.updatedAt || new Date().toISOString(),
+        isActive: newCategory.isActive !== false // Default to true if not specified
+      };
+      
+      // First add to categories list immediately
+      setCategories(prevCategories => {
+        const exists = prevCategories.some(cat => 
+          cat._id === categoryId || cat.id === categoryId || cat.slug === categorySlug
+        );
+        
+        if (!exists) {
+          console.log('NewPostButton: Adding new category to list:', normalizedCategory);
+          return [...prevCategories, normalizedCategory];
+        }
+        return prevCategories;
+      });
+      
+      // Set selection with a small delay to ensure state has updated
+      setTimeout(() => {
+        console.log('NewPostButton: Setting selection to:', categorySlug);
+        setSelectedCategory(categorySlug);
+      }, 50);
+      
+      // Then refresh the list from server to be sure
+      try {
+        console.log('NewPostButton: Refreshing categories from server');
+        const updatedCategories = await categoriesAPI.getAllCategories();
+        
+        // Update the categories list
+        setCategories(updatedCategories);
+        
+        // Ensure our category is selected even after refresh
+        setTimeout(() => {
+          console.log('NewPostButton: Resetting selection after server refresh');
+          setSelectedCategory(categorySlug);
+        }, 100); // Increased to 100ms for more reliability
+      } catch (fetchError) {
+        console.error('NewPostButton: Failed to refresh categories, continuing with added category', fetchError);
+        // It's ok, we already added the category locally
+      }
     } catch (error: any) {
-      console.error('Failed to create category:', error);
+      console.error('NewPostButton: Failed to create category:', 
+        error.response?.status,
+        error.response?.data || error.message
+      );
+      
+      // Better error message for duplicate slug
+      if (error.response?.data?.message?.includes('slug') && error.response?.data?.message?.includes('exists')) {
+        setError('A category with this name already exists. Please choose a different name.');
+        return;
+      }
+      
+      // Special handling for auth errors
+      if (error.response?.status === 401 || error.message?.includes('session') || error.message?.includes('log in')) {
+        setError('Your session has expired. Please refresh the page or log out and log in again to refresh your credentials.');
+        return;
+      }
+      
       // Extract the most useful error message
       const errorMessage = error.response?.data?.message || 
                           error.message || 
@@ -104,7 +289,8 @@ export function NewPostButton() {
     }
   };
   
-  const isAdmin = user?.role === 'admin';
+  // Update isAdmin to include teacher role for category creation
+  const isAdmin = user?.role === 'admin' || user?.role === 'teacher';
   
   return (
     <>
@@ -223,16 +409,26 @@ export function NewPostButton() {
                       <Select 
                         onValueChange={setSelectedCategory} 
                         defaultValue={selectedCategory}
+                        value={selectedCategory}
                       >
                         <SelectTrigger className="w-full flex-grow">
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category._id} value={category.slug}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
+                          {categories.map((category) => {
+                            // Debug log for troubleshooting
+                            if (!category.slug) {
+                              console.warn('Category missing slug:', category);
+                            }
+                            return (
+                              <SelectItem 
+                                key={category._id || category.id} 
+                                value={category.slug}
+                              >
+                                {category.name}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       
