@@ -1,6 +1,7 @@
 package ch.wiss.forum.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,9 +23,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.wiss.forum.model.Category;
 import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.response.MessageResponse;
+import ch.wiss.forum.service.CategoryService;
 import ch.wiss.forum.service.TopicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +41,7 @@ import org.slf4j.LoggerFactory;
 public class TopicController {
     
     private final TopicService topicService;
+    private final CategoryService categoryService;
     private static final Logger log = LoggerFactory.getLogger(TopicController.class);
     
     @GetMapping
@@ -150,7 +154,7 @@ public class TopicController {
     
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> createTopic(@Valid @RequestBody Topic topic) {
+    public ResponseEntity<?> createTopic(@Valid @RequestBody Map<String, Object> requestBody) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             
@@ -166,9 +170,40 @@ public class TopicController {
             
             User currentUser = (User) authentication.getPrincipal();
             
+            // Extract data from request
+            String title = (String) requestBody.get("title");
+            String content = (String) requestBody.get("content");
+            String categoryId = (String) requestBody.get("categoryId");
+            List<String> tags = (List<String>) requestBody.get("tags");
+            
+            if (title == null || content == null || categoryId == null) {
+                return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Title, content, and categoryId are required"));
+            }
+            
+            // Fetch the category
+            Category category = null;
+            try {
+                category = categoryService.getCategoryById(categoryId);
+                log.info("Found category for topic: {}", category.getName());
+            } catch (Exception e) {
+                log.error("Error finding category with ID {}: {}", categoryId, e.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("Category not found with ID: " + categoryId));
+            }
+            
+            // Create Topic
+            Topic topic = new Topic();
+            topic.setTitle(title);
+            topic.setContent(content);
+            topic.setCategory(category);
+            if (tags != null) {
+                topic.setTags(tags);
+            }
+            
             // Debug logging to help identify issues
-            log.info("Creating topic for user: {} with role: {}", 
-                currentUser.getUsername(), currentUser.getRole());
+            log.info("Creating topic for user: {} with role: {} in category: {}", 
+                currentUser.getUsername(), currentUser.getRole(), category.getName());
             
             Topic createdTopic = topicService.createTopic(topic, currentUser);
             

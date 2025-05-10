@@ -28,6 +28,10 @@ public class PostService {
         return postRepository.findByTopicOrderByCreatedAtAsc(topic, pageable);
     }
     
+    public Page<Post> getPostsByTopic(Topic topic, Pageable pageable) {
+        return postRepository.findByTopicOrderByCreatedAtAsc(topic, pageable);
+    }
+    
     public Page<Post> getPostsByUser(User user, Pageable pageable) {
         return postRepository.findByAuthorOrderByCreatedAtDesc(user, pageable);
     }

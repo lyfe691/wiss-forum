@@ -1,5 +1,7 @@
 package ch.wiss.forum.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ import ch.wiss.forum.model.Post;
 import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.service.PostService;
+import ch.wiss.forum.service.TopicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -35,7 +38,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PostController {
     
+    private static final Logger logger = LoggerFactory.getLogger(PostController.class);
+    
     private final PostService postService;
+    private final TopicService topicService;
     
     @GetMapping("/topic/{topicId}")
     public ResponseEntity<Page<Post>> getPostsByTopic(
@@ -43,9 +49,33 @@ public class PostController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
-        Page<Post> posts = postService.getPostsByTopic(topicId, pageable);
-        return ResponseEntity.ok(posts);
+        try {
+            // Log that we're starting to fetch posts
+            logger.info("Fetching posts for topic with ID: {}", topicId);
+            
+            // Create pageable with ascending sort by createdAt
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+            
+            // Get the Topic object
+            Topic topic = topicService.getTopicById(topicId);
+            logger.debug("Found topic: {} with title: {}", topic.getId(), topic.getTitle());
+            
+            // Fetch posts for the topic
+            Page<Post> posts = postService.getPostsByTopic(topic, pageable);
+            logger.info("Found {} posts for topic {}", posts.getContent().size(), topicId);
+            
+            // Log results for debugging
+            if (posts.isEmpty()) {
+                logger.warn("No posts found for topic {}", topicId);
+            } else {
+                logger.debug("First post ID: {}", posts.getContent().get(0).getId());
+            }
+            
+            return ResponseEntity.ok(posts);
+        } catch (Exception e) {
+            logger.error("Error fetching posts for topic {}: {}", topicId, e.getMessage());
+            throw new RuntimeException("Failed to fetch posts for topic: " + e.getMessage());
+        }
     }
     
     @GetMapping("/{id}")
