@@ -59,7 +59,7 @@ public class TopicController {
     }
     
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<Page<Topic>> getTopicsByCategory(
+    public ResponseEntity<?> getTopicsByCategory(
             @PathVariable String categoryId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -75,10 +75,11 @@ public class TopicController {
                 Category category = categoryService.getCategoryById(categoryId);
                 log.info("Found category by ID: {}", category.getName());
                 
-                Page<Topic> topics = topicService.getTopicsByCategory(categoryId, pageable);
-                log.info("Found {} topics for category {}", topics.getTotalElements(), category.getName());
+                Page<Topic> topicsPage = topicService.getTopicsByCategory(categoryId, pageable);
+                log.info("Found {} topics for category {}", topicsPage.getTotalElements(), category.getName());
                 
-                return ResponseEntity.ok(topics);
+                // Return just the list of topics instead of the Page object
+                return ResponseEntity.ok(topicsPage.getContent());
             } catch (Exception idError) {
                 log.info("Could not find category by ID, trying by slug: {}", categoryId);
                 
@@ -87,10 +88,11 @@ public class TopicController {
                     Category category = categoryService.getCategoryBySlug(categoryId);
                     log.info("Found category by slug: {}", category.getName());
                     
-                    Page<Topic> topics = topicService.getTopicsByCategory(category.getId(), pageable);
-                    log.info("Found {} topics for category {}", topics.getTotalElements(), category.getName());
+                    Page<Topic> topicsPage = topicService.getTopicsByCategory(category.getId(), pageable);
+                    log.info("Found {} topics for category {}", topicsPage.getTotalElements(), category.getName());
                     
-                    return ResponseEntity.ok(topics);
+                    // Return just the list of topics instead of the Page object
+                    return ResponseEntity.ok(topicsPage.getContent());
                 } catch (Exception slugError) {
                     log.error("Category not found by ID or slug: {}", categoryId);
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

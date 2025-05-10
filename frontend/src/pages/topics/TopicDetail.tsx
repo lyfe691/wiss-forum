@@ -293,6 +293,12 @@ export function TopicDetail() {
     // Prevent multiple clicks
     if (likeInProgress[postId]) return;
     
+    // Skip API call for temporary posts
+    if (postId.startsWith('temp-')) {
+      console.log(`Cannot like temporary post: ${postId}`);
+      return;
+    }
+    
     setLikeInProgress(prev => ({ ...prev, [postId]: true }));
     
     try {

@@ -495,17 +495,29 @@ export const categoriesAPI = {
 export const topicsAPI = {
   getTopicsByCategory: async (categoryId: string, page = 1, limit = 10) => {
     try {
-      const response = await api.get(`/topics/category/${categoryId}?page=${page}&limit=${limit}`);
+      console.log(`Fetching topics for category: ${categoryId}, page: ${page-1}, limit: ${limit}`);
+      // Note: Spring pagination is 0-based, but our frontend uses 1-based pagination
+      const response = await api.get(`/topics/category/${categoryId}?page=${page-1}&size=${limit}`);
+      
+      // Debug the raw response
+      console.log('Topics by category raw response:', response.data);
       
       // Handle different response structures
       if (Array.isArray(response.data)) {
         return response.data;
+      } else if (response.data && Array.isArray(response.data.content)) {
+        // Handle Spring Data pagination format (primary case)
+        console.log(`Found ${response.data.content.length} topics in content array`);
+        return response.data.content;
       } else if (response.data && Array.isArray(response.data.topics)) {
         return response.data.topics;
       } else if (response.data && typeof response.data === 'object') {
         console.warn('Unexpected topics response structure:', response.data);
         // Try to extract topics from common response patterns
-        const possibleTopicsArray = response.data.topics || response.data.data || response.data.items || [];
+        const possibleTopicsArray = response.data.content || 
+                                   response.data.topics || 
+                                   response.data.data || 
+                                   response.data.items || [];
         return Array.isArray(possibleTopicsArray) ? possibleTopicsArray : [];
       }
       
@@ -837,52 +849,38 @@ export const topicsAPI = {
         }
       );
       
+      // Log raw response
       console.log('Topic creation raw response:', response.data);
       
-      // Normalize response data
+      // Spring returns objects with 'id' field, not '_id'
       let topicResponse = response.data;
       
-      // If the topic is nested under a property
-      if (response.data && response.data.topic) {
-        topicResponse = response.data.topic;
-      }
-      
-      // Ensure the response has _id (Spring might use id)
-      if (topicResponse && topicResponse.id && !topicResponse._id) {
-        topicResponse = {
+      // Normalize the topic data to have both id and _id fields
+      if (topicResponse && topicResponse.id) {
+        // Create a normalized topic object with both id and _id fields
+        const normalizedTopic = {
           ...topicResponse,
-          _id: topicResponse.id
+          _id: topicResponse.id // Ensure _id exists since frontend expects it
         };
+        
+        console.log('Normalized topic data:', normalizedTopic);
+        return normalizedTopic;
+      } else {
+        console.error('Invalid topic data received from server:', response.data);
+        throw new Error('Server returned invalid topic data');
       }
-      
-      return topicResponse;
     } catch (error: any) {
+      // Better error handling to prevent redirects
       console.error('Topic creation failed:', 
         error.response?.status,
-        error.response?.data || error.message
+        error.response?.data
       );
-      throw error;
-    }
-  },
-  
-  updateTopic: async (
-    id: string, 
-    data: { 
-      title?: string; 
-      categoryId?: string; 
-      tags?: string[] 
-    }
-  ) => {
-    const response = await api.put(`/topics/${id}`, data);
-    return response.data;
-  },
-  
-  deleteTopic: async (id: string) => {
-    try {
-      const response = await api.delete(`/topics/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting topic:', error);
+      
+      if (error.response?.status === 401) {
+        console.error('Authentication error when creating topic. Please log in again.');
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      
       throw error;
     }
   },
@@ -940,9 +938,9 @@ export const postsAPI = {
       } else if (response.data && typeof response.data === 'object') {
         // Try to extract posts from common response patterns
         const possiblePostsArray = response.data.posts || 
-                                   response.data.content || 
-                                   response.data.data || 
-                                   response.data.items || [];
+                                  response.data.content || 
+                                  response.data.data || 
+                                  response.data.items || [];
         
         if (Array.isArray(possiblePostsArray)) {
           return possiblePostsArray.map(processPost);
@@ -1029,11 +1027,6 @@ export const postsAPI = {
     }
   },
   
-  updatePost: async (id: string, data: { content: string }) => {
-    const response = await api.put(`/posts/${id}`, data);
-    return response.data;
-  },
-  
   deletePost: async (id: string) => {
     const response = await api.delete(`/posts/${id}`);
     return response.data;
@@ -1041,6 +1034,20 @@ export const postsAPI = {
   
   toggleLike: async (id: string) => {
     try {
+      // Skip API call for temporary posts (client-side only posts that haven't saved to DB yet)
+      if (id.startsWith('temp-')) {
+        console.log(`Skipping like toggle for temporary post ID: ${id}`);
+        return { 
+          success: false, 
+          message: 'Cannot like a temporary post',
+          post: {
+            _id: id,
+            likes: 0,
+            isLiked: false
+          }
+        };
+      }
+      
       console.log(`Toggling like for post ID: ${id}`);
       const response = await api.post(`/posts/${id}/like`);
       
@@ -1125,4 +1132,4 @@ export const statsAPI = {
   }
 };
 
-export default api; 
+export default api;
