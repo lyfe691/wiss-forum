@@ -570,16 +570,158 @@ export const topicsAPI = {
     try {
       console.log(`Requesting topic with ID/Slug: ${idOrSlug}`);
       const response = await api.get(`/topics/${idOrSlug}`);
-      console.log('Raw topic response:', response.data);
+      console.log('Raw topic response retrieved');
       
+      // Check if the response is too large (indicating circular references)
+      const isCircularJSON = JSON.stringify(response.data).length > 10000;
+      if (isCircularJSON) {
+        console.log('Detected potential circular reference in topic data, using simplified extraction');
+        // Extract only the essential topic data
+        const { id, _id, title, content, slug, viewCount, replyCount, author, category, createdAt, updatedAt } = response.data;
+        
+        // Create a simplified topic object
+        const simplifiedTopic = {
+          id: id || _id,
+          _id: _id || id,
+          title,
+          content,
+          slug,
+          viewCount: viewCount || 0,
+          replyCount: replyCount || 0,
+          author: author ? {
+            id: author.id || author._id,
+            _id: author._id || author.id,
+            username: author.username,
+            displayName: author.displayName,
+            avatar: author.avatar
+          } : null,
+          category: category ? {
+            id: category.id || category._id,
+            _id: category._id || category.id,
+            name: category.name,
+            slug: category.slug
+          } : null,
+          createdAt,
+          updatedAt
+        };
+        
+        // Handle null or missing category
+        if (!simplifiedTopic.category) {
+          simplifiedTopic.category = {
+            _id: 'uncategorized',
+            id: 'uncategorized',
+            name: 'Uncategorized',
+            slug: 'uncategorized'
+          };
+        }
+        
+        console.log('Successfully extracted simplified topic data');
+        
+        // Increment the view count by calling the backend
+        try {
+          await api.post(`/topics/${simplifiedTopic.id}/view`);
+        } catch (viewError) {
+          console.warn('Failed to increment view count:', viewError);
+          // Continue anyway even if view count update fails
+        }
+        
+        return simplifiedTopic;
+      }
+      
+      // For non-circular JSON, continue with existing approach
       // Extract topic data, handling both direct and nested responses
       let topicData = response.data;
       
-      // If the topic is nested under a 'topic' property, extract it
-      if (response.data && response.data.topic && typeof response.data.topic === 'object') {
-        topicData = response.data.topic;
-        console.log('Extracted nested topic data:', topicData);
+      // If response is a string (JSON), parse it
+      if (typeof topicData === 'string') {
+        try {
+          console.log('Attempting to parse response string as JSON');
+          topicData = JSON.parse(topicData);
+        } catch (parseError) {
+          console.error('Failed to parse response string as JSON:', parseError);
+          // Instead of throwing, try to extract basic data
+          console.log('Attempting to extract basic topic data from malformed response');
+          
+          // Create a fallback topic from other parts of the response or the URL
+          return {
+            _id: idOrSlug,
+            id: idOrSlug,
+            title: 'Topic unavailable',
+            content: 'The topic content could not be loaded due to a data format issue.',
+            slug: idOrSlug,
+            category: {
+              _id: 'uncategorized',
+              id: 'uncategorized', 
+              name: 'Uncategorized',
+              slug: 'uncategorized'
+            },
+            author: null,
+            viewCount: 0,
+            replyCount: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+        }
       }
+      
+      // If the topic is nested under a 'topic' property, extract it
+      if (topicData && topicData.topic && typeof topicData.topic === 'object') {
+        topicData = topicData.topic;
+        console.log('Extracted nested topic data');
+      }
+      
+      // Break circular references in nested structures
+      const simplifyNestedObjects = (obj: any, seenObjects = new WeakMap<object, Record<string, any>>()) => {
+        // Don't process null or primitive values
+        if (!obj || typeof obj !== 'object') return obj;
+        
+        // If we've seen this object before, return a simplified version
+        if (seenObjects.has(obj)) {
+          return seenObjects.get(obj);
+        }
+        
+        // Create a simplified object to break circular references
+        const simplified: Record<string, any> = Array.isArray(obj) ? [] : {};
+        
+        // Store this simplified version for this object
+        seenObjects.set(obj, simplified);
+        
+        // Handle arrays
+        if (Array.isArray(obj)) {
+          for (let i = 0; i < obj.length; i++) {
+            simplified[i] = simplifyNestedObjects(obj[i], seenObjects);
+          }
+          return simplified;
+        }
+        
+        // Process object properties
+        for (const key in obj) {
+          // Skip functions
+          if (typeof obj[key] === 'function') continue;
+          
+          // Skip known problematic nested structures
+          if (key === 'lastPost' && obj['id']) {
+            // Just store a reference to the lastPost ID instead of the whole object
+            simplified[key] = { id: obj[key].id || obj[key]._id };
+            continue;
+          }
+          
+          // Skip deep nesting of topic references inside posts
+          if (key === 'topic' && obj['content']) {
+            // This is likely a post, just store the topic ID
+            simplified[key] = { id: obj[key].id || obj[key]._id };
+            continue;
+          }
+          
+          // Process other properties
+          simplified[key] = simplifyNestedObjects(obj[key], seenObjects);
+        }
+        
+        return simplified;
+      };
+      
+      // Apply circular reference removal
+      topicData = simplifyNestedObjects(topicData);
       
       // Normalize the data structure (Spring returns 'id', frontend expects '_id')
       if (topicData && topicData.id && !topicData._id) {
@@ -592,13 +734,25 @@ export const topicsAPI = {
       // Generate a slug if missing
       if (topicData && (!topicData.slug || topicData.slug === 'null')) {
         const timestamp = new Date().getTime();
-        topicData.slug = `${topicData.title.toLowerCase()
+        // Make sure title is defined before calling toLowerCase
+        const safeTitle = topicData.title || 'untitled';
+        topicData.slug = `${safeTitle.toLowerCase()
           .replace(/[^\w\s-]/g, '')
           .replace(/\s+/g, '-')
           .replace(/-+/g, '-')
           .trim()}-${timestamp}`;
         
         console.log('Generated slug for topic:', topicData.slug);
+      }
+      
+      // Handle null or missing category
+      if (!topicData.category || topicData.category === null) {
+        topicData.category = {
+          _id: 'uncategorized',
+          id: 'uncategorized',
+          name: 'Uncategorized',
+          slug: 'uncategorized'
+        };
       }
       
       // Validate the topic data
@@ -615,7 +769,7 @@ export const topicsAPI = {
         // Continue anyway even if view count update fails
       }
       
-      console.log('Normalized topic data:', topicData);
+      console.log('Successfully normalized topic data');
       return topicData;
     } catch (error) {
       console.error(`Error fetching topic ${idOrSlug}:`, error);

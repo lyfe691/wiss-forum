@@ -95,6 +95,7 @@ public class TopicController {
             try {
                 // First try to look up by ID
                 Topic topic = topicService.getTopicById(idOrSlug);
+                log.debug("Found topic by ID: {}", topic.getId());
                 return ResponseEntity.ok(topic);
             } catch (Exception idError) {
                 log.info("Topic not found by ID {}, trying as slug", idOrSlug);
@@ -102,6 +103,7 @@ public class TopicController {
                 try {
                     // If ID lookup fails, try to find by slug
                     Topic topic = topicService.getTopicBySlug(idOrSlug);
+                    log.debug("Found topic by slug: {}", topic.getSlug());
                     return ResponseEntity.ok(topic);
                 } catch (Exception slugError) {
                     // If both lookups fail, return 404

@@ -8,6 +8,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "posts")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Post {
     
     @Id
@@ -26,6 +31,7 @@ public class Post {
     private String content;
     
     @DBRef
+    @JsonIdentityReference(alwaysAsId = true)
     private Topic topic;
     
     @DBRef
@@ -36,6 +42,7 @@ public class Post {
     private LocalDateTime lastEditedAt;
     
     @DBRef
+    @JsonIdentityReference(alwaysAsId = true)
     private Post replyTo;
     
     @Builder.Default

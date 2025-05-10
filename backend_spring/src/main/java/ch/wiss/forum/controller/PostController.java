@@ -21,10 +21,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.wiss.forum.model.Post;
+import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
 
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, maxAge = 3600)
 @RestController
@@ -53,12 +56,42 @@ public class PostController {
     
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Post> createPost(@Valid @RequestBody Post post) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
-        
-        Post createdPost = postService.createPost(post, currentUser);
-        return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
+    public ResponseEntity<?> createPost(@Valid @RequestBody Map<String, Object> requestBody) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User currentUser = (User) authentication.getPrincipal();
+            
+            // Get data from request
+            String content = (String) requestBody.get("content");
+            String topicId = (String) requestBody.get("topicId");
+            String replyToId = (String) requestBody.get("replyTo");
+            
+            if (content == null || topicId == null) {
+                return ResponseEntity.badRequest().body("Content and topicId are required");
+            }
+            
+            // Create a post object
+            Post post = new Post();
+            post.setContent(content);
+            
+            // Create a Topic object with just the ID set
+            Topic topic = new Topic();
+            topic.setId(topicId);
+            post.setTopic(topic);
+            
+            // Set reply-to if provided
+            if (replyToId != null) {
+                Post replyTo = new Post();
+                replyTo.setId(replyToId);
+                post.setReplyTo(replyTo);
+            }
+            
+            Post createdPost = postService.createPost(post, currentUser);
+            return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to create post: " + e.getMessage());
+        }
     }
     
     @PutMapping("/{id}")
