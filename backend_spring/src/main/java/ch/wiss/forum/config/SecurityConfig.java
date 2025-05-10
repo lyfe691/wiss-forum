@@ -77,6 +77,9 @@ public class SecurityConfig {
                 auth
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/users/public").permitAll()
+                    // Allow bootstrap endpoints for initial admin/teacher setup
+                    .requestMatchers("/api/users/bootstrap-admin").permitAll()
+                    .requestMatchers("/api/users/bootstrap-teacher").permitAll()
                     // Only allow GET requests for categories to be public
                     .requestMatchers("GET", "/api/categories/**").permitAll()
                     .requestMatchers("POST", "/api/categories/**").authenticated()

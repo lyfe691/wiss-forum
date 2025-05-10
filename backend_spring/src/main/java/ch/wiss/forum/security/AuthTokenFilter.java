@@ -133,7 +133,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         }
         
         // Public user endpoints
-        if (uri.contains("/api/users/public")) {
+        if (uri.contains("/api/users/public") || 
+            uri.contains("/api/users/bootstrap-admin") || 
+            uri.contains("/api/users/bootstrap-teacher")) {
             return true;
         }
         

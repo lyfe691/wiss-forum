@@ -49,12 +49,22 @@ export function AdminTool() {
       const endpoint = role === 'ADMIN' ? 'bootstrap-admin' : 'bootstrap-teacher';
       
       try {
-        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/users/${endpoint}`, {
-          userId,
-          key: secretKey
-        });
+        // Use direct API connection without auth headers 
+        // since bootstrap endpoints should be publicly accessible
+        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+        const response = await axios.post(
+          `${apiBaseUrl}/users/${endpoint}`, 
+          { userId, key: secretKey },
+          { 
+            headers: { 'Content-Type': 'application/json' },
+            // Don't send credentials/auth token for bootstrap
+            withCredentials: false
+          }
+        );
         
-        if (response.data.success) {
+        console.log('Bootstrap response:', response.data);
+        
+        if (response.data && (response.data.success || response.status === 200)) {
           setSuccess(`User has been made a ${role.toLowerCase()} successfully! Please refresh the page or log out and back in to see changes.`);
           
           // If the user updated their own role, refresh their auth context
@@ -66,8 +76,10 @@ export function AdminTool() {
         }
       } catch (bootstrapError: any) {
         console.error(`Bootstrap ${role.toLowerCase()} method failed:`, bootstrapError);
-        const errorMessage = bootstrapError.response?.data?.message || `Failed to update user to ${role.toLowerCase()} role`;
-        setError(errorMessage);
+        const errorMessage = bootstrapError.response?.data?.message || 
+                           bootstrapError.response?.data || 
+                           `Failed to update user to ${role.toLowerCase()} role`;
+        setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
         return;
       }
     } catch (err: any) {
