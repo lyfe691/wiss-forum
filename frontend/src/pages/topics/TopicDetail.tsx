@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { topicsAPI, postsAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -94,8 +94,10 @@ export function TopicDetail() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [likeInProgress, setLikeInProgress] = useState<{[key: string]: boolean}>({});
+  const [lastPostCreated, setLastPostCreated] = useState<Date | null>(null);
   const { isAuthenticated, user } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Early check for missing slug parameter
   useEffect(() => {
@@ -104,84 +106,104 @@ export function TopicDetail() {
     }
   }, [slug]);
 
-  useEffect(() => {
-    const fetchTopicAndPosts = async () => {
-      if (!slug) {
-        console.log('No slug provided, not fetching topic');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Don't fetch if slug is literally "null" or "undefined"
-      if (slug === "null" || slug === "undefined") {
-        console.log('Invalid slug value:', slug);
-        setIsLoading(false);
-        return;
-      }
-      
-      setIsLoading(true);
-      try {
-        console.log('Fetching topic with slug:', slug);
-        // Fetch topic details
-        const topicData = await topicsAPI.getTopicByIdOrSlug(slug);
-        console.log('Topic data received:', topicData);
-        
-        // Check if we have a valid topic with an ID
-        if (!topicData || !topicData._id) {
-          console.error('Invalid topic data received:', topicData);
-          throw new Error('Topic not found or invalid');
-        }
-        
-        setTopic(topicData);
-        
-        try {
-          console.log('Fetching posts for topic ID:', topicData._id);
-          // Fetch posts for this topic with valid ID
-          const postsData = await postsAPI.getPostsByTopic(topicData._id);
-          console.log('Posts data received:', postsData);
-          
-          // Filter out posts that are likely duplicates of the topic itself
-          const filteredPosts = postsData.filter((post: Post) => {
-            // A post is likely a duplicate of the topic if:
-            // 1. It has the same content as the topic
-            // 2. It has the same author as the topic
-            // 3. It was created within a short time of the topic
-            const isTopicDuplicate = 
-              post.content === topicData.content && 
-              post.author?._id === topicData.author?._id &&
-              Math.abs(new Date(post.createdAt).getTime() - new Date(topicData.createdAt).getTime()) < 5000;
-            
-            if (isTopicDuplicate) {
-              console.log('Filtering out post that appears to be topic duplicate:', post._id);
-              return false;
-            }
-            return true;
-          });
-          
-          // Deduplicate posts from API by creating a Map of unique post IDs
-          const uniquePostsMap = new Map();
-          filteredPosts.forEach((post: Post) => {
-            if (!uniquePostsMap.has(post._id)) {
-              uniquePostsMap.set(post._id, post);
-            }
-          });
-          
-          // Set only unique posts to state
-          setPosts(Array.from(uniquePostsMap.values()));
-        } catch (postsError) {
-          console.error('Failed to fetch posts:', postsError);
-          // Set empty posts array instead of failing the entire component
-          setPosts([]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch topic:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const handleReplyClick = (post: Post) => {
+    setReplyToPostId(post._id);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+  
+  const cancelReply = () => {
+    setReplyToPostId(null);
+  };
 
-    fetchTopicAndPosts();
+  const fetchTopicAndPosts = useCallback(async () => {
+    if (!slug) {
+      setIsLoading(false);
+      return;
+    }
+  
+    try {
+      console.log('Fetching topic with slug:', slug);
+      const topicData = await topicsAPI.getTopicByIdOrSlug(slug);
+      console.log('Topic data received:', topicData);
+      setTopic(topicData);
+      
+      try {
+        console.log('Fetching posts for topic ID:', topicData._id);
+        // Fetch posts for this topic with valid ID
+        const postsData = await postsAPI.getPostsByTopic(topicData._id);
+        console.log('Posts data received:', postsData);
+        
+        // Filter out posts that are likely duplicates of the topic itself
+        const filteredPosts = postsData.filter((post: Post) => {
+          // A post is likely a duplicate of the topic if:
+          // 1. It has the same content as the topic
+          // 2. It has the same author as the topic
+          // 3. It was created within a short time of the topic
+          const isTopicDuplicate = 
+            post.content === topicData.content && 
+            post.author?._id === topicData.author?._id &&
+            Math.abs(new Date(post.createdAt).getTime() - new Date(topicData.createdAt).getTime()) < 5000;
+          
+          if (isTopicDuplicate) {
+            console.log('Filtering out post that appears to be topic duplicate:', post._id);
+            return false;
+          }
+          return true;
+        });
+        
+        // Deduplicate posts from API by creating a Map of unique post IDs
+        const uniquePostsMap = new Map();
+        filteredPosts.forEach((post: Post) => {
+          if (!uniquePostsMap.has(post._id)) {
+            uniquePostsMap.set(post._id, post);
+          }
+        });
+        
+        // Set only unique posts to state
+        setPosts(Array.from(uniquePostsMap.values()));
+      } catch (postsError) {
+        console.error('Failed to fetch posts:', postsError);
+        // Set empty posts array instead of failing the entire component
+        setPosts([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch topic:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [slug]);
+
+  // Initial data loading
+  useEffect(() => {
+    fetchTopicAndPosts();
+  }, [fetchTopicAndPosts]);
+  
+  // Auto-refresh posts whenever a new post is added
+  useEffect(() => {
+    if (lastPostCreated && topic) {
+      // Reload posts after a short delay
+      const timer = setTimeout(() => {
+        console.log('Auto-refreshing posts after new post created');
+        
+        // Just reload the posts, not the whole topic
+        const reloadPosts = async () => {
+          try {
+            const postsData = await postsAPI.getPostsByTopic(topic._id);
+            console.log('Refreshed posts data received:', postsData);
+            setPosts(postsData);
+          } catch (error) {
+            console.error('Failed to refresh posts:', error);
+          }
+        };
+        
+        reloadPosts();
+      }, 1000); // Small delay to ensure the backend has processed the post
+      
+      return () => clearTimeout(timer);
+    }
+  }, [lastPostCreated, topic]);
 
   const handleNewPost = async () => {
     if (!isAuthenticated || !topic || !newPostContent.trim()) {
@@ -201,7 +223,7 @@ export function TopicDetail() {
       
       // If this is a reply to a specific post, find the author information
       if (replyToPostId) {
-        const parentPost = replyPosts.find(post => post._id === replyToPostId);
+        const parentPost = posts.find(post => post._id === replyToPostId);
         if (parentPost) {
           result.replyToAuthor = parentPost.author;
         }
@@ -229,6 +251,9 @@ export function TopicDetail() {
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
+      
+      // Update status to trigger auto-refresh
+      setLastPostCreated(new Date());
     } catch (error) {
       console.error('Failed to create post:', error);
     } finally {

@@ -896,16 +896,9 @@ export const postsAPI = {
       throw new Error('Topic ID is required');
     }
     
-    // Validate that topicId is a proper ObjectId format
-    const objectIdPattern = /^[0-9a-fA-F]{24}$/;
-    if (!objectIdPattern.test(topicId)) {
-      console.error(`Invalid ObjectId format for topicId: ${topicId}`);
-      throw new Error('Invalid topic ID format');
-    }
-    
     try {
       console.log(`Requesting posts for topic ID: ${topicId}`);
-      const response = await api.get(`/posts/topic/${topicId}?page=${page}&limit=${limit}`);
+      const response = await api.get(`/posts/topic/${topicId}?page=${page-1}&limit=${limit}`);
       
       // Get current user ID to check if posts are liked by current user
       const userString = localStorage.getItem('user');
@@ -930,26 +923,35 @@ export const postsAPI = {
         return processedPost;
       };
       
-      // Handle different response structures to ensure we always return an array
-      let posts = [];
-      
+      // We're expecting an array directly from the backend now
       if (Array.isArray(response.data)) {
-        posts = response.data.map(processPost);
+        console.log(`Received ${response.data.length} posts from backend`);
+        return response.data.map(processPost);
+      } 
+      
+      // Fallback handling for unexpected formats
+      console.warn('Unexpected posts response format, trying to extract posts array:', response.data);
+      if (response.data && response.data.content && Array.isArray(response.data.content)) {
+        // Spring Data pagination format
+        return response.data.content.map(processPost);
       } else if (response.data && Array.isArray(response.data.posts)) {
-        posts = response.data.posts.map(processPost);
+        // Nested posts array
+        return response.data.posts.map(processPost);
       } else if (response.data && typeof response.data === 'object') {
-        console.warn('Unexpected posts response structure:', response.data);
         // Try to extract posts from common response patterns
-        const possiblePostsArray = response.data.posts || response.data.data || response.data.items || [];
-        posts = Array.isArray(possiblePostsArray) ? possiblePostsArray.map(processPost) : [];
-      } else {
-        // Default to empty array if we can't find posts
-        console.warn('Could not extract posts array from response:', response.data);
-        posts = [];
+        const possiblePostsArray = response.data.posts || 
+                                   response.data.content || 
+                                   response.data.data || 
+                                   response.data.items || [];
+        
+        if (Array.isArray(possiblePostsArray)) {
+          return possiblePostsArray.map(processPost);
+        }
       }
       
-      console.log('Processed posts with likes:', posts);
-      return posts;
+      // Default to empty array if we can't find posts
+      console.warn('Could not extract posts array from response:', response.data);
+      return [];
     } catch (error) {
       console.error(`Error fetching posts for topic ${topicId}:`, error);
       throw error;
@@ -958,7 +960,33 @@ export const postsAPI = {
   
   createPost: async (data: { content: string; topicId: string; replyTo?: string }) => {
     try {
-      const response = await api.post('/posts', data);
+      console.log('Creating post with data:', { 
+        topicId: data.topicId,
+        contentLength: data.content.length,
+        replyTo: data.replyTo || 'none'
+      });
+      
+      // Make sure we're authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required to create a post');
+      }
+      
+      // Create a clean request with explicit token
+      const cleanToken = token.replace(/^Bearer\s+/i, '').trim();
+      
+      // Create the post with explicit headers
+      const response = await axios.post(
+        `${api.defaults.baseURL}/posts`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${cleanToken}`
+          },
+          withCredentials: true
+        }
+      );
       
       // Log the raw response to debug
       console.log('Raw API response from createPost:', response.data);
@@ -984,7 +1012,7 @@ export const postsAPI = {
       // Ensure all required fields exist
       const processedPost = {
         ...postData,
-        _id: postData._id || `temp-${Date.now()}`,
+        _id: postData._id || postData.id || `temp-${Date.now()}`,
         content: postData.content || data.content, // Use input if response lacks content
         topic: postData.topic || data.topicId,
         createdAt: postData.createdAt || new Date().toISOString(),
@@ -993,6 +1021,7 @@ export const postsAPI = {
         isLiked: Array.isArray(postData.likes) ? postData.likes.includes(postData.authorId) : false
       };
       
+      console.log('Successfully created post:', processedPost._id);
       return processedPost;
     } catch (error) {
       console.error('Error in createPost:', error);

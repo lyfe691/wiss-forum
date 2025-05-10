@@ -64,9 +64,42 @@ public class TopicController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Topic> topics = topicService.getTopicsByCategory(categoryId, pageable);
-        return ResponseEntity.ok(topics);
+        try {
+            log.info("Fetching topics for category ID: {}", categoryId);
+            
+            // Create pageable with descending sort by createdAt
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+            
+            // First try to get by ID
+            try {
+                Category category = categoryService.getCategoryById(categoryId);
+                log.info("Found category by ID: {}", category.getName());
+                
+                Page<Topic> topics = topicService.getTopicsByCategory(categoryId, pageable);
+                log.info("Found {} topics for category {}", topics.getTotalElements(), category.getName());
+                
+                return ResponseEntity.ok(topics);
+            } catch (Exception idError) {
+                log.info("Could not find category by ID, trying by slug: {}", categoryId);
+                
+                // If not found by ID, try by slug
+                try {
+                    Category category = categoryService.getCategoryBySlug(categoryId);
+                    log.info("Found category by slug: {}", category.getName());
+                    
+                    Page<Topic> topics = topicService.getTopicsByCategory(category.getId(), pageable);
+                    log.info("Found {} topics for category {}", topics.getTotalElements(), category.getName());
+                    
+                    return ResponseEntity.ok(topics);
+                } catch (Exception slugError) {
+                    log.error("Category not found by ID or slug: {}", categoryId);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching topics for category {}: {}", categoryId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @GetMapping("/recent")
@@ -146,10 +179,17 @@ public class TopicController {
         }
     }
     
-    @GetMapping("/{id}/view")
+    @PostMapping("/{id}/view")
     public ResponseEntity<Topic> incrementViewCount(@PathVariable String id) {
-        Topic topic = topicService.incrementViewCount(id);
-        return ResponseEntity.ok(topic);
+        try {
+            log.info("Incrementing view count for topic ID: {}", id);
+            Topic topic = topicService.incrementViewCount(id);
+            log.info("View count incremented to: {}", topic.getViewCount());
+            return ResponseEntity.ok(topic);
+        } catch (Exception e) {
+            log.error("Error incrementing view count: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @PostMapping

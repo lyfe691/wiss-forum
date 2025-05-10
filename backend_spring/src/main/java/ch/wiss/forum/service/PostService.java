@@ -43,7 +43,8 @@ public class PostService {
     
     @Transactional
     public Post createPost(Post post, User currentUser) {
-        Topic topic = topicService.getTopicById(post.getTopic().getId());
+        String topicId = post.getTopic().getId();
+        Topic topic = topicService.getTopicById(topicId);
         
         // Set metadata
         post.setAuthor(currentUser);
@@ -52,14 +53,20 @@ public class PostService {
         post.setUpdatedAt(LocalDateTime.now());
         post.setEdited(false);
         
+        // Log details for debugging
+        System.out.println("Creating post for topic: " + topic.getTitle() + " (ID: " + topic.getId() + ")");
+        System.out.println("Post author: " + currentUser.getUsername() + " (ID: " + currentUser.getId() + ")");
+        
         // Save the post
         Post savedPost = postRepository.save(post);
+        System.out.println("Post saved with ID: " + savedPost.getId());
         
         // Update the topic's reply count and last post info
         topic.setReplyCount(topic.getReplyCount() + 1);
         topic.setLastPost(savedPost);
         topic.setLastPostAt(LocalDateTime.now());
         topicRepository.save(topic);
+        System.out.println("Topic updated with new reply count: " + topic.getReplyCount());
         
         return savedPost;
     }

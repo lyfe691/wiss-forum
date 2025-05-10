@@ -30,6 +30,7 @@ import ch.wiss.forum.service.TopicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, maxAge = 3600)
@@ -44,7 +45,7 @@ public class PostController {
     private final TopicService topicService;
     
     @GetMapping("/topic/{topicId}")
-    public ResponseEntity<Page<Post>> getPostsByTopic(
+    public ResponseEntity<?> getPostsByTopic(
             @PathVariable String topicId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -61,20 +62,25 @@ public class PostController {
             logger.debug("Found topic: {} with title: {}", topic.getId(), topic.getTitle());
             
             // Fetch posts for the topic
-            Page<Post> posts = postService.getPostsByTopic(topic, pageable);
-            logger.info("Found {} posts for topic {}", posts.getContent().size(), topicId);
+            Page<Post> postsPage = postService.getPostsByTopic(topic, pageable);
+            logger.info("Found {} posts for topic {}", postsPage.getContent().size(), topicId);
+            
+            // Extract just the posts array for consistent frontend handling
+            List<Post> posts = postsPage.getContent();
             
             // Log results for debugging
             if (posts.isEmpty()) {
                 logger.warn("No posts found for topic {}", topicId);
             } else {
-                logger.debug("First post ID: {}", posts.getContent().get(0).getId());
+                logger.debug("First post ID: {}", posts.get(0).getId());
             }
             
+            // Return just the array of posts
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
             logger.error("Error fetching posts for topic {}: {}", topicId, e.getMessage());
-            throw new RuntimeException("Failed to fetch posts for topic: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to fetch posts: " + e.getMessage());
         }
     }
     
@@ -100,25 +106,45 @@ public class PostController {
                 return ResponseEntity.badRequest().body("Content and topicId are required");
             }
             
+            // Log the request data
+            logger.info("Creating post with topicId: {}, content length: {}, replyTo: {}", 
+                      topicId, content.length(), replyToId != null ? replyToId : "none");
+            
+            // First get the actual Topic
+            Topic topic;
+            try {
+                topic = topicService.getTopicById(topicId);
+                logger.info("Found topic for post: {}", topic.getTitle());
+            } catch (Exception e) {
+                logger.error("Failed to find topic with ID {}: {}", topicId, e.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Topic not found: " + e.getMessage());
+            }
+            
             // Create a post object
             Post post = new Post();
             post.setContent(content);
-            
-            // Create a Topic object with just the ID set
-            Topic topic = new Topic();
-            topic.setId(topicId);
             post.setTopic(topic);
             
             // Set reply-to if provided
             if (replyToId != null) {
-                Post replyTo = new Post();
-                replyTo.setId(replyToId);
-                post.setReplyTo(replyTo);
+                try {
+                    Post replyTo = postService.getPostById(replyToId);
+                    post.setReplyTo(replyTo);
+                    logger.info("Set reply to post ID: {}", replyTo.getId());
+                } catch (Exception e) {
+                    logger.warn("Reply-to post with ID {} not found, ignoring", replyToId);
+                }
             }
             
+            // Create the post
+            logger.info("Saving post for user: {}", currentUser.getUsername());
             Post createdPost = postService.createPost(post, currentUser);
+            logger.info("Post created with ID: {}", createdPost.getId());
+            
             return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
         } catch (Exception e) {
+            logger.error("Error creating post: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Failed to create post: " + e.getMessage());
         }
