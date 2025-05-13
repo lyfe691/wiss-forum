@@ -226,7 +226,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
   };
 
   const sidebarContent = (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-muted/30">
       <ScrollArea className="flex-1 py-4">
         <div className="px-3 space-y-1">
           {isMobileSidebar ? (

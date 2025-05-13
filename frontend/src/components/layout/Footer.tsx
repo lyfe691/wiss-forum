@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Github, Twitter } from 'lucide-react';
+import { Github} from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export function Footer() {

@@ -24,7 +24,6 @@ import {
   Shield
 } from 'lucide-react';
 import { SideNav } from './SideNav';
-import { Badge } from '@/components/ui/badge';
 import { getRoleBadgeColor, formatRoleName } from '@/lib/utils';
 
 export function Navbar() {
@@ -60,7 +59,7 @@ export function Navbar() {
 
   return (
     <header className={cn(
-      "bg-background/95 backdrop-blur-sm border-b border-border transition-all duration-200",
+      "bg-muted/30 backdrop-blur-sm border-b border-border transition-all duration-200",
       scrolled ? "shadow-sm" : ""
     )}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,7 +67,7 @@ export function Navbar() {
           {/* Left side: Logo (Desktop) + Mobile Menu Toggle */}
           <div className="flex items-center">
             {/* Logo - Fixed position on Desktop */}
-            <div className="hidden lg:flex items-center justify-center w-64 border-r fixed top-0 left-0 h-16 bg-background z-50">
+            <div className="hidden lg:flex items-center justify-center w-64 border-r fixed top-0 left-0 h-16 bg-muted/30 backdrop-blur-sm z-50">
               <Link to="/">
                 <img src="/logo.png" alt="WISS Forum Logo" className=" h-25 w-auto" />
               </Link>
@@ -85,7 +84,7 @@ export function Navbar() {
               
               <SheetContent side="left" className="p-0 w-[280px]" hideCloseButton>
                 <div className="flex flex-col h-full">
-                  <div className="p-4 border-b flex items-center justify-between">
+                  <div className="p-4 border-b flex items-center justify-between bg-muted/30 backdrop-blur-sm">
                     <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
                       <img src="/logo.png" alt="WISS Forum Logo" className="h-25 w-auto" />
                     </Link>
@@ -98,7 +97,7 @@ export function Navbar() {
                   </div>
 
                   {/* Use mobile version of SideNav */}
-                  <div className="flex-1 overflow-y-auto">
+                  <div className="flex-1 overflow-y-auto bg-muted/30">
                     {isAuthenticated && (
                       <div className="px-4 py-3 border-b border-border">
                         <div className="flex items-center gap-3">
@@ -125,7 +124,7 @@ export function Navbar() {
                   </div>
                   
                   {isAuthenticated && (
-                    <div className="mt-auto p-4 border-t">
+                    <div className="mt-auto p-4 border-t bg-muted/30 backdrop-blur-sm">
                       <Button 
                         variant="ghost" 
                         className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
