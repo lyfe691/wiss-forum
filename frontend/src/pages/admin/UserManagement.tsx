@@ -30,6 +30,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   Users, 
   MoreHorizontal, 
@@ -38,13 +48,16 @@ import {
   User, 
   SearchIcon,
   ArrowLeft,
-  ShieldCheck
+  ShieldCheck,
+  Trash
 } from 'lucide-react';
 import axios from 'axios';
 import { getRoleBadgeColor, formatRoleName, getAvatarUrl, getInitials } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface UserData {
   _id: string;
+  id?: string;
   username: string;
   displayName?: string;
   email: string;
@@ -59,6 +72,8 @@ export function UserManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
 
@@ -68,11 +83,19 @@ export function UserManagement() {
 
   // Add a function to normalize user objects when fetched
   const normalizeUsers = (users: UserData[]) => {
-    return users.map(user => ({
-      ...user,
-      // Ensure role is consistently lowercase for the frontend
-      role: user.role?.toLowerCase() as 'student' | 'teacher' | 'admin'
-    }));
+    return users.map(user => {
+      // Check for empty or undefined IDs
+      const userId = user._id || user.id || '';
+      
+      return {
+        ...user,
+        // Ensure both _id and id fields exist and have the same value
+        _id: userId,
+        id: userId,
+        // Ensure role is consistently lowercase for the frontend
+        role: user.role?.toLowerCase() as 'student' | 'teacher' | 'admin'
+      };
+    });
   };
 
   const fetchUsers = async () => {
@@ -107,17 +130,26 @@ export function UserManagement() {
     try {
       setError(null);
       
+      // Make sure we have a valid userId
+      if (!userId || userId === 'undefined') {
+        toast.error("Invalid user ID");
+        return;
+      }
+      
+      console.log(`Updating role for user ID: ${userId} to ${newRole}`);
+      
       // Try using the bootstrap endpoint first based on the role
       if (newRole === 'admin' || newRole === 'teacher') {
         const endpoint = newRole === 'admin' ? 'bootstrap-admin' : 'bootstrap-teacher';
         
         try {
-          const response = await axios.post(`http://localhost:8080/api/users/${endpoint}`, {
+          const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/users/${endpoint}`, {
             userId,
-            secretKey: 'WISS_ADMIN_SETUP_2024'
+            key: 'WISS_ADMIN_SETUP_2024'  // Match the backend key exactly
           });
           
-          if (response.data.success) {
+          if (response.data) {
+            toast.success(`User role updated to ${formatRoleName(newRole)}`);
             await fetchUsers();
             
             // If the current user's role was changed, refresh the auth context
@@ -135,21 +167,59 @@ export function UserManagement() {
       // Fallback to the standard method
       console.log(`Using standard method to update role for user ${userId} to ${newRole}`);
       try {
-        const result = await userAPI.updateUserRole(userId, newRole);
-        console.log('Standard role update result:', result);
+        // Convert role to uppercase to match Java enum format
+        const roleForBackend = newRole.toUpperCase();
+        console.log(`Sending role in format: ${roleForBackend}`);
+        const result = await userAPI.updateUserRole(userId, roleForBackend);
+        toast.success(`User role updated to ${formatRoleName(newRole)}`);
         await fetchUsers();
         
         // If the current user's role was changed, refresh the auth context
         if (user && user._id === userId) {
           await refreshUser();
         }
-      } catch (error) {
-        console.error('Standard role update failed:', error);
+      } catch (error: any) {
+        if (error.response?.status === 403) {
+          toast.error("You cannot change the role of another admin");
+        } else {
+          console.error('Standard role update failed:', error);
+          toast.error("Failed to update user role");
+        }
         throw error; // Re-throw to be caught by the outer catch
       }
     } catch (err) {
       console.error('Failed to update user role:', err);
       setError('Failed to update user role. Please try again.');
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    // Ensure we have a valid ID for the user to delete
+    const userId = userToDelete._id || userToDelete.id;
+    
+    if (!userId) {
+      toast.error("Invalid user ID");
+      setDeleteDialogOpen(false);
+      return;
+    }
+    
+    try {
+      await userAPI.deleteUser(userId);
+      toast.success(`User ${userToDelete.username} has been deleted`);
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      
+      // Refresh the user list
+      await fetchUsers();
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        toast.error("You cannot delete another admin account");
+      } else {
+        console.error('Failed to delete user:', error);
+        toast.error("Failed to delete user");
+      }
     }
   };
 
@@ -313,14 +383,14 @@ export function UserManagement() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               onClick={() => updateUserRole(userData._id, 'student')}
-                              disabled={userData.role === 'student'}
+                              disabled={userData.role === 'student' || (userData.role === 'admin' && user?._id !== userData._id)}
                             >
                               <UserCog className="mr-2 h-4 w-4" />
                               Set as Student
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => updateUserRole(userData._id, 'teacher')}
-                              disabled={userData.role === 'teacher'}
+                              disabled={userData.role === 'teacher' || (userData.role === 'admin' && user?._id !== userData._id)}
                             >
                               <Shield className="mr-2 h-4 w-4" />
                               Set as Teacher
@@ -331,6 +401,18 @@ export function UserManagement() {
                             >
                               <ShieldCheck className="mr-2 h-4 w-4" />
                               Set as Admin
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setUserToDelete(userData);
+                                setDeleteDialogOpen(true);
+                              }}
+                              disabled={userData._id === user?._id || (userData.role === 'admin' && user?._id !== userData._id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete User
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -343,6 +425,29 @@ export function UserManagement() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Delete User Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user
+              account and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setUserToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteUser}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
     </div>
   );
 } 

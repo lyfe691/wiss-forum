@@ -45,8 +45,8 @@ public class UserController {
     private final PostService postService;
     
     // Secret key for bootstrap process - In a real app, use environment variables
-    private static final String BOOTSTRAP_ADMIN_KEY = "key";
-    private static final String BOOTSTRAP_TEACHER_KEY = "key";
+    private static final String BOOTSTRAP_ADMIN_KEY = "WISS_ADMIN_SETUP_2024";
+    private static final String BOOTSTRAP_TEACHER_KEY = "WISS_ADMIN_SETUP_2024";
     
     @PostMapping("/bootstrap-admin")
     public ResponseEntity<?> bootstrapAdmin(@RequestBody RoleBootstrapRequest request) {
@@ -214,13 +214,27 @@ public class UserController {
     
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<User> updateUserRole(@PathVariable String id, @RequestBody String roleStr) {
+    public ResponseEntity<?> updateUserRole(@PathVariable String id, @RequestBody String roleStr) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         
-        Role role = Role.valueOf(roleStr.toUpperCase());
-        User updatedUser = userService.updateUserRole(id, role, currentUser);
-        return ResponseEntity.ok(updatedUser);
+        try {
+            // Get the target user
+            User targetUser = userService.getUserById(id);
+            
+            // Check if the target user is already an admin - prevent changing other admins
+            if (Role.ADMIN.equals(targetUser.getRole()) && !targetUser.getId().equals(currentUser.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new MessageResponse("You cannot change the role of another admin"));
+            }
+            
+            Role role = Role.valueOf(roleStr.toUpperCase());
+            User updatedUser = userService.updateUserRole(id, role, currentUser);
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Error updating user role: " + e.getMessage()));
+        }
     }
     
     @DeleteMapping("/{id}")

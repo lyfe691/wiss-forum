@@ -141,13 +141,21 @@ public class UserService {
     }
     
     public void deleteUser(String id, User currentUser) {
-        // Only admin or the user themselves can delete their account
+        // Check permissions
         if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {
             throw new RuntimeException("Not authorized to delete this user");
         }
         
-        User user = getUserById(id);
-        userRepository.delete(user);
+        User userToDelete = getUserById(id);
+        
+        // Prevent admins from deleting other admins
+        if (!id.equals(currentUser.getId()) && 
+            Role.ADMIN.equals(userToDelete.getRole()) && 
+            Role.ADMIN.equals(currentUser.getRole())) {
+            throw new RuntimeException("Admins cannot delete other admin accounts");
+        }
+        
+        userRepository.delete(userToDelete);
     }
     
     public void updateLastActive(User user) {

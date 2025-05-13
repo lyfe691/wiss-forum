@@ -226,7 +226,12 @@ export const userAPI = {
   },
   
   updateUserRole: async (userId: string, role: string) => {
-    const response = await api.put(`/users/${userId}/role`, role);
+    // Since we're sending plain text, we need to set the Content-Type explicitly
+    const response = await api.put(`/users/${userId}/role`, role, {
+      headers: {
+        'Content-Type': 'text/plain'
+      }
+    });
     return response.data;
   },
   
@@ -242,6 +247,11 @@ export const userAPI = {
   
   changePassword: async (data: { currentPassword: string; newPassword: string }) => {
     const response = await api.put('/users/profile/password', data);
+    return response.data;
+  },
+  
+  deleteUser: async (userId: string) => {
+    const response = await api.delete(`/users/${userId}`);
     return response.data;
   },
 };

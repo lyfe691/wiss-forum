@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 export function AdminTool() {
   const [userId, setUserId] = useState('');
   const [role, setRole] = useState<'ADMIN' | 'TEACHER'>('ADMIN');
-  const [secretKey, setSecretKey] = useState('key');
+  const [secretKey, setSecretKey] = useState('WISS_ADMIN_SETUP_2024');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
