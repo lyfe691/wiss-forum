@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import ch.wiss.forum.model.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -39,9 +40,19 @@ public class JwtUtils {
     
     public String generateJwtToken(Authentication authentication) {
         User userPrincipal = (User) authentication.getPrincipal();
-        return generateJwtToken(userPrincipal.getUsername());
+        return generateJwtToken(userPrincipal);
     }
-        
+    
+    public String generateJwtToken(User user) {
+        return Jwts.builder()
+                .setSubject(user.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(new Date().getTime() + jwtExpirationMs))
+                .claim("userId", user.getId())
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+    }
+    
     public String generateJwtToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
@@ -58,6 +69,21 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+    
+    public String getUserIdFromJwtToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            
+            return claims.get("userId", String.class);
+        } catch (Exception e) {
+            log.error("Error extracting userId from token: {}", e.getMessage());
+            return null;
+        }
     }
     
     public boolean validateJwtToken(String authToken) {

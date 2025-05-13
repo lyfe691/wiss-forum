@@ -1169,8 +1169,8 @@ export function TopicDetail() {
       {/* Posts section */}
       <div className="space-y-6 mb-8">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-semibold">Replies</h2>
-          
+        <h2 className="text-xl font-semibold">Replies</h2>
+        
           {/* Add expand/collapse all button */}
           {posts.length > 0 && posts.some(post => post.children && post.children.length > 0) && (
             <Button
@@ -1199,23 +1199,23 @@ export function TopicDetail() {
                 <>
                   <ChevronDown className="h-4 w-4" />
                   <span>Collapse All</span>
-                </>
-              ) : (
-                <>
+                        </>
+                      ) : (
+                        <>
                   <ChevronRight className="h-4 w-4" />
                   <span>Expand All</span>
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-        
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+            
         {/* No replies message */}
         {posts.length === 0 && (
           <div className="text-center p-8 border rounded-md bg-muted/20">
             <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
             <p className="text-muted-foreground">No replies yet. Be the first to respond!</p>
-          </div>
+                    </div>
         )}
         
         {/* Posts list - use the renderPosts function */}

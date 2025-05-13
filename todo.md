@@ -1,7 +1,1 @@
-- dont logout after changing username.
-- add regex (consistently, backend)
-- fix likes
-- add leaderboard, like based i guess
-- make homepage cleaner
-- consistent dicebear usage in the app
--
+* add name blocking for bad words

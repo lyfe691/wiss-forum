@@ -48,9 +48,10 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(usernameOrEmail, loginRequest.getPassword()));
         
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
-        
         User userDetails = (User) authentication.getPrincipal();
+        
+        // Generate token with user object to include userId
+        String jwt = jwtUtils.generateJwtToken(userDetails);
         
         // Update last active time
         userDetails.setLastActive(LocalDateTime.now());
@@ -60,8 +61,8 @@ public class AuthService {
     }
     
     public JwtResponse refreshToken(User user) {
-        // Generate a new JWT token for the user
-        String jwt = jwtUtils.generateJwtToken(user.getUsername());
+        // Generate a new JWT token for the user with user object
+        String jwt = jwtUtils.generateJwtToken(user);
         
         // Update last active time
         user.setLastActive(LocalDateTime.now());
@@ -135,19 +136,14 @@ public class AuthService {
     }
     
     private JwtResponse createJwtResponse(String token, User user) {
-        // Ensure displayName is never null - use username as fallback
-        String displayName = user.getDisplayName();
-        if (displayName == null || displayName.isEmpty()) {
-            displayName = user.getUsername();
-        }
-        
         return new JwtResponse(
                 token,
+                "Bearer",
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole(),
-                displayName,
+                user.getDisplayName(),
                 user.getAvatar()
         );
     }
