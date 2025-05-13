@@ -114,67 +114,79 @@ export function Users() {
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, index) => (
-            <Card key={index} className="overflow-hidden">
+            <Card key={index} className="overflow-hidden h-full border border-border/60">
               <CardHeader className="pb-2 flex flex-row items-center gap-3">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-14 w-14 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-5 w-28" />
+                  <Skeleton className="h-4 w-20" />
                 </div>
               </CardHeader>
-              <CardContent className="pt-2">
-                <Skeleton className="h-3 w-full mb-2" />
-                <Skeleton className="h-3 w-2/3" />
+              <CardContent className="pt-3">
+                <Skeleton className="h-4 w-full mb-3" />
+                <Skeleton className="h-4 w-3/4 mb-3" />
+                <div className="flex justify-between items-center mt-4 pt-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-8 w-24 rounded-md" />
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : users.length === 0 ? (
-        <Card className="p-6 text-center">
-          <CardTitle className="mb-2">No users found</CardTitle>
-          <p className="text-muted-foreground">No community members are available to display</p>
+        <Card className="p-8 text-center bg-muted/30">
+          <CardTitle className="mb-3">No users found</CardTitle>
+          <p className="text-muted-foreground mb-4">No community members are available to display</p>
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {getCurrentPageUsers().map((user) => (
-              <Card key={user._id || user.username} className="overflow-hidden hover:shadow-md transition-shadow">
+              <Card 
+                key={user._id || user.username} 
+                className="overflow-hidden h-full border border-border/60 transition-all duration-200 hover:shadow-md hover:border-border group"
+              >
                 <Link to={`/users/${user.username}`} className="block h-full">
                   <CardHeader className="pb-2">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-12 w-12 border">
+                    <div className="flex items-start gap-4">
+                      <Avatar className="h-14 w-14 border ring-2 ring-background group-hover:ring-primary/10 transition-all duration-200">
                         <AvatarImage 
                           src={getAvatarUrl(user.username, user.avatar)} 
                           alt={user.displayName || user.username} 
                         />
-                        <AvatarFallback className="bg-primary/10 text-primary">
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
                           {getInitials(user.displayName || user.username)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-base font-medium hover:text-primary transition-colors">{user.displayName || user.username}</CardTitle>
+                        <CardTitle className="text-base font-medium group-hover:text-primary transition-colors">
+                          {user.displayName || user.username}
+                        </CardTitle>
                         <p className="text-sm text-muted-foreground">@{user.username}</p>
-                        <Badge className={`mt-1.5 font-normal px-1.5 py-0.5 text-xs ${getRoleBadgeColor(user.role)}`}>
+                        <Badge className={`mt-2 font-normal px-2 py-0.5 text-xs ${getRoleBadgeColor(user.role)}`}>
                           {formatRoleName(user.role)}
                         </Badge>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-2">
+                  <CardContent className="pt-3">
                     {user.bio ? (
                       <p className="text-sm text-muted-foreground line-clamp-2">{user.bio}</p>
                     ) : (
                       <p className="text-sm text-muted-foreground italic">No bio provided</p>
                     )}
-                    <div className="flex justify-between items-center mt-2">
+                    <div className="flex justify-between items-center mt-4 pt-2 border-t border-border/40">
                       <p className="text-xs text-muted-foreground">
                         Member since {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
                       </p>
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs hover:bg-primary/5 hover:text-primary">
-                        View Profile
-                        <ArrowRight className="ml-1 h-3 w-3" />
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7 rounded-full text-muted-foreground hover:text-primary"
+                      >
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </CardContent>
@@ -184,7 +196,7 @@ export function Users() {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-8 flex justify-center">
+            <div className="mt-10 flex justify-center">
               <PaginationControls
                 currentPage={currentPage}
                 totalPages={totalPages}

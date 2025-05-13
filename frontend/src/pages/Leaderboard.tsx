@@ -149,73 +149,78 @@ export function Leaderboard() {
               </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">Rank</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead className="text-right">Likes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user, index) => (
-                  <TableRow key={user.userId}>
-                    <TableCell className="font-medium text-center">
-                      <div className="flex justify-center">{getMedalIcon(index + 1)}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border border-primary/10">
-                          <AvatarImage
-                            src={getAvatarUrl(user.username, user.avatar)}
-                            alt={user.displayName || user.username}
-                          />
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {getInitials(user.displayName || user.username)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <Link
-                            to={`/users/${user.username}`}
-                            className="font-medium hover:text-primary transition-colors"
-                          >
-                            {user.displayName || user.username}
-                          </Link>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge
-                              className={`px-1.5 py-0.5 text-xs font-normal ${getRoleBadgeColor(
-                                user.role
-                              )}`}
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">Rank</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead className="text-right">Likes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user, index) => (
+                    <TableRow key={user.userId}>
+                      <TableCell className="font-medium text-center">
+                        <div className="flex justify-center">{getMedalIcon(index + 1)}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border border-primary/10">
+                            <AvatarImage
+                              src={getAvatarUrl(user.username, user.avatar)}
+                              alt={user.displayName || user.username}
+                            />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {getInitials(user.displayName || user.username)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <Link
+                              to={`/users/${user.username}`}
+                              className="font-medium hover:text-primary transition-colors"
                             >
-                              {formatRoleName(user.role)}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              @{user.username}
-                            </span>
+                              {user.displayName || user.username}
+                            </Link>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge
+                                className={`px-1.5 py-0.5 text-xs font-normal ${getRoleBadgeColor(
+                                  user.role
+                                )}`}
+                              >
+                                {formatRoleName(user.role)}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                @{user.username}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Heart
-                          className={`h-4 w-4 ${
-                            index < 3 ? 'text-red-500 fill-red-500' : 'text-muted-foreground'
-                          }`}
-                        />
-                        <span
-                          className={`font-medium ${
-                            index < 3 ? 'text-foreground' : 'text-muted-foreground'
-                          }`}
-                        >
-                          {user.totalLikes}
-                        </span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Heart
+                            className={`h-4 w-4 ${
+                              index < 3 ? 'text-red-500 fill-red-500' : 'text-muted-foreground'
+                            }`}
+                          />
+                          <span
+                            className={`font-medium ${
+                              index < 3 ? 'text-foreground' : 'text-muted-foreground'
+                            }`}
+                          >
+                            {user.totalLikes}
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="text-xs text-muted-foreground mt-4">
+                You'll appear here once you reply to a post or reply.
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
