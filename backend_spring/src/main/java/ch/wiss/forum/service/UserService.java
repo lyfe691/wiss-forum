@@ -2,7 +2,10 @@ package ch.wiss.forum.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,6 +13,8 @@ import org.springframework.stereotype.Service;
 import ch.wiss.forum.model.Role;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.repository.UserRepository;
+import ch.wiss.forum.model.Post;
+import ch.wiss.forum.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -18,6 +23,7 @@ public class UserService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PostRepository postRepository;
     
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -164,5 +170,54 @@ public class UserService {
         user.setUpdatedAt(LocalDateTime.now());
         
         return userRepository.save(user);
+    }
+    
+    public List<Map<String, Object>> getUserLeaderboard() {
+        // Get all posts
+        List<Post> allPosts = postRepository.findAll();
+        
+        // Create a map to count likes per user
+        Map<String, Integer> userLikesMap = new HashMap<>();
+        Map<String, User> userMap = new HashMap<>();
+        
+        // Count likes for each user
+        for (Post post : allPosts) {
+            User author = post.getAuthor();
+            if (author != null) {
+                String userId = author.getId();
+                int likes = post.getLikes() != null ? post.getLikes().size() : 0;
+                
+                userLikesMap.put(userId, userLikesMap.getOrDefault(userId, 0) + likes);
+                userMap.put(userId, author);
+            }
+        }
+        
+        // Convert to list for sorting
+        List<Map<String, Object>> leaderboard = new ArrayList<>();
+        
+        for (Map.Entry<String, Integer> entry : userLikesMap.entrySet()) {
+            String userId = entry.getKey();
+            Integer totalLikes = entry.getValue();
+            User user = userMap.get(userId);
+            
+            Map<String, Object> userStats = new HashMap<>();
+            userStats.put("userId", userId);
+            userStats.put("username", user.getUsername());
+            userStats.put("displayName", user.getDisplayName());
+            userStats.put("role", user.getRole());
+            userStats.put("avatar", user.getAvatar());
+            userStats.put("totalLikes", totalLikes);
+            
+            leaderboard.add(userStats);
+        }
+        
+        // Sort by total likes (descending)
+        leaderboard.sort((a, b) -> {
+            Integer likesA = (Integer) a.get("totalLikes");
+            Integer likesB = (Integer) b.get("totalLikes");
+            return likesB.compareTo(likesA);
+        });
+        
+        return leaderboard;
     }
 } 

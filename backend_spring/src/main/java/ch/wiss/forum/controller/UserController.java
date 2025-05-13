@@ -1,6 +1,7 @@
 package ch.wiss.forum.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -230,5 +231,16 @@ public class UserController {
         
         userService.deleteUser(id, currentUser);
         return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/leaderboard")
+    public ResponseEntity<?> getUserLeaderboard() {
+        try {
+            List<Map<String, Object>> leaderboard = userService.getUserLeaderboard();
+            return ResponseEntity.ok(leaderboard);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to fetch leaderboard: " + e.getMessage());
+        }
     }
 } 

@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Bookmark,
   LayoutDashboard,
+  Medal
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -134,6 +135,11 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
       icon: <Users className="h-5 w-5" />,
       label: "Community",
       href: "/users"
+    },
+    {
+      icon: <Medal className="h-5 w-5" />,
+      label: "Leaderboard",
+      href: "/leaderboard"
     }
   ];
   

@@ -431,14 +431,21 @@ export const postsAPI = {
   },
   
   toggleLike: async (id: string) => {
-    const response = await api.post(`/posts/${id}/like`);
-    
-    // Extract the updated post data from the response
-    const updatedPost = response.data.post || response.data;
-    
     // Get current user ID from localStorage
     const userString = localStorage.getItem('user');
     const currentUserId = userString ? JSON.parse(userString)._id : null;
+    
+    // Get current post to check if it's already liked
+    const checkResponse = await api.get(`/posts/${id}`);
+    const currentPost = checkResponse.data;
+    const isCurrentlyLiked = Array.isArray(currentPost.likes) && 
+      currentUserId ? currentPost.likes.includes(currentUserId) : false;
+    
+    // Call the appropriate endpoint based on current like status
+    const response = await api.post(`/posts/${id}/${isCurrentlyLiked ? 'unlike' : 'like'}`);
+    
+    // Extract the updated post data from the response
+    const updatedPost = response.data.post || response.data;
     
     return {
       success: true,
@@ -501,6 +508,18 @@ export const statsAPI = {
       };
     }
   }
+};
+
+export const usersAPI = {
+  getUserLeaderboard: async () => {
+    try {
+      const response = await api.get('/users/leaderboard');
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      return [];
+    }
+  },
 };
 
 export default api;
