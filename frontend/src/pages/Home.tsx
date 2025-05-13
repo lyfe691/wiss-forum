@@ -136,11 +136,15 @@ export function Home() {
               </Badge>
               
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold !leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-500">
-                Welcome to WISS Forum
+                  WISS Forum
               </h1>
               
               <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                Join our knowledge-sharing platform where students and teachers connect, collaborate, and grow together in an interactive learning environment.
+                {isAuthenticated ? (
+                  <>Welcome back! Explore the latest discussions and engage with your fellow community members.</>
+                ) : (
+                  <>Join our knowledge-sharing platform where students and teachers connect, collaborate, and grow together in an interactive learning environment.</>
+                )}
               </p>
               
               <div className="flex flex-wrap gap-3 md:gap-4 pt-2 justify-center lg:justify-start">
