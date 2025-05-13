@@ -14,10 +14,8 @@ import {
   Users, 
   BookOpen, 
   ArrowRight, 
-  Sparkles, 
   ChevronRight, 
-  School, 
-  GraduationCap, 
+  School,
   Clock 
 } from 'lucide-react';
 import { getAvatarUrl } from '@/lib/utils';
@@ -121,11 +119,6 @@ export function Home() {
           </div>
         </div>
         
-        <div className="absolute left-10 bottom-20 animate-float hidden md:block z-10">
-          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-violet-500/10 backdrop-blur-sm border border-violet-500/20 flex items-center justify-center text-violet-500">
-            <GraduationCap className="w-6 h-6 lg:w-8 lg:h-8" />
-          </div>
-        </div>
         
         <div className="container max-w-6xl mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
