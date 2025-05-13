@@ -74,42 +74,44 @@ export function Home() {
 
   return (
     <div className="space-y-12 mx-auto px-0 sm:px-2 py-4">
-      {/* Hero Section - Redesigned */}
-      <section className="relative -mt-4 pt-16 pb-12 overflow-hidden">
+      {/* Hero Section - Redesigned with better responsiveness */}
+      <section className="relative pt-8 pb-12 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent pointer-events-none" />
         
-        <div className="absolute top-0 right-0 -mt-40 -mr-40 w-96 h-96 rounded-full bg-primary/20 blur-3xl opacity-70" />
-        <div className="absolute bottom-0 left-0 -mb-40 -ml-40 w-96 h-96 rounded-full bg-violet-500/20 blur-3xl opacity-70" />
+        {/* Make blob positions responsive */}
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 lg:-mt-40 lg:-mr-40 w-64 h-64 lg:w-96 lg:h-96 rounded-full bg-primary/20 blur-3xl opacity-70" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 lg:-mb-40 lg:-ml-40 w-64 h-64 lg:w-96 lg:h-96 rounded-full bg-violet-500/20 blur-3xl opacity-70" />
         
-        <div className="absolute right-10 top-20 animate-float-slow">
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 rotate-12 flex items-center justify-center text-primary">
-            <BookOpen className="w-10 h-10" />
+        {/* Hide decorative elements on small screens */}
+        <div className="absolute right-10 top-20 animate-float-slow hidden md:block">
+          <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 rotate-12 flex items-center justify-center text-primary">
+            <BookOpen className="w-8 h-8 lg:w-10 lg:h-10" />
           </div>
         </div>
         
-        <div className="absolute left-10 bottom-20 animate-float">
-          <div className="w-16 h-16 rounded-full bg-violet-500/10 backdrop-blur-sm border border-violet-500/20 flex items-center justify-center text-violet-500">
-            <GraduationCap className="w-8 h-8" />
+        <div className="absolute left-10 bottom-20 animate-float hidden md:block">
+          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-violet-500/10 backdrop-blur-sm border border-violet-500/20 flex items-center justify-center text-violet-500">
+            <GraduationCap className="w-6 h-6 lg:w-8 lg:h-8" />
           </div>
         </div>
         
         <div className="container max-w-6xl mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
-            <div className="lg:col-span-3 space-y-6">
-              <Badge variant="secondary" className="px-4 py-1.5 text-md font-medium bg-primary/10 text-primary border-primary/20 rounded-full">
-                <School className="h-4 w-4 mr-2" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-5 md:space-y-6 text-center lg:text-left">
+              <Badge variant="secondary" className="px-3 py-1 md:px-4 md:py-1.5 text-sm md:text-md font-medium bg-primary/10 text-primary border-primary/20 rounded-full inline-flex items-center">
+                <School className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
                 Learning Community
               </Badge>
               
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold !leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-500">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold !leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-500">
                 Welcome to WISS Forum
               </h1>
               
-              <p className="text-lg text-muted-foreground max-w-xl">
+              <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
                 Join our knowledge-sharing platform where students and teachers connect, collaborate, and grow together in an interactive learning environment.
               </p>
               
-              <div className="flex flex-wrap gap-4 pt-2">
+              <div className="flex flex-wrap gap-3 md:gap-4 pt-2 justify-center lg:justify-start">
                 {isAuthenticated ? (
                   <Link to="/categories">
                     <Button size="lg" className="rounded-full font-medium">
@@ -134,47 +136,47 @@ export function Home() {
                 )}
               </div>
               
-              <div className="flex items-center pt-4 text-muted-foreground">
-                <Clock className="h-4 w-4 mr-2" />
-                <span className="text-sm">Join {stats.userCount} members already discussing academic topics</span>
+              <div className="flex items-center pt-2 md:pt-4 text-muted-foreground justify-center lg:justify-start">
+                <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
+                <span className="text-xs md:text-sm">Join {stats.userCount} members already discussing academic topics</span>
               </div>
             </div>
             
-            <div className="lg:col-span-2 order-first lg:order-last flex justify-center lg:justify-end">
-              <div className="relative">
+            <div className="order-first lg:order-last flex justify-center lg:justify-end">
+              <div className="relative w-full max-w-sm">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-violet-500/20 rounded-full blur-3xl opacity-50 scale-150" />
-                <div className="relative bg-gradient-to-br from-card/80 to-background/80 backdrop-blur-sm rounded-3xl p-6 border border-border/50 shadow-xl">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="h-3 w-3 rounded-full bg-red-500" />
-                    <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                    <div className="h-3 w-3 rounded-full bg-green-500" />
-                    <div className="ml-auto text-sm text-muted-foreground">WISS Forum</div>
+                <div className="relative bg-gradient-to-br from-card/80 to-background/80 backdrop-blur-sm rounded-3xl p-4 md:p-6 border border-border/50 shadow-xl">
+                  <div className="flex items-center space-x-2 md:space-x-3 mb-4 md:mb-6">
+                    <div className="h-2.5 w-2.5 md:h-3 md:w-3 rounded-full bg-red-500" />
+                    <div className="h-2.5 w-2.5 md:h-3 md:w-3 rounded-full bg-yellow-500" />
+                    <div className="h-2.5 w-2.5 md:h-3 md:w-3 rounded-full bg-green-500" />
+                    <div className="ml-auto text-xs md:text-sm text-muted-foreground">WISS Forum</div>
                   </div>
                   
-                  <div className="space-y-6">
-                    <div className="px-4 py-3 rounded-xl bg-primary/5 border border-primary/10">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
+                  <div className="space-y-4 md:space-y-6">
+                    <div className="px-3 py-2 md:px-4 md:py-3 rounded-xl bg-primary/5 border border-primary/10">
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <Avatar className="h-8 w-8 md:h-10 md:w-10">
                           <AvatarImage src={user ? getAvatarUrl(user.username) : getAvatarUrl("student")} alt="User" />
                           <AvatarFallback>S</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className="font-medium">Welcome{user ? `, ${user.displayName}` : ""}!</span>
+                          <span className="text-sm md:text-base font-medium">Welcome{user ? `, ${user.displayName}` : ""}!</span>
                           <span className="text-xs text-muted-foreground">Let's explore topics today</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between text-sm">
                         <span className="font-medium">Active Categories</span>
                         <Badge variant="outline">{stats.categoryCount}</Badge>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between text-sm">
                         <span className="font-medium">Topics Available</span>
                         <Badge variant="outline">{stats.topicCount}</Badge>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between text-sm">
                         <span className="font-medium">Community Size</span>
                         <Badge variant="outline">{stats.userCount} members</Badge>
                       </div>
