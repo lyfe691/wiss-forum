@@ -292,9 +292,8 @@ export function Home() {
             <p className="text-muted-foreground">Explore popular discussion categories</p>
           </div>
           <Link to="/categories">
-            <Button variant="outline" className="group">
+            <Button variant="outline" effect={'expandIcon'} icon={ChevronRight} iconPlacement='right' className="group">
               View All
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </div>
@@ -380,9 +379,8 @@ export function Home() {
               participate in discussions, and enhance your learning experience.
             </p>
             <Link to="/register">
-              <Button size="lg" className="group">
+              <Button size="lg" effect={'expandIcon'} icon={ArrowRight} iconPlacement='right' className="group">
                 Sign Up Now
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </div>
