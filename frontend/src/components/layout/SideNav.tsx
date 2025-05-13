@@ -30,6 +30,10 @@ interface NavItemProps {
   badge?: number | string;
 }
 
+// app version from package
+import pkg from "../../../package.json" with { type: "json" };
+const APP_VERSION: string = (pkg as { version: string }).version;
+
 const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavItemProps) => {
   if (isMobile) {
     return (
@@ -295,7 +299,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
       {/* Version Indicator */}
       <div className="px-6 py-3 border-t border-border mt-auto">
         <span className="text-xs text-muted-foreground">
-          v1.0.0
+          v{APP_VERSION}
         </span>
       </div>
     </div>
