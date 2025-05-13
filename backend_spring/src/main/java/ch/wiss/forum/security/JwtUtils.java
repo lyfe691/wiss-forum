@@ -1,7 +1,6 @@
 package ch.wiss.forum.security;
 
 import java.util.Date;
-import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -19,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKey;
 import jakarta.annotation.PostConstruct;
-import java.nio.charset.StandardCharsets;
 
 @Component
 @Slf4j
@@ -35,24 +33,12 @@ public class JwtUtils {
     
     @PostConstruct
     public void init() {
-        // Use Keys.secretKeyFor to generate a key guaranteed to be secure enough for HS512
-        if (jwtSecret.startsWith("base64:")) {
-            // If the secret is a Base64 encoded key
-            String base64Key = jwtSecret.substring(7);
-            byte[] decodedKey = Base64.getDecoder().decode(base64Key);
-            key = Keys.hmacShaKeyFor(decodedKey);
-        } else {
-            // Generate a secure key for HS512
-            key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-            // Log the encoded key for potential use in properties
-            String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
-            log.info("Generated secure key for HS512. Consider adding this to your properties: base64:{}", encodedKey);
-        }
+        // Use a secure key for HS512
+        key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     }
     
     public String generateJwtToken(Authentication authentication) {
         User userPrincipal = (User) authentication.getPrincipal();
-        
         return generateJwtToken(userPrincipal.getUsername());
     }
         

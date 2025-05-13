@@ -91,14 +91,14 @@ export function Settings() {
         return;
       }
 
-      const response = await userAPI.updateUserProfile(updateData);
+      await userAPI.updateUserProfile(updateData);
       
       toast.success("Profile updated", {
         description: "Your profile information has been updated."
       });
       
       // Update user state in auth context
-      refreshUser();
+      await refreshUser();
       
     } catch (error: any) {
       console.error('Failed to update profile:', error);
@@ -146,7 +146,7 @@ export function Settings() {
         newPassword: formState.newPassword
       };
       
-      const response = await userAPI.changePassword(data);
+      await userAPI.changePassword(data);
       
       toast.success("Password changed", {
         description: "Your password has been changed successfully. Please log in again."

@@ -1,7 +1,5 @@
 package ch.wiss.forum.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,13 +30,10 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, maxAge = 3600)
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
 public class PostController {
-    
-    private static final Logger logger = LoggerFactory.getLogger(PostController.class);
     
     private final PostService postService;
     private final TopicService topicService;
@@ -51,34 +45,14 @@ public class PostController {
             @RequestParam(defaultValue = "20") int size) {
         
         try {
-            // Log that we're starting to fetch posts
-            logger.info("Fetching posts for topic with ID: {}", topicId);
-            
-            // Create pageable with ascending sort by createdAt
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
             
-            // Get the Topic object
             Topic topic = topicService.getTopicById(topicId);
-            logger.debug("Found topic: {} with title: {}", topic.getId(), topic.getTitle());
-            
-            // Fetch posts for the topic
             Page<Post> postsPage = postService.getPostsByTopic(topic, pageable);
-            logger.info("Found {} posts for topic {}", postsPage.getContent().size(), topicId);
-            
-            // Extract just the posts array for consistent frontend handling
             List<Post> posts = postsPage.getContent();
             
-            // Log results for debugging
-            if (posts.isEmpty()) {
-                logger.warn("No posts found for topic {}", topicId);
-            } else {
-                logger.debug("First post ID: {}", posts.get(0).getId());
-            }
-            
-            // Return just the array of posts
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
-            logger.error("Error fetching posts for topic {}: {}", topicId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Failed to fetch posts: " + e.getMessage());
         }
@@ -97,7 +71,6 @@ public class PostController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             User currentUser = (User) authentication.getPrincipal();
             
-            // Get data from request
             String content = (String) requestBody.get("content");
             String topicId = (String) requestBody.get("topicId");
             String replyToId = (String) requestBody.get("replyTo");
@@ -106,45 +79,25 @@ public class PostController {
                 return ResponseEntity.badRequest().body("Content and topicId are required");
             }
             
-            // Log the request data
-            logger.info("Creating post with topicId: {}, content length: {}, replyTo: {}", 
-                      topicId, content.length(), replyToId != null ? replyToId : "none");
+            Topic topic = topicService.getTopicById(topicId);
             
-            // First get the actual Topic
-            Topic topic;
-            try {
-                topic = topicService.getTopicById(topicId);
-                logger.info("Found topic for post: {}", topic.getTitle());
-            } catch (Exception e) {
-                logger.error("Failed to find topic with ID {}: {}", topicId, e.getMessage());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Topic not found: " + e.getMessage());
-            }
-            
-            // Create a post object
             Post post = new Post();
             post.setContent(content);
             post.setTopic(topic);
             
-            // Set reply-to if provided
             if (replyToId != null) {
                 try {
                     Post replyTo = postService.getPostById(replyToId);
                     post.setReplyTo(replyTo);
-                    logger.info("Set reply to post ID: {}", replyTo.getId());
                 } catch (Exception e) {
-                    logger.warn("Reply-to post with ID {} not found, ignoring", replyToId);
+                    // Ignore if reply-to post not found
                 }
             }
             
-            // Create the post
-            logger.info("Saving post for user: {}", currentUser.getUsername());
             Post createdPost = postService.createPost(post, currentUser);
-            logger.info("Post created with ID: {}", createdPost.getId());
             
             return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
         } catch (Exception e) {
-            logger.error("Error creating post: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Failed to create post: " + e.getMessage());
         }

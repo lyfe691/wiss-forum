@@ -1,9 +1,9 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { authAPI } from '@/lib/api';
+import { userAPI } from '@/lib/api';
 
-// Update the role type to include both cases
-type Role = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'student' | 'teacher' | 'admin';
+type Role = 'student' | 'teacher' | 'admin';
 
 interface User {
   _id: string;
@@ -20,214 +20,96 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, options?: { suppressNotification?: boolean }) => Promise<void>;
   register: (username: string, email: string, password: string, displayName: string) => Promise<void>;
   logout: () => void;
-  checkAuth: () => Promise<void>;
   refreshUser: () => Promise<User>;
+  checkAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Normalize the role format for consistent comparisons
-const normalizeUserData = (userData: any) => {
+const normalizeUserData = (userData: any): User | null => {
   if (!userData) return null;
   
-  // Make a copy to avoid mutating the original
-  const normalizedData = { ...userData };
-  
-  // Ensure ID consistency
-  normalizedData._id = normalizedData._id || normalizedData.id;
-  
-  // Normalize role to lowercase for frontend consistency
-  if (normalizedData.role) {
-    normalizedData.role = normalizedData.role.toLowerCase();
+  // Handle role
+  let role: Role = 'student';
+  if (userData.role) {
+    const roleValue = typeof userData.role === 'string' 
+      ? userData.role.toLowerCase() 
+      : typeof userData.role === 'object' && userData.role !== null
+        ? String(userData.role.name || userData.role).toLowerCase()
+        : 'student';
+    
+    if (roleValue === 'admin' || roleValue === 'teacher' || roleValue === 'student') {
+      role = roleValue as Role;
+    }
   }
   
-  return normalizedData;
+  // Use fallbacks for required fields
+  const id = userData._id || userData.id || '';
+  const username = userData.username || '';
+  const email = userData.email || '';
+  const displayName = userData.displayName || username || '';
+  
+  if (!id || !username) {
+    console.error('Missing required user data fields:', { id, username });
+    return null;
+  }
+  
+  return {
+    _id: id,
+    username: username,
+    email: email,
+    displayName: displayName,
+    role: role,
+    avatar: userData.avatar,
+    bio: userData.bio,
+    createdAt: userData.createdAt
+  };
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Parse the stored user data on mount and check with server
+  // Parse the stored user data on mount
   useEffect(() => {
-    const initialize = async () => {
-      setIsLoading(true);
-      const storedUser = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
-      
-      console.log('Auth initialization - token exists:', !!token);
-      
-      if (storedUser && token) {
-        try {
-          // Set from localStorage first for quick UI rendering
-          const parsedUser = JSON.parse(storedUser);
-          console.log('Initial user from localStorage:', parsedUser.username);
-          setUser(parsedUser);
-          
-          // Then try to check auth with server, but don't unset user if it fails
-          try {
-            await checkAuth();
-          } catch (serverError) {
-            console.error('Server auth check failed, but keeping user logged in:', serverError);
-          }
-        } catch (error) {
-          console.error('Error parsing stored user data:', error);
-          // Only clear if we can't parse the data
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
-          setUser(null);
-        }
-      } else {
-        console.log('No stored credentials found');
+    setIsLoading(true);
+    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (storedUser && token) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
         setUser(null);
       }
-      
-      setIsLoading(false);
-    };
+    } else {
+      setUser(null);
+    }
     
-    initialize();
+    setIsLoading(false);
   }, []);
   
-  // Check if the token is valid and get fresh user data
-  const checkAuth = async () => {
-    setIsLoading(true);
-    
-    try {
-      const token = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-      
-      if (!token || !storedUser) {
-        console.log('No token or user found during auth check');
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Parse the stored user data
-      const parsedUser = JSON.parse(storedUser);
-      console.log('Using stored user data:', parsedUser.username);
-      
-      // Set user from localStorage first, so the user remains logged in even if API calls fail
-      setUser(parsedUser);
-      
-      console.log('Checking auth with token');
-      
-      try {
-        // Try to get current user from the server - use silent method to prevent console errors
-        const currentUser = await authAPI.silentGetCurrentUser();
-        if (currentUser) {
-          console.log('Current user retrieved from server:', currentUser.username);
-          
-          // Create properly formatted user object
-          const userData = normalizeUserData({
-            _id: currentUser.id || currentUser._id,
-            username: currentUser.username,
-            email: currentUser.email,
-            displayName: currentUser.displayName,
-            role: currentUser.role,
-            avatar: currentUser.avatar,
-            bio: currentUser.bio,
-            createdAt: currentUser.createdAt
-          });
-          
-          // Update user in localStorage and state
-          localStorage.setItem('user', JSON.stringify(userData));
-          setUser(userData);
-        }
-      } catch (error) {
-        console.log('Using fallback authentication method');
-        
-        // If current user fails, try to refresh token - use silent method
-        try {
-          const refreshResponse = await authAPI.silentRefreshToken();
-          
-          if (refreshResponse) {
-            // Create properly formatted user object from refresh response
-            const userData = normalizeUserData({
-              _id: refreshResponse.id,
-              username: refreshResponse.username,
-              email: refreshResponse.email,
-              displayName: refreshResponse.displayName,
-              role: refreshResponse.role,
-              avatar: refreshResponse.avatar
-            });
-            
-            console.log('Token refreshed for user:', userData.username);
-            
-            // Update token and user in localStorage
-            localStorage.setItem('token', refreshResponse.token);
-            localStorage.setItem('user', JSON.stringify(userData));
-            
-            // Update state
-            setUser(userData);
-          }
-        } catch (refreshError) {
-          // No need to log refresh errors
-          console.log('Continuing with stored user data');
-        }
-      }
-      
-      console.log('Auth check complete');
-    } catch (error) {
-      console.error('Auth check failed completely:', error);
-      
-      // Try to recover with stored user data
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          console.log('Recovering from localStorage');
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-        } catch (parseError) {
-          console.error('Failed to parse stored user:', parseError);
-          setUser(null);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-        }
-      } else {
-        setUser(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
   // Refresh user data from the server
-  const refreshUser = async () => {
+  const refreshUser = async (): Promise<User> => {
     try {
-      console.log('Refreshing user data');
-      // First refresh the token to get latest role
-      const response = await authAPI.refreshToken();
-      
-      // Clean token format
-      const token = response.token?.replace(/^Bearer\s+/i, '') || '';
-      
-      // The API returns the user data directly in the response, not nested in a user property
-      const userData = normalizeUserData({
-        _id: response.id,
-        username: response.username,
-        email: response.email,
-        displayName: response.displayName,
-        role: response.role,
-        avatar: response.avatar
-      });
-      
-      console.log('User refreshed:', userData.username);
-      
-      // Update token and user in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Update state
-      setUser(userData);
-      return userData;
+      const data = await userAPI.getUserProfile();
+      const normalizedUser = normalizeUserData(data);
+      if (normalizedUser) {
+        setUser(normalizedUser);
+        return normalizedUser;
+      }
+      throw new Error('Failed to refresh user data');
     } catch (error) {
-      console.error('Failed to refresh user data:', error);
+      // If fetching user fails, log out
+      logout();
       throw error;
     }
   };
@@ -237,34 +119,106 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
-      console.log('Attempting to register user:', username);
+      console.log('Registration attempt for:', username);
+      
+      // First, try to register the user
       const response = await authAPI.register({ username, email, password, displayName });
-      console.log('Registration successful, response:', response);
+      console.log('Register response from API:', response);
       
-      // Clean token format
+      // Check if the register response contains a success message
+      if (response && response.message && response.message.includes('success')) {
+        console.log('Registration successful, attempting to login');
+        
+        // If registration is successful but no user data is returned, login immediately
+        try {
+          // Use the login function to get the user data but suppress the notification
+          await login(username, password, { suppressNotification: true });
+          
+          // Login successful, we now have the user data
+          toast.success("Registration successful!", {
+            description: `Welcome, ${displayName}!`,
+          });
+          
+          return;
+        } catch (loginError) {
+          console.error('Auto-login after registration failed:', loginError);
+          // Continue processing the registration response
+        }
+      }
+      
+      // Process the response if it has user data
       const token = response.token?.replace(/^Bearer\s+/i, '') || '';
+      console.log('Token extracted:', token ? 'Token present' : 'No token');
       
-      // The API returns the user data directly in the response, not nested in a user property
-      const userData = normalizeUserData({
+      // If we don't have an ID but registration was successful, create a temporary user object
+      if (!response.id) {
+        console.log('No user ID in response, but registration was successful');
+        
+        const userData: User = {
+          _id: 'temp-' + Date.now(), // Temporary ID until login refreshes it
+          username: username,
+          email: email,
+          displayName: displayName,
+          role: 'student',
+          avatar: undefined
+        };
+        console.log('Created temporary user data:', userData);
+        
+        if (token) {
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(userData));
+          setUser(userData);
+        }
+        
+        // Try to login immediately to get the actual user data
+        try {
+          await login(username, password, { suppressNotification: true });
+        } catch (loginError) {
+          console.warn('Could not auto-login after registration', loginError);
+          // Continue with the temporary user data
+        }
+        
+        toast.success("Registration successful!", {
+          description: `Welcome, ${displayName}!`,
+        });
+        
+        return;
+      }
+      
+      // If we do have proper user data in the response, use it
+      // Ensure displayName is never undefined
+      const finalDisplayName = response.displayName || displayName || username;
+      console.log('Display name resolved to:', finalDisplayName);
+      
+      // Handle role
+      let role: Role = 'student';
+      if (response.role) {
+        const lowerRole = String(response.role).toLowerCase();
+        if (lowerRole === 'admin' || lowerRole === 'teacher' || lowerRole === 'student') {
+          role = lowerRole as Role;
+        }
+      }
+      console.log('Role resolved to:', role);
+      
+      const userData: User = {
         _id: response.id,
-        username: response.username,
-        email: response.email,
-        displayName: response.displayName,
-        role: response.role,
-        avatar: response.avatar
-      });
+        username: response.username || username,
+        email: response.email || email,
+        displayName: finalDisplayName,
+        role: role,
+        avatar: response.avatar || undefined
+      };
+      console.log('Final user data to store:', userData);
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
-      console.log('User registered and stored:', userData.username);
-      
       toast.success("Registration successful!", {
         description: `Welcome, ${userData.displayName}!`,
       });
     } catch (error: any) {
-      console.error('Registration error:', error);
+      console.error('Registration error details:', error);
       const message = error.response?.data?.message || 'Registration failed. Please try again.';
       toast.error("Registration failed", {
         description: message,
@@ -276,43 +230,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   
   // Login an existing user
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, options?: { suppressNotification?: boolean }) => {
     setIsLoading(true);
     
     try {
-      console.log('Attempting to login user:', username);
+      // Check if input is email or username
+      const isEmail = username.includes('@');
+      console.log(`Login attempt for: ${isEmail ? 'email' : 'username'} - ${username}`);
+      
       const response = await authAPI.login({ username, password });
-      console.log('Login successful, response:', response);
+      console.log('Login response from API:', response);
       
-      // Extract and clean the token, ensuring no "Bearer " prefix is stored
+      // Get the token from the response
       const token = response.token?.replace(/^Bearer\s+/i, '') || '';
+      console.log('Token extracted:', token ? 'Token present' : 'No token');
       
-      // The API returns the user data directly in the response, not nested in a user property
-      const userData = normalizeUserData({
+      // Make sure we have a valid user ID and displayName
+      if (!response.id) {
+        console.error('No user ID returned from login response');
+        throw new Error('Invalid login response: No user ID returned');
+      }
+      
+      // Ensure displayName is never undefined - use username as fallback
+      const displayName = response.displayName || response.username || username;
+      console.log('Display name resolved to:', displayName);
+      
+      // Get the role and ensure it's one of the valid Role types
+      let role: Role = 'student';
+      if (response.role) {
+        const lowerRole = String(response.role).toLowerCase();
+        if (lowerRole === 'admin' || lowerRole === 'teacher' || lowerRole === 'student') {
+          role = lowerRole as Role;
+        }
+      }
+      console.log('Role resolved to:', role);
+      
+      // Get the user data from the response, ensuring each field has a valid value
+      const userData: User = {
         _id: response.id,
-        username: response.username,
-        email: response.email,
-        displayName: response.displayName,
-        role: response.role,
-        avatar: response.avatar
-      });
+        username: response.username || username.includes('@') ? username.split('@')[0] : username,
+        email: response.email || (username.includes('@') ? username : ''),
+        displayName: displayName,
+        role: role,
+        avatar: response.avatar || undefined
+      };
+      console.log('Final user data to store:', userData);
       
-      // Save token and user to localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
-      console.log('User logged in and stored:', userData.username);
+      // Only show toast if not suppressed
+      if (!options?.suppressNotification) {
+        toast.success("Login successful!", {
+          description: `Welcome back, ${userData.displayName}!`,
+        });
+      }
       
-      toast.success("Login successful!", {
-        description: `Welcome back, ${userData.displayName}!`,
-      });
+      // Fetch complete user profile to ensure we have all data
+      try {
+        await refreshUser();
+      } catch (refreshError) {
+        console.warn('Could not refresh user profile after login', refreshError);
+        // Continue anyway since we have basic user data
+      }
+      
     } catch (error: any) {
-      console.error('Login error:', error);
-      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
-      toast.error("Login failed", {
-        description: message,
-      });
+      console.error('Login error details:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      
+      // Only show toast if not suppressed
+      if (!options?.suppressNotification) {
+        const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+        toast.error("Login failed", {
+          description: message,
+        });
+      }
       throw error;
     } finally {
       setIsLoading(false);
@@ -325,11 +320,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user');
     setUser(null);
     
-    console.log('User logged out');
-    
     toast.success("Logged out", {
       description: "You have been successfully logged out.",
     });
+  };
+
+  // Check authentication status and refresh user data
+  const checkAuth = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    
+    try {
+      await refreshUser();
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      logout();
+    }
   };
 
   return (
@@ -341,8 +350,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
-        checkAuth,
         refreshUser,
+        checkAuth,
       }}
     >
       {children}

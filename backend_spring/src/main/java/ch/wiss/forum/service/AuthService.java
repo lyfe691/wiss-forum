@@ -14,7 +14,6 @@ import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.LoginRequest;
 import ch.wiss.forum.payload.request.RegisterRequest;
 import ch.wiss.forum.payload.response.JwtResponse;
-import ch.wiss.forum.payload.response.MessageResponse;
 import ch.wiss.forum.repository.UserRepository;
 import ch.wiss.forum.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +28,22 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
+        String usernameOrEmail = loginRequest.getUsernameOrEmail();
+        
+        // Find user by email if the input looks like an email
+        if (usernameOrEmail == null || usernameOrEmail.isEmpty()) {
+            throw new RuntimeException("Username or email is required");
+        }
+        
+        // For logging - helps with debugging
+        if (usernameOrEmail.contains("@")) {
+            System.out.println("Attempting to authenticate with email: " + usernameOrEmail);
+        } else {
+            System.out.println("Attempting to authenticate with username: " + usernameOrEmail);
+        }
+        
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(usernameOrEmail, loginRequest.getPassword()));
         
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -41,15 +54,7 @@ public class AuthService {
         userDetails.setLastActive(LocalDateTime.now());
         userRepository.save(userDetails);
         
-        return new JwtResponse(
-                jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                userDetails.getRole(),
-                userDetails.getDisplayName(),
-                userDetails.getAvatar()
-        );
+        return createJwtResponse(jwt, userDetails);
     }
     
     public JwtResponse refreshToken(User user) {
@@ -60,15 +65,7 @@ public class AuthService {
         user.setLastActive(LocalDateTime.now());
         userRepository.save(user);
         
-        return new JwtResponse(
-                jwt,
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole(),
-                user.getDisplayName(),
-                user.getAvatar()
-        );
+        return createJwtResponse(jwt, user);
     }
     
     public JwtResponse registerUser(RegisterRequest registerRequest) {
@@ -107,14 +104,24 @@ public class AuthService {
         // Generate JWT token for the new user
         String jwt = jwtUtils.generateJwtToken(savedUser.getUsername());
         
+        return createJwtResponse(jwt, savedUser);
+    }
+    
+    private JwtResponse createJwtResponse(String token, User user) {
+        // Ensure displayName is never null - use username as fallback
+        String displayName = user.getDisplayName();
+        if (displayName == null || displayName.isEmpty()) {
+            displayName = user.getUsername();
+        }
+        
         return new JwtResponse(
-                jwt,
-                savedUser.getId(),
-                savedUser.getUsername(),
-                savedUser.getEmail(),
-                savedUser.getRole(),
-                savedUser.getDisplayName(),
-                savedUser.getAvatar()
+                token,
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole(),
+                displayName,
+                user.getAvatar()
         );
     }
 } 

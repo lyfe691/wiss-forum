@@ -49,7 +49,7 @@ export function UserProfile() {
       setError(null);
       
       try {
-        const data = await userAPI.getPublicUserProfile(idOrUsername);
+        const data = await userAPI.getUserByUsername(idOrUsername);
         // Normalize role to lowercase for consistency
         if (data && data.role) {
           data.role = data.role.toLowerCase();

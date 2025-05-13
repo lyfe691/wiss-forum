@@ -12,6 +12,7 @@ import { MessageSquare, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-rea
 
 interface Category {
   _id: string;
+  id?: string;
   name: string;
   description: string;
   slug: string;
@@ -34,18 +35,12 @@ export function Home() {
     postCount: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { isAuthenticated, user } = useAuth();
-
-  // For debugging purposes
-  useEffect(() => {
-    console.log("Stats updated:", stats);
-  }, [stats]);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        console.log("Home: Starting to fetch data...");
         
         // Fetch both categories and stats concurrently
         const [categoriesData, statsData] = await Promise.all([
@@ -53,15 +48,10 @@ export function Home() {
           statsAPI.getStats()
         ]);
         
-        console.log("Home: Received categories:", categoriesData);
-        console.log("Home: Received stats:", statsData);
-        
         setCategories(categoriesData);
         setStats(statsData);
-        
-        console.log("Home: Updated state with new data");
       } catch (error) {
-        console.error('Home: Failed to fetch data:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setIsLoading(false);
       }

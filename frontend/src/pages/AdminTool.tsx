@@ -24,15 +24,25 @@ export function AdminTool() {
     const fetchCurrentUser = async () => {
       try {
         const userData = await userAPI.getUserProfile();
-        setCurrentUser(userData);
-        setUserId(userData._id);
+        // Ensure consistent ID field
+        const normalizedUser = {
+          ...userData,
+          _id: userData._id || userData.id
+        };
+        setCurrentUser(normalizedUser);
+        setUserId(normalizedUser._id);
       } catch (err) {
         console.error('Failed to fetch user:', err);
+        // Fallback to user from context
+        if (user) {
+          setCurrentUser(user);
+          setUserId(user._id);
+        }
       }
     };
 
     fetchCurrentUser();
-  }, []);
+  }, [user]);
 
   const updateRole = async () => {
     if (!userId) {
@@ -49,12 +59,20 @@ export function AdminTool() {
       const endpoint = role === 'ADMIN' ? 'bootstrap-admin' : 'bootstrap-teacher';
       
       try {
+        // Format the request data to match the backend's expected format
+        const requestData = {
+          userId: userId,
+          key: secretKey
+        };
+        
+        console.log('Sending bootstrap request:', endpoint, requestData);
+        
         // Use direct API connection without auth headers 
         // since bootstrap endpoints should be publicly accessible
         const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
         const response = await axios.post(
           `${apiBaseUrl}/users/${endpoint}`, 
-          { userId, key: secretKey },
+          requestData,
           { 
             headers: { 'Content-Type': 'application/json' },
             // Don't send credentials/auth token for bootstrap

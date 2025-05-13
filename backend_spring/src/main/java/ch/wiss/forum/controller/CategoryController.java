@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +23,6 @@ import ch.wiss.forum.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, maxAge = 3600)
 @RestController
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor
@@ -44,21 +42,14 @@ public class CategoryController {
             Category category = categoryService.getCategoryById(id);
             return ResponseEntity.ok(category);
         } catch (RuntimeException e) {
-            // Check if it's a "not found" exception
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
-                // Try to find by slug instead
-                try {
-                    Category category = categoryService.getCategoryBySlug(id);
-                    return ResponseEntity.ok(category);
-                } catch (RuntimeException slugEx) {
-                    // Return 404 if neither ID nor slug was found
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body(new MessageResponse("Category not found: " + id));
-                }
+            // Try to find by slug instead if ID lookup fails
+            try {
+                Category category = categoryService.getCategoryBySlug(id);
+                return ResponseEntity.ok(category);
+            } catch (RuntimeException slugEx) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new MessageResponse("Category not found: " + id));
             }
-            // For other errors, return 500
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MessageResponse(e.getMessage()));
         }
     }
     
@@ -68,14 +59,8 @@ public class CategoryController {
             Category category = categoryService.getCategoryBySlug(slug);
             return ResponseEntity.ok(category);
         } catch (RuntimeException e) {
-            // Return 404 if slug was not found
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new MessageResponse("Category not found with slug: " + slug));
-            }
-            // For other errors, return 500
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("Category not found with slug: " + slug));
         }
     }
     

@@ -31,13 +31,26 @@ public class CategoryService {
     }
     
     public Category createCategory(Category category, User currentUser) {
+        // Set creation metadata
         category.setCreatedAt(LocalDateTime.now());
         category.setUpdatedAt(LocalDateTime.now());
         category.setCreatedBy(currentUser);
         
+        // Generate a slug if not provided
+        if (category.getSlug() == null || category.getSlug().isEmpty()) {
+            String baseSlug = category.getName().toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "") // Remove special characters
+                .replaceAll("\\s+", "-")         // Replace spaces with hyphens
+                .replaceAll("-+", "-")           // Replace multiple hyphens with single one
+                .trim();                         // Trim spaces
+            
+            category.setSlug(baseSlug);
+        }
+        
         // Ensure slug is unique
         if (categoryRepository.existsBySlug(category.getSlug())) {
-            throw new IllegalArgumentException("Category with slug '" + category.getSlug() + "' already exists");
+            // Make it unique by adding timestamp
+            category.setSlug(category.getSlug() + "-" + System.currentTimeMillis());
         }
         
         return categoryRepository.save(category);
@@ -46,18 +59,31 @@ public class CategoryService {
     public Category updateCategory(String id, Category categoryDetails) {
         Category category = getCategoryById(id);
         
-        category.setName(categoryDetails.getName());
-        category.setDescription(categoryDetails.getDescription());
-        category.setSlug(categoryDetails.getSlug());
-        category.setOrder(categoryDetails.getOrder());
-        category.setActive(categoryDetails.isActive());
-        category.setUpdatedAt(LocalDateTime.now());
-        
-        // Ensure slug is unique (unless it's the same slug as before)
-        if (!category.getSlug().equals(categoryDetails.getSlug()) && 
-                categoryRepository.existsBySlug(categoryDetails.getSlug())) {
-            throw new IllegalArgumentException("Category with slug '" + categoryDetails.getSlug() + "' already exists");
+        // Update fields
+        if (categoryDetails.getName() != null) {
+            category.setName(categoryDetails.getName());
         }
+        
+        if (categoryDetails.getDescription() != null) {
+            category.setDescription(categoryDetails.getDescription());
+        }
+        
+        if (categoryDetails.getSlug() != null) {
+            // Ensure slug is unique (unless it's the same slug as before)
+            if (!category.getSlug().equals(categoryDetails.getSlug()) && 
+                    categoryRepository.existsBySlug(categoryDetails.getSlug())) {
+                throw new RuntimeException("Category with slug '" + categoryDetails.getSlug() + "' already exists");
+            }
+            category.setSlug(categoryDetails.getSlug());
+        }
+        
+        // Order is a primitive int, so we can't check for null directly
+        category.setOrder(categoryDetails.getOrder());
+        
+        // isActive is a primitive boolean
+        category.setActive(categoryDetails.isActive());
+        
+        category.setUpdatedAt(LocalDateTime.now());
         
         return categoryRepository.save(category);
     }

@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,10 +30,7 @@ import ch.wiss.forum.service.CategoryService;
 import ch.wiss.forum.service.TopicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, maxAge = 3600)
 @RestController
 @RequestMapping("/api/topics")
 @RequiredArgsConstructor
@@ -42,7 +38,6 @@ public class TopicController {
     
     private final TopicService topicService;
     private final CategoryService categoryService;
-    private static final Logger log = LoggerFactory.getLogger(TopicController.class);
     
     @GetMapping
     public ResponseEntity<Page<Topic>> getAllTopics(
@@ -65,42 +60,22 @@ public class TopicController {
             @RequestParam(defaultValue = "10") int size) {
         
         try {
-            log.info("Fetching topics for category ID: {}", categoryId);
-            
             // Create pageable with descending sort by createdAt
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
             
             // First try to get by ID
             try {
                 Category category = categoryService.getCategoryById(categoryId);
-                log.info("Found category by ID: {}", category.getName());
-                
                 Page<Topic> topicsPage = topicService.getTopicsByCategory(categoryId, pageable);
-                log.info("Found {} topics for category {}", topicsPage.getTotalElements(), category.getName());
-                
-                // Return just the list of topics instead of the Page object
                 return ResponseEntity.ok(topicsPage.getContent());
             } catch (Exception idError) {
-                log.info("Could not find category by ID, trying by slug: {}", categoryId);
-                
                 // If not found by ID, try by slug
-                try {
-                    Category category = categoryService.getCategoryBySlug(categoryId);
-                    log.info("Found category by slug: {}", category.getName());
-                    
-                    Page<Topic> topicsPage = topicService.getTopicsByCategory(category.getId(), pageable);
-                    log.info("Found {} topics for category {}", topicsPage.getTotalElements(), category.getName());
-                    
-                    // Return just the list of topics instead of the Page object
-                    return ResponseEntity.ok(topicsPage.getContent());
-                } catch (Exception slugError) {
-                    log.error("Category not found by ID or slug: {}", categoryId);
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-                }
+                Category category = categoryService.getCategoryBySlug(categoryId);
+                Page<Topic> topicsPage = topicService.getTopicsByCategory(category.getId(), pageable);
+                return ResponseEntity.ok(topicsPage.getContent());
             }
         } catch (Exception e) {
-            log.error("Error fetching topics for category {}: {}", categoryId, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
     
@@ -126,7 +101,6 @@ public class TopicController {
         try {
             // Check for null or invalid id
             if (idOrSlug == null || idOrSlug.equals("null") || idOrSlug.equals("undefined") || idOrSlug.trim().isEmpty()) {
-                log.warn("Invalid topic ID/slug requested: {}", idOrSlug);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MessageResponse("Topic not found: Invalid ID/slug"));
             }
@@ -134,27 +108,15 @@ public class TopicController {
             try {
                 // First try to look up by ID
                 Topic topic = topicService.getTopicById(idOrSlug);
-                log.debug("Found topic by ID: {}", topic.getId());
                 return ResponseEntity.ok(topic);
             } catch (Exception idError) {
-                log.info("Topic not found by ID {}, trying as slug", idOrSlug);
-                
-                try {
-                    // If ID lookup fails, try to find by slug
-                    Topic topic = topicService.getTopicBySlug(idOrSlug);
-                    log.debug("Found topic by slug: {}", topic.getSlug());
-                    return ResponseEntity.ok(topic);
-                } catch (Exception slugError) {
-                    // If both lookups fail, return 404
-                    log.warn("Topic not found by ID or slug: {}", idOrSlug);
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new MessageResponse("Topic not found with ID or slug: " + idOrSlug));
-                }
+                // If ID lookup fails, try to find by slug
+                Topic topic = topicService.getTopicBySlug(idOrSlug);
+                return ResponseEntity.ok(topic);
             }
         } catch (Exception e) {
-            log.error("Error fetching topic with ID/slug {}: {}", idOrSlug, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new MessageResponse("Error retrieving topic: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new MessageResponse("Topic not found with ID or slug: " + idOrSlug));
         }
     }
     
@@ -163,7 +125,6 @@ public class TopicController {
         try {
             // Check for null or invalid slug
             if (slug == null || slug.equals("null") || slug.equals("undefined") || slug.trim().isEmpty()) {
-                log.warn("Invalid topic slug requested: {}", slug);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MessageResponse("Topic not found: Invalid slug"));
             }
@@ -171,25 +132,17 @@ public class TopicController {
             Topic topic = topicService.getTopicBySlug(slug);
             return ResponseEntity.ok(topic);
         } catch (Exception e) {
-            log.error("Error fetching topic with slug {}: {}", slug, e.getMessage());
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new MessageResponse(e.getMessage()));
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new MessageResponse("Error retrieving topic: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new MessageResponse("Topic not found with slug: " + slug));
         }
     }
     
     @PostMapping("/{id}/view")
     public ResponseEntity<Topic> incrementViewCount(@PathVariable String id) {
         try {
-            log.info("Incrementing view count for topic ID: {}", id);
             Topic topic = topicService.incrementViewCount(id);
-            log.info("View count incremented to: {}", topic.getViewCount());
             return ResponseEntity.ok(topic);
         } catch (Exception e) {
-            log.error("Error incrementing view count: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -224,12 +177,10 @@ public class TopicController {
             }
             
             // Fetch the category
-            Category category = null;
+            Category category;
             try {
                 category = categoryService.getCategoryById(categoryId);
-                log.info("Found category for topic: {}", category.getName());
             } catch (Exception e) {
-                log.error("Error finding category with ID {}: {}", categoryId, e.getMessage());
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MessageResponse("Category not found with ID: " + categoryId));
             }
@@ -243,16 +194,10 @@ public class TopicController {
                 topic.setTags(tags);
             }
             
-            // Debug logging to help identify issues
-            log.info("Creating topic for user: {} with role: {} in category: {}", 
-                currentUser.getUsername(), currentUser.getRole(), category.getName());
-            
             Topic createdTopic = topicService.createTopic(topic, currentUser);
             
-            log.info("Topic created successfully: {}", createdTopic.getId());
             return new ResponseEntity<>(createdTopic, HttpStatus.CREATED);
         } catch (Exception e) {
-            log.error("Error creating topic: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new MessageResponse("Failed to create topic: " + e.getMessage()));
         }

@@ -6,9 +6,15 @@ import lombok.Data;
 @Data
 public class LoginRequest {
     
-    @NotBlank
     private String username;
     
-    @NotBlank
+    private String email;
+    
+    @NotBlank(message = "Password is required")
     private String password;
+    
+    // Helper method to get either username or email for authentication
+    public String getUsernameOrEmail() {
+        return username != null && !username.isEmpty() ? username : email;
+    }
 } 

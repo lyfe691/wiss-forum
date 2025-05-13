@@ -21,16 +21,13 @@ import ch.wiss.forum.security.AuthEntryPointJwt;
 import ch.wiss.forum.security.AuthTokenFilter;
 import ch.wiss.forum.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Slf4j
 public class SecurityConfig {
     
     private final UserDetailsServiceImpl userDetailsService;
@@ -44,10 +41,8 @@ public class SecurityConfig {
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-        
         return authProvider;
     }
     
@@ -63,49 +58,32 @@ public class SecurityConfig {
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        log.info("Configuring security filter chain");
-        
         http.csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .exceptionHandling(exception -> {
-                exception.authenticationEntryPoint(unauthorizedHandler);
-                log.info("Setting unauthorized handler");
-            })
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> {
-                log.info("Configuring request authorization rules");
                 auth
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/users/public").permitAll()
-                    // Allow bootstrap endpoints for initial admin/teacher setup
                     .requestMatchers("/api/users/bootstrap-admin").permitAll()
                     .requestMatchers("/api/users/bootstrap-teacher").permitAll()
-                    // Only allow GET requests for categories to be public
+                    .requestMatchers("/api/users/{username}").permitAll()
                     .requestMatchers("GET", "/api/categories/**").permitAll()
-                    .requestMatchers("POST", "/api/categories/**").authenticated()
-                    .requestMatchers("PUT", "/api/categories/**").authenticated()
-                    .requestMatchers("DELETE", "/api/categories/**").authenticated()
-                    .requestMatchers("/api/topics/**").permitAll()
-                    .requestMatchers("/api/posts/**").permitAll()
+                    .requestMatchers("GET", "/api/topics/**").permitAll()
+                    .requestMatchers("GET", "/api/posts/**").permitAll()
                     .requestMatchers("/error").permitAll()
-                    .anyRequest().authenticated(); // Change to authenticated to enforce login
-                log.info("Authorization rules configured with category protection");
+                    .anyRequest().authenticated();
             });
         
         http.authenticationProvider(authenticationProvider());
-        
-        // Register JWT filter
-        AuthTokenFilter jwtFilter = authenticationJwtTokenFilter();
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        log.info("JWT filter registered");
+        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }
     
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        log.info("Configuring CORS");
-        
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
@@ -117,7 +95,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         
-        log.info("CORS configuration completed");
         return source;
     }
 } 

@@ -148,7 +148,7 @@ export function Users() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {getCurrentPageUsers().map((user) => (
-              <Card key={user._id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <Card key={user._id || user.username} className="overflow-hidden hover:shadow-md transition-shadow">
                 <Link to={`/users/${user.username}`} className="block h-full">
                   <CardHeader className="pb-2">
                     <div className="flex items-start gap-3">

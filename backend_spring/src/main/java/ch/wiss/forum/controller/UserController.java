@@ -1,14 +1,16 @@
 package ch.wiss.forum.controller;
 
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,143 +18,161 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.wiss.forum.model.Post;
 import ch.wiss.forum.model.Role;
+import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.PasswordUpdateRequest;
+import ch.wiss.forum.payload.request.RoleBootstrapRequest;
 import ch.wiss.forum.payload.response.MessageResponse;
+import ch.wiss.forum.service.PostService;
+import ch.wiss.forum.service.TopicService;
 import ch.wiss.forum.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, maxAge = 3600)
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
     
     private final UserService userService;
+    private final TopicService topicService;
+    private final PostService postService;
+    
+    // Secret key for bootstrap process - In a real app, use environment variables
+    private static final String BOOTSTRAP_ADMIN_KEY = "key";
+    private static final String BOOTSTRAP_TEACHER_KEY = "key";
+    
+    @PostMapping("/bootstrap-admin")
+    public ResponseEntity<?> bootstrapAdmin(@RequestBody RoleBootstrapRequest request) {
+        try {
+            // Validate the bootstrap key
+            if (!BOOTSTRAP_ADMIN_KEY.equals(request.getKey())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Invalid bootstrap key"));
+            }
+            
+            // Get the user
+            User user = userService.getUserById(request.getUserId());
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("User not found"));
+            }
+            
+            // Update role to ADMIN
+            user.setRole(Role.ADMIN);
+            User updatedUser = userService.save(user);
+            
+            return ResponseEntity.ok(new MessageResponse("User role updated to ADMIN successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Error updating user role: " + e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/bootstrap-teacher")
+    public ResponseEntity<?> bootstrapTeacher(@RequestBody RoleBootstrapRequest request) {
+        try {
+            // Validate the bootstrap key
+            if (!BOOTSTRAP_TEACHER_KEY.equals(request.getKey())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Invalid bootstrap key"));
+            }
+            
+            // Get the user
+            User user = userService.getUserById(request.getUserId());
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("User not found"));
+            }
+            
+            // Update role to TEACHER
+            user.setRole(Role.TEACHER);
+            User updatedUser = userService.save(user);
+            
+            return ResponseEntity.ok(new MessageResponse("User role updated to TEACHER successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Error updating user role: " + e.getMessage()));
+        }
+    }
     
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
     
-    @GetMapping("/public")
-    public ResponseEntity<List<User>> getPublicUsersList() {
-        List<User> users = userService.getPublicUsersList();
-        return ResponseEntity.ok(users);
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable String id) {
-        User user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
-    }
-    
-    @GetMapping("/username/{username}")
+    @GetMapping("/{username}")
     public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
         User user = userService.getUserByUsername(username);
         return ResponseEntity.ok(user);
     }
     
-    @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> updateUser(@PathVariable String id, @Valid @RequestBody User userDetails) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
-        
-        try {
-            User updatedUser = userService.updateUser(id, userDetails, currentUser);
-            return ResponseEntity.ok(updatedUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    @GetMapping("/public")
+    public ResponseEntity<List<User>> getRecentUsers() {
+        List<User> users = userService.getPublicUsersList();
+        return ResponseEntity.ok(users);
     }
     
-    @PutMapping("/{id}/password")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> updatePassword(
-            @PathVariable String id, 
-            @Valid @RequestBody PasswordUpdateRequest passwordRequest) {
-        
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
+    @GetMapping("/{username}/topics")
+    public ResponseEntity<List<Topic>> getUserTopics(
+            @PathVariable String username,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         
         try {
-            User updatedUser = userService.updatePassword(
-                    id, 
-                    passwordRequest.getCurrentPassword(), 
-                    passwordRequest.getNewPassword(), 
-                    currentUser);
+            User user = userService.getUserByUsername(username);
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+            Page<Topic> topics = topicService.getTopicsByAuthor(user, pageable);
             
-            return ResponseEntity.ok(new MessageResponse("Password updated successfully"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.ok(topics.getContent());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
     
-    @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteUser(@PathVariable String id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
+    @GetMapping("/{username}/posts")
+    public ResponseEntity<List<Post>> getUserPosts(
+            @PathVariable String username,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         
         try {
-            userService.deleteUser(id, currentUser);
-            return ResponseEntity.ok(new MessageResponse("User deleted successfully"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            User user = userService.getUserByUsername(username);
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+            Page<Post> posts = postService.getPostsByUser(user, pageable);
+            
+            return ResponseEntity.ok(posts.getContent());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
     
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getCurrentUserProfile() {
+    public ResponseEntity<User> getCurrentUserProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
         
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            User currentUser = (User) authentication.getPrincipal();
-            
-            // Create a map with the correct field names for frontend compatibility
-            Map<String, Object> userResponse = new HashMap<>();
-            userResponse.put("_id", currentUser.getId());
-            userResponse.put("id", currentUser.getId());
-            userResponse.put("username", currentUser.getUsername());
-            userResponse.put("email", currentUser.getEmail());
-            userResponse.put("displayName", currentUser.getDisplayName());
-            userResponse.put("role", currentUser.getRole());
-            userResponse.put("avatar", currentUser.getAvatar());
-            userResponse.put("bio", currentUser.getBio());
-            userResponse.put("createdAt", currentUser.getCreatedAt());
-            userResponse.put("updatedAt", currentUser.getUpdatedAt());
-            
-            return ResponseEntity.ok(userResponse);
-        }
-        
-        return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
+        // Refresh user details
+        User user = userService.getUserById(currentUser.getId());
+        return ResponseEntity.ok(user);
     }
     
     @PutMapping("/profile")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> updateCurrentUserProfile(@Valid @RequestBody User userDetails) {
+    public ResponseEntity<User> updateCurrentUserProfile(@Valid @RequestBody User userDetails) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
         
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            User currentUser = (User) authentication.getPrincipal();
-            
-            try {
-                User updatedUser = userService.updateUser(currentUser.getId(), userDetails, currentUser);
-                return ResponseEntity.ok(updatedUser);
-            } catch (RuntimeException e) {
-                return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-            }
-        }
-        
-        return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
+        User updatedUser = userService.updateUser(currentUser.getId(), userDetails, currentUser);
+        return ResponseEntity.ok(updatedUser);
     }
     
     @PutMapping("/profile/password")
@@ -172,134 +192,43 @@ public class UserController {
                 
                 return ResponseEntity.ok(new MessageResponse("Password updated successfully"));
             } catch (RuntimeException e) {
-                return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new MessageResponse("Password update failed: " + e.getMessage()));
             }
         }
         
-        return ResponseEntity.badRequest().body(new MessageResponse("User not authenticated"));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse("User not authenticated"));
     }
     
-    @GetMapping("/profile/{idOrUsername}")
-    public ResponseEntity<?> getUserProfileByIdOrUsername(@PathVariable String idOrUsername) {
-        try {
-            User user = userService.getUserByIdOrUsername(idOrUsername);
-            
-            // Create a map with the correct field names for frontend compatibility
-            Map<String, Object> userResponse = new HashMap<>();
-            userResponse.put("_id", user.getId());
-            userResponse.put("id", user.getId());
-            userResponse.put("username", user.getUsername());
-            userResponse.put("email", user.getEmail());
-            userResponse.put("displayName", user.getDisplayName());
-            userResponse.put("role", user.getRole());
-            userResponse.put("avatar", user.getAvatar());
-            userResponse.put("bio", user.getBio());
-            userResponse.put("createdAt", user.getCreatedAt());
-            userResponse.put("updatedAt", user.getUpdatedAt());
-            
-            return ResponseEntity.ok(userResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<User> updateUser(@PathVariable String id, @Valid @RequestBody User userDetails) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+        
+        User updatedUser = userService.updateUser(id, userDetails, currentUser);
+        return ResponseEntity.ok(updatedUser);
     }
     
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> updateUserRole(@PathVariable String id, @Valid @RequestBody Map<String, String> roleRequest) {
+    public ResponseEntity<User> updateUserRole(@PathVariable String id, @RequestBody String roleStr) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         
-        try {
-            String newRoleStr = roleRequest.get("role");
-            if (newRoleStr == null) {
-                return ResponseEntity.badRequest().body(new MessageResponse("Role is required"));
-            }
-            
-            Role newRole;
-            try {
-                newRole = Role.valueOf(newRoleStr);
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(new MessageResponse("Invalid role: " + newRoleStr));
-            }
-            
-            User updatedUser = userService.updateUserRole(id, newRole, currentUser);
-            return ResponseEntity.ok(updatedUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+        Role role = Role.valueOf(roleStr.toUpperCase());
+        User updatedUser = userService.updateUserRole(id, role, currentUser);
+        return ResponseEntity.ok(updatedUser);
     }
     
-    @PostMapping("/bootstrap-admin")
-    public ResponseEntity<?> bootstrapAdmin(@Valid @RequestBody Map<String, String> request) {
-        try {
-            String userId = request.get("userId");
-            String secretKey = request.get("key");
-            
-            if (userId == null) {
-                return ResponseEntity.badRequest().body(new MessageResponse("User ID is required"));
-            }
-            
-            if (secretKey == null || !secretKey.equals("key")) {
-                return ResponseEntity.badRequest().body(new MessageResponse("Invalid or missing secret key"));
-            }
-            
-            User user = userService.getUserById(userId);
-            user.setRole(Role.ADMIN);
-            user = userService.save(user);
-            
-            // Create user response map
-            Map<String, Object> userResponse = new HashMap<>();
-            userResponse.put("_id", user.getId());
-            userResponse.put("id", user.getId());
-            userResponse.put("username", user.getUsername());
-            userResponse.put("email", user.getEmail());
-            userResponse.put("displayName", user.getDisplayName());
-            userResponse.put("role", user.getRole());
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "User has been updated to ADMIN role",
-                "user", userResponse
-            ));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
-    }
-    
-    @PostMapping("/bootstrap-teacher")
-    public ResponseEntity<?> bootstrapTeacher(@Valid @RequestBody Map<String, String> request) {
-        try {
-            String userId = request.get("userId");
-            String secretKey = request.get("key");
-            
-            if (userId == null) {
-                return ResponseEntity.badRequest().body(new MessageResponse("User ID is required"));
-            }
-            
-            if (secretKey == null || !secretKey.equals("key")) {
-                return ResponseEntity.badRequest().body(new MessageResponse("Invalid or missing secret key"));
-            }
-            
-            User user = userService.getUserById(userId);
-            user.setRole(Role.TEACHER);
-            user = userService.save(user);
-            
-            // Create user response map
-            Map<String, Object> userResponse = new HashMap<>();
-            userResponse.put("_id", user.getId());
-            userResponse.put("id", user.getId());
-            userResponse.put("username", user.getUsername());
-            userResponse.put("email", user.getEmail());
-            userResponse.put("displayName", user.getDisplayName());
-            userResponse.put("role", user.getRole());
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "User has been updated to TEACHER role",
-                "user", userResponse
-            ));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+        
+        userService.deleteUser(id, currentUser);
+        return ResponseEntity.noContent().build();
     }
 } 

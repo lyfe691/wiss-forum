@@ -43,6 +43,7 @@ import { getAvatarUrl, getRoleBadgeColor, formatRoleName } from '@/lib/utils';
 
 interface UserProfile {
   _id: string;
+  id?: string;
   username: string;
   email: string;
   displayName: string;
@@ -103,21 +104,27 @@ export function Profile() {
       setIsLoading(true);
       
       try {
-        // Use updated getUserProfile method that has fallback to localStorage
+        // Use updated getUserProfile method
         const profileData = await userAPI.getUserProfile();
         
         if (profileData) {
-          setProfile(profileData);
+          // Ensure consistent ID field
+          const normalizedProfile = {
+            ...profileData,
+            _id: profileData._id || profileData.id
+          };
+          
+          setProfile(normalizedProfile);
           
           // Initialize form with profile data
           setProfileForm({
-            username: profileData.username || '',
-            email: profileData.email || '',
-            displayName: profileData.displayName || '',
-            bio: profileData.bio || ''
+            username: normalizedProfile.username || '',
+            email: normalizedProfile.email || '',
+            displayName: normalizedProfile.displayName || '',
+            bio: normalizedProfile.bio || ''
           });
         } else {
-          // Fallback to user context if API fails
+          // Fallback to user context if API returns no data
           if (user) {
             setProfile({
               _id: user._id,
@@ -140,8 +147,7 @@ export function Profile() {
           }
         }
       } catch (error) {
-        // Don't show toast here to reduce user annoyance, just log it
-        console.log('Using profile data from auth context');
+        console.error('Error fetching profile:', error);
         
         // Fallback to user context
         if (user) {
@@ -220,19 +226,27 @@ export function Profile() {
     setIsSaving(true);
     
     try {
-      const { message, user: updatedUser } = await userAPI.updateUserProfile({
+      const response = await userAPI.updateUserProfile({
         username: profileForm.username,
         email: profileForm.email,
         displayName: profileForm.displayName,
         bio: profileForm.bio
       });
       
-      setProfile(updatedUser);
+      const updatedUser = response.user || {};
+      
+      // Ensure consistent ID field
+      const normalizedUser = {
+        ...updatedUser,
+        _id: updatedUser._id || updatedUser.id
+      };
+      
+      setProfile(normalizedUser);
       
       // Update auth context
       await checkAuth();
       
-      toast.success(message || "Profile updated successfully");
+      toast.success(response.message || "Profile updated successfully");
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to update profile';
       toast.error(message);
