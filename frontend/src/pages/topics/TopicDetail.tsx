@@ -34,6 +34,7 @@ import {
   AlertCircle, 
   ArrowLeft, 
   ChevronLeft,
+  ChevronDown,
   Heart,
   MessageSquare,
   MoreVertical,
@@ -43,11 +44,13 @@ import {
   CalendarDays,
   Eye,
   Loader2,
-  X
+  X,
+  ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getAvatarUrl } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
 
 // Types for users and content
@@ -71,6 +74,7 @@ interface Post {
   updatedAt: string;
   likes: number;
   isLiked: boolean;
+  children?: Post[];
 }
 
 interface Topic {
@@ -152,6 +156,9 @@ export function TopicDetail() {
   // Replace single replyContent with a map of post ID -> content
   const [replyContents, setReplyContents] = useState<{[key: string]: string}>({});
   
+  // Add state to track which posts have expanded replies
+  const [expandedPosts, setExpandedPosts] = useState<{[key: string]: boolean}>({});
+  
   // Refs for DOM manipulation
   const { isAuthenticated, user } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -223,7 +230,7 @@ export function TopicDetail() {
     fetchData();
   }, [slug]);
 
-  // Process posts to add replyToAuthor information
+  // Process posts to add replyToAuthor information and organize hierarchically
   const processPosts = (posts: Post[]): Post[] => {
     if (!Array.isArray(posts) || posts.length === 0) {
       return [];
@@ -239,51 +246,82 @@ export function TopicDetail() {
     // Create a map for fast lookup
     const postsMap = new Map<string, Post>();
     
-    // First pass: add all posts to the map
+    // First pass: add all posts to the map with normalized IDs
     posts.forEach(post => {
       // Ensure post has an _id property
       const postId = post._id || post.id || '';
       if (postId) {  // Only add if we have a valid ID
         const postWithId = {
           ...post,
-          _id: postId  // Ensure we have _id
+          _id: postId,  // Ensure we have _id
+          children: [] as Post[]  // Initialize children array
         };
         postsMap.set(postId, postWithId);
       }
     });
     
-    // Second pass: add replyToAuthor information
-    return posts.map(post => {
+    // Second pass: add replyToAuthor information and build the tree structure
+    const rootPosts: Post[] = [];
+    
+    posts.forEach(post => {
       // Ensure post has an _id property
       const postId = post._id || post.id || '';
-      const postWithId = { ...post, _id: postId };
+      if (!postId) return;
       
-      if (postId && post.replyTo && postsMap.has(post.replyTo)) {
-        const replyToPost = postsMap.get(post.replyTo);
-        console.log(`Post ${postId} is replying to post ${post.replyTo}`);
-        return {
-          ...postWithId,
-          replyToAuthor: replyToPost?.author
-        };
+      const postWithId = postsMap.get(postId);
+      if (!postWithId) return;
+      
+      // If this post is a reply to another post
+      if (post.replyTo && postsMap.has(post.replyTo)) {
+        const parentPost = postsMap.get(post.replyTo);
+        if (parentPost) {
+          // Add replyToAuthor information
+          postWithId.replyToAuthor = parentPost.author;
+          
+          // Add this post as a child of the parent post
+          parentPost.children = parentPost.children || [];
+          parentPost.children.push(postWithId);
+          
+          console.log(`Post ${postId} is a reply to post ${post.replyTo}`);
+        }
+      } else {
+        // This is a top-level post (not a reply or replying to a post that we don't have)
+        rootPosts.push(postWithId);
       }
-      return postWithId;
     });
+    
+    console.log('Hierarchical structure created with', rootPosts.length, 'root posts');
+    
+    // Return only the root posts - their children will be accessed through the tree structure
+    return rootPosts;
   };
   
-  // Sort posts by creation date, but keep replies near their parent posts
+  // Modify the sort posts function to sort both root posts and their children
   const sortPosts = (posts: Post[]): Post[] => {
     if (!Array.isArray(posts)) {
       console.error('sortPosts received non-array:', posts);
       return [];
     }
     
-    // First sort all posts by creation date
-    return [...posts].sort((a, b) => {
+    // Helper function to sort by date
+    const sortByDate = (a: Post, b: Post) => {
       // Ensure we have createdAt values
       const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return aDate - bDate;
+    };
+    
+    // Sort the root posts
+    const sortedPosts = [...posts].sort(sortByDate);
+    
+    // Sort each post's children recursively
+    sortedPosts.forEach(post => {
+      if (post.children && post.children.length > 0) {
+        post.children = sortPosts(post.children);
+      }
     });
+    
+    return sortedPosts;
   };
 
   // Handle creating a new post or reply
@@ -625,204 +663,323 @@ export function TopicDetail() {
     return user._id === postAuthorId;
   };
 
-  // Add debug statement to check what's happening when rendering posts
-  const renderPosts = () => {
-    console.log('Rendering posts:', posts.length);
+  // Toggle expanded/collapsed state for a post's replies
+  const toggleReplies = (postId: string) => {
+    setExpandedPosts((prev: {[key: string]: boolean}) => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  // Recursive function to render a post and its replies
+  const renderPost = (post: Post, level: number = 0) => {
+    // Map nesting level to spacing and thread appearance
+    const getThreadStyles = (level: number) => {
+      const baseIndent = 12;
+      const indent = Math.min(level, 3) * baseIndent;
+      return {
+        marginLeft: level > 0 ? `${indent}px` : '0',
+        paddingLeft: level > 0 ? '24px' : '0',
+        borderLeft: level > 0 ? '2px solid rgba(var(--primary), 0.15)' : 'none'
+      };
+    };
     
-    return posts.map((post) => {
-      console.log(`Rendering post ${post._id}, replyToPost:`, replyToPost ? replyToPost._id : 'null');
-      
-      return (
-        <React.Fragment key={post._id || `post-${Math.random()}`}>
-          <Card 
-            id={`post-${post._id}`} 
-            className={cn(
-              "border relative transition-all duration-200 hover:shadow-md mb-4",
-              replyToPost?._id === post._id && "ring-2 ring-primary/30",
-              post.replyTo && "ml-6" // Simplified indentation for replies
-            )}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-10 w-10 border border-border">
-                    <AvatarImage 
-                      src={getAvatarUrl(post.author?.username || 'unknown', post.author?.avatar)}
-                      alt={post.author?.displayName || post.author?.username || 'Unknown'} 
-                    />
-                    <AvatarFallback>
-                      {getInitials(post.author?.displayName || post.author?.username || 'U')}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="space-y-1">
-                    <div className="font-semibold">
-                      {post.author?.displayName || post.author?.username || 'Unknown user'}
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <Badge variant="outline" className="px-1.5 py-0 text-xs">
-                        {post.author?.role?.charAt(0).toUpperCase() + post.author?.role?.slice(1) || 'User'}
-                      </Badge>
-                      <span>{formatDate(post.createdAt)} at {formatTime(post.createdAt)}</span>
-                      {post.createdAt !== post.updatedAt && (
-                        <span className="italic">(edited)</span>
-                      )}
-                    </div>
+    const hasReplies = post.children && post.children.length > 0;
+    const isExpanded = expandedPosts[post._id] || false;
+    const threadStyles = getThreadStyles(level);
+    
+    return (
+      <motion.div 
+        key={post._id || `post-${Math.random()}`}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.2 }}
+        className="mb-4 relative"
+        style={{
+          marginLeft: threadStyles.marginLeft,
+          paddingLeft: threadStyles.paddingLeft,
+        }}
+      >
+        {level > 0 && (
+          <div 
+            className="absolute left-0 top-0 bottom-0" 
+            style={{
+              width: '2px',
+              background: 'rgba(var(--primary), 0.15)',
+              marginLeft: '-1px'
+            }}
+          />
+        )}
+        
+        <Card 
+          id={`post-${post._id}`} 
+          className={cn(
+            "border transition-all duration-200 hover:shadow-md",
+            replyToPost?._id === post._id && "ring-2 ring-primary/30"
+          )}
+        >
+          <CardHeader className="pb-2 relative">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <Avatar className="h-10 w-10 border border-border ring-2 ring-background">
+                  <AvatarImage 
+                    src={getAvatarUrl(post.author?.username || 'unknown', post.author?.avatar)}
+                    alt={post.author?.displayName || post.author?.username || 'Unknown'} 
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                    {getInitials(post.author?.displayName || post.author?.username || 'U')}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="space-y-1">
+                  <div className="font-semibold">
+                    {post.author?.displayName || post.author?.username || 'Unknown user'}
+                    {post.author?._id === topic?.author?._id && (
+                      <Badge className="ml-2 bg-primary/20 text-primary border-none text-[10px] py-0">Author</Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="px-1.5 py-0 text-xs">
+                      {post.author?.role?.charAt(0).toUpperCase() + post.author?.role?.slice(1) || 'User'}
+                    </Badge>
+                    <span>{formatDate(post.createdAt)} at {formatTime(post.createdAt)}</span>
+                    {post.createdAt !== post.updatedAt && (
+                      <span className="italic">(edited)</span>
+                    )}
                   </div>
                 </div>
-                
-                {canManagePost(post.author?._id) && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        className="flex items-center text-destructive cursor-pointer hover:bg-destructive/10"
-                        onClick={() => {
-                          setPostToDelete(post._id);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Trash className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
               </div>
-            </CardHeader>
-            
-            <CardContent className="prose prose-sm max-w-none pb-3">
-              {/* Make the "Replying to" section more prominent */}
-              {post.replyTo && post.replyToAuthor && (
-                <div className="mb-3 text-sm flex items-center gap-2 text-muted-foreground bg-muted/30 px-3 py-2 rounded-md">
-                  <Reply className="h-3.5 w-3.5 text-primary/70" />
-                  <span>
-                    Replying to <span className="font-semibold text-primary">@{post.replyToAuthor.displayName || post.replyToAuthor.username}</span>
-                  </span>
-                </div>
-              )}
               
-              <div dangerouslySetInnerHTML={{ __html: post.content }} />
-            </CardContent>
+              {canManagePost(post.author?._id) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-muted">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="flex items-center text-destructive cursor-pointer hover:bg-destructive/10"
+                      onClick={() => {
+                        setPostToDelete(post._id);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          </CardHeader>
+          
+          <CardContent className="prose prose-sm max-w-none pt-0 pb-2">
+            {/* Make the "Replying to" section more prominent */}
+            {post.replyTo && post.replyToAuthor && (
+              <div className="mb-3 text-sm flex items-center gap-2 text-muted-foreground bg-muted/20 px-3 py-2 rounded-md">
+                <Reply className="h-3.5 w-3.5 text-primary/70" />
+                <span>
+                  Replying to <span className="font-semibold text-primary">@{post.replyToAuthor.displayName || post.replyToAuthor.username}</span>
+                </span>
+              </div>
+            )}
             
-            <CardFooter className="pt-3 border-t flex justify-between items-center">
-              <div className="flex gap-2">
+            <div dangerouslySetInnerHTML={{ __html: post.content }} />
+          </CardContent>
+          
+          <CardFooter className="py-2 px-4 border-t flex justify-between items-center gap-2 flex-wrap">
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleToggleLike(post._id)}
+                disabled={!isAuthenticated || likeInProgress[post._id]}
+                className={cn(
+                  "h-8 px-2 gap-1.5 rounded-full",
+                  post.isLiked && "text-red-500 bg-red-50 dark:bg-red-950/20"
+                )}
+              >
+                {likeInProgress[post._id] ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Heart className={cn("h-4 w-4", post.isLiked && "fill-red-500")} />
+                )}
+                <span>{post.likes || 0}</span>
+              </Button>
+
+              {isAuthenticated && (
                 <Button
-                  variant="ghost"
+                  variant={replyToPost !== null && post._id === replyToPost._id ? "secondary" : "ghost"}
                   size="sm"
-                  onClick={() => handleToggleLike(post._id)}
-                  disabled={!isAuthenticated || likeInProgress[post._id]}
+                  onClick={() => {
+                    handleReplyClick(post);
+                    
+                    // Auto-expand replies when replying
+                    if (post.children && post.children.length > 0 && !expandedPosts[post._id]) {
+                      toggleReplies(post._id);
+                    }
+                  }}
                   className={cn(
-                    "h-8 px-2 gap-1.5",
-                    post.isLiked && "text-red-500"
+                    "h-8 px-3 rounded-full",
+                    replyToPost !== null && post._id === replyToPost._id ? "bg-primary/10 text-primary font-medium" : ""
                   )}
                 >
-                  {likeInProgress[post._id] ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                  {replyToPost !== null && post._id === replyToPost._id ? (
+                    <>
+                      <X className="h-4 w-4 mr-1.5" />
+                      Cancel
+                    </>
                   ) : (
-                    <Heart className={cn("h-4 w-4", post.isLiked && "fill-red-500")} />
+                    <>
+                      <Reply className="h-4 w-4 mr-1.5" />
+                      Reply
+                    </>
                   )}
-                  <span>{post.likes || 0}</span>
                 </Button>
+              )}
+            </div>
 
-                {isAuthenticated && (
-                  <Button
-                    variant={replyToPost !== null && post._id === replyToPost._id ? "secondary" : "ghost"}
+            {/* Toggle button with counter badge for replies */}
+            {hasReplies && (
+              <Button
+                variant={isExpanded ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => toggleReplies(post._id)}
+                className={cn(
+                  "h-8 px-3 gap-1.5 rounded-full text-xs font-medium",
+                  isExpanded && "bg-primary/10 text-primary border-primary/20"
+                )}
+              >
+                {isExpanded ? (
+                  <>
+                    <ChevronDown className="h-3.5 w-3.5" />
+                    <span>Hide replies</span>
+                    <Badge 
+                      variant="secondary" 
+                      className={cn(
+                        "ml-1 text-xs", 
+                        isExpanded && "bg-primary/20 text-primary hover:bg-primary/30"
+                      )}
+                    >
+                      {post.children?.length}
+                    </Badge>
+                  </>
+                ) : (
+                  <>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                    <span>View replies</span>
+                    <Badge 
+                      variant="secondary" 
+                      className="ml-1 text-xs"
+                    >
+                      {post.children?.length}
+                    </Badge>
+                  </>
+                )}
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+        
+        {/* Inline reply box */}
+        {isAuthenticated && 
+          replyToPost !== null && 
+          replyToPost._id && 
+          post._id && 
+          post._id === replyToPost._id && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="mt-3 mb-4 ml-6"
+          >
+            <Card className="bg-card/50 border-primary/20 shadow-sm overflow-hidden">
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Reply className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">
+                    Replying to <span className="text-primary font-semibold">@{post.author?.username}</span>
+                  </span>
+                </div>
+                
+                <TextareaWithFocus
+                  key={`reply-textarea-${post._id}`}
+                  autoFocus
+                  placeholder={`Write your reply to ${post.author?.displayName || post.author?.username}...`}
+                  value={replyContents[post._id] || ''}
+                  onChange={(e) => setReplyContents(prev => ({
+                    ...prev,
+                    [post._id]: e.target.value
+                  }))}
+                  className="min-h-[100px] resize-y mb-3 focus:border-primary/30"
+                />
+                
+                <div className="flex justify-end gap-2">
+                  <Button 
+                    variant="outline" 
                     size="sm"
-                    onClick={() => {
-                      console.log('Reply button clicked. Post:', post);
-                      console.log('Post _id:', post._id);
-                      console.log('Post id property:', (post as any).id);
-                      handleReplyClick(post);
-                    }}
-                    className={cn(
-                      "h-8 px-2",
-                      replyToPost !== null && post._id === replyToPost._id ? "bg-primary/10 text-primary font-medium" : ""
-                    )}
+                    onClick={cancelReply}
+                    className="rounded-full"
                   >
-                    {replyToPost !== null && post._id === replyToPost._id ? (
+                    Cancel
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={handleSubmitReply}
+                    disabled={isSubmitting || !(replyContents[post._id] || '').trim()}
+                    className="gap-2 rounded-full"
+                  >
+                    {isSubmitting ? (
                       <>
-                        <X className="h-4 w-4 mr-1.5" />
-                        Cancel
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Posting...
                       </>
                     ) : (
                       <>
-                        <Reply className="h-4 w-4 mr-1.5" />
-                        Reply
+                        <Send className="h-3.5 w-3.5" />
+                        Post Reply
                       </>
                     )}
                   </Button>
-                )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+        
+        {/* Animate replies expanding/collapsing */}
+        <AnimatePresence>
+          {hasReplies && isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-3 overflow-hidden"
+            >
+              <div className="space-y-0">
+                {post.children!.map(childPost => renderPost(childPost, level + 1))}
               </div>
-            </CardFooter>
-          </Card>
-          
-          {/* Inline reply box that appears directly under the post being replied to */}
-          {isAuthenticated && 
-            replyToPost !== null && 
-            replyToPost._id && 
-            post._id && 
-            post._id === replyToPost._id && (
-            <div className="ml-6 mb-6"> {/* Match the indentation of replies */}
-              <Card className="bg-card/50 shadow-sm">
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Reply className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">
-                      Replying to <span className="text-primary font-semibold">@{post.author?.username}</span>
-                    </span>
-                  </div>
-                  
-                  <TextareaWithFocus
-                    key={`reply-textarea-${post._id}`}
-                    autoFocus
-                    placeholder={`Write your reply to ${post.author?.displayName || post.author?.username}...`}
-                    value={replyContents[post._id] || ''}
-                    onChange={(e) => setReplyContents(prev => ({
-                      ...prev,
-                      [post._id]: e.target.value
-                    }))}
-                    className="min-h-[100px] resize-y mb-3"
-                  />
-                  
-                  <div className="flex justify-end gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={cancelReply}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      size="sm"
-                      onClick={handleSubmitReply}
-                      disabled={isSubmitting || !(replyContents[post._id] || '').trim()}
-                      className="gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          Posting...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-3.5 w-3.5" />
-                          Post Reply
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            </motion.div>
           )}
-        </React.Fragment>
-      );
-    });
+        </AnimatePresence>
+      </motion.div>
+    );
+  };
+
+  // Update the renderPosts function to use recursive rendering
+  const renderPosts = () => {
+    console.log('Rendering posts:', posts.length);
+    
+    return (
+      <div className="space-y-6">
+        {posts.map(post => renderPost(post))}
+      </div>
+    );
   };
 
   // Loading state UI
@@ -1020,7 +1177,47 @@ export function TopicDetail() {
       
       {/* Posts section */}
       <div className="space-y-6 mb-8">
-        <h2 className="text-xl font-semibold">Replies</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-semibold">Replies</h2>
+          
+          {/* Add expand/collapse all button */}
+          {posts.length > 0 && posts.some(post => post.children && post.children.length > 0) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const allPostIds = posts.reduce((acc: string[], post) => {
+                  if (post._id) acc.push(post._id);
+                  return acc;
+                }, []);
+                
+                // Check if any posts are already expanded
+                const anyExpanded = allPostIds.some(id => expandedPosts[id]);
+                
+                // Toggle all posts based on current state
+                const newState = allPostIds.reduce((acc: {[key: string]: boolean}, id) => {
+                  acc[id] = !anyExpanded;
+                  return acc;
+                }, {});
+                
+                setExpandedPosts(newState);
+              }}
+              className="gap-1.5"
+            >
+              {Object.keys(expandedPosts).length > 0 ? (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  <span>Collapse All</span>
+                </>
+              ) : (
+                <>
+                  <ChevronRight className="h-4 w-4" />
+                  <span>Expand All</span>
+                </>
+              )}
+            </Button>
+          )}
+        </div>
         
         {/* No replies message */}
         {posts.length === 0 && (
@@ -1031,20 +1228,25 @@ export function TopicDetail() {
         )}
         
         {/* Posts list - use the renderPosts function */}
-        {renderPosts()}
+        <AnimatePresence>
+          {renderPosts()}
+        </AnimatePresence>
       </div>
       
       {/* Main reply form - only show if not currently replying to a specific post */}
       {isAuthenticated && replyToPost === null ? (
-        <div 
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
           ref={replyFormRef} 
           className={cn(
-            "mb-8 p-4 border rounded-md bg-card transition-all duration-300",
-            "border-border"
+            "mb-8 p-5 border border-primary/20 rounded-lg bg-card/80 shadow-sm transition-all duration-300"
           )}
         >
           <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-1">
+            <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary/70" />
               Join the conversation
             </h3>
           </div>
@@ -1054,14 +1256,14 @@ export function TopicDetail() {
             placeholder="Write your reply to this topic..."
             value={newPostContent}
             onChange={(e) => setNewPostContent(e.target.value)}
-            className="min-h-[120px] resize-y mb-4"
+            className="min-h-[120px] resize-y mb-4 focus:border-primary/30"
           />
           
           <div className="flex justify-end">
             <Button 
               onClick={handleSubmitPost}
               disabled={isSubmitting || !newPostContent.trim()}
-              className="gap-2"
+              className="gap-2 px-5 rounded-full"
             >
               {isSubmitting ? (
                 <>
@@ -1076,7 +1278,7 @@ export function TopicDetail() {
               )}
             </Button>
           </div>
-        </div>
+        </motion.div>
       ) : null}
       
       {!isAuthenticated && (
