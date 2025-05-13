@@ -176,9 +176,7 @@ export function Settings() {
 
   // Handle appearance settings
   const handleSaveAppearance = () => {
-    toast.success("Appearance settings saved", {
-      description: "Your appearance preferences have been updated."
-    });
+    toast.success("Appearance settings saved");
   };
 
   return (

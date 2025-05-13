@@ -389,7 +389,11 @@ export const postsAPI = {
     
     // Process the response to transform the likes array
     const processPost = (post: any) => {
-      const processedPost = { ...post };
+      // Ensure post has _id (use id as fallback)
+      const processedPost = { 
+        ...post,
+        _id: post._id || post.id || ''  // Ensure _id exists
+      };
       
       if (Array.isArray(processedPost.likes)) {
         processedPost.isLiked = currentUserId ? processedPost.likes.includes(currentUserId) : false;
@@ -401,6 +405,9 @@ export const postsAPI = {
       
       return processedPost;
     };
+    
+    // Log the raw response to help with debugging
+    console.log('Raw posts response:', response.data);
     
     if (Array.isArray(response.data)) {
       return response.data.map(processPost);
