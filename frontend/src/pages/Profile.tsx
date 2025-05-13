@@ -635,7 +635,7 @@ export function Profile() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="bio">Bio (max 500 characters)</Label>
+                      <Label htmlFor="bio">Bio</Label>
                       <Textarea
                         id="bio"
                         name="bio"
