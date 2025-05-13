@@ -8,7 +8,19 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  MessageSquare, 
+  Users, 
+  BookOpen, 
+  ArrowRight, 
+  Sparkles, 
+  ChevronRight, 
+  School, 
+  GraduationCap, 
+  Clock 
+} from 'lucide-react';
+import { getAvatarUrl } from '@/lib/utils';
 
 interface Category {
   _id: string;
@@ -35,7 +47,7 @@ export function Home() {
     postCount: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,47 +73,116 @@ export function Home() {
   }, []);
 
   return (
-    <div className="space-y-8 mx-auto px-0 sm:px-2 py-4">
-      {/* Home page doesn't need breadcrumbs */}
-      
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-primary/90 via-primary to-primary/80 dark:from-primary/30 dark:via-primary/25 dark:to-primary/20 rounded-2xl p-8 md:p-12 text-white shadow-xl">
-        <div className="absolute inset-0 bg-grid-white/10 dark:bg-grid-white/5 bg-grid-8" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/90 dark:to-primary/40" />
-        <div className="relative max-w-3xl mx-auto text-center">
-          <Badge variant="outline" className="mb-4 border-white/30 text-white bg-white/10 backdrop-blur-sm py-1.5 px-3">
-            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            WISS Forum - Knowledge Sharing Platform
-          </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            Welcome to WISS Forum
-          </h1>
-          <p className="text-lg md:text-xl mb-8 text-white/90 leading-relaxed">
-            A community platform for students and teachers to discuss, learn and collaborate on academic topics.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            {isAuthenticated ? (
-              <Link to="/categories">
-                <Button size="lg" variant="secondary" className="font-medium group">
-                  Browse Categories
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            ) : (
-              <>
-                <Link to="/register">
-                  <Button size="lg" variant="secondary" className="font-medium group">
-                    Join the Community
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link to="/login">
-                  <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/30 font-medium">
-                    Sign In
-                  </Button>
-                </Link>
-              </>
-            )}
+    <div className="space-y-12 mx-auto px-0 sm:px-2 py-4">
+      {/* Hero Section - Redesigned */}
+      <section className="relative -mt-4 pt-16 pb-12 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent pointer-events-none" />
+        
+        <div className="absolute top-0 right-0 -mt-40 -mr-40 w-96 h-96 rounded-full bg-primary/20 blur-3xl opacity-70" />
+        <div className="absolute bottom-0 left-0 -mb-40 -ml-40 w-96 h-96 rounded-full bg-violet-500/20 blur-3xl opacity-70" />
+        
+        <div className="absolute right-10 top-20 animate-float-slow">
+          <div className="w-20 h-20 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 rotate-12 flex items-center justify-center text-primary">
+            <BookOpen className="w-10 h-10" />
+          </div>
+        </div>
+        
+        <div className="absolute left-10 bottom-20 animate-float">
+          <div className="w-16 h-16 rounded-full bg-violet-500/10 backdrop-blur-sm border border-violet-500/20 flex items-center justify-center text-violet-500">
+            <GraduationCap className="w-8 h-8" />
+          </div>
+        </div>
+        
+        <div className="container max-w-6xl mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+            <div className="lg:col-span-3 space-y-6">
+              <Badge variant="secondary" className="px-4 py-1.5 text-md font-medium bg-primary/10 text-primary border-primary/20 rounded-full">
+                <School className="h-4 w-4 mr-2" />
+                Learning Community
+              </Badge>
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold !leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-500">
+                Welcome to WISS Forum
+              </h1>
+              
+              <p className="text-lg text-muted-foreground max-w-xl">
+                Join our knowledge-sharing platform where students and teachers connect, collaborate, and grow together in an interactive learning environment.
+              </p>
+              
+              <div className="flex flex-wrap gap-4 pt-2">
+                {isAuthenticated ? (
+                  <Link to="/categories">
+                    <Button size="lg" className="rounded-full font-medium">
+                      Browse Categories
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/register">
+                      <Button size="lg" className="rounded-full font-medium">
+                        Join the Community
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link to="/login">
+                      <Button size="lg" variant="outline" className="rounded-full font-medium">
+                        Sign In
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </div>
+              
+              <div className="flex items-center pt-4 text-muted-foreground">
+                <Clock className="h-4 w-4 mr-2" />
+                <span className="text-sm">Join {stats.userCount} members already discussing academic topics</span>
+              </div>
+            </div>
+            
+            <div className="lg:col-span-2 order-first lg:order-last flex justify-center lg:justify-end">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-violet-500/20 rounded-full blur-3xl opacity-50 scale-150" />
+                <div className="relative bg-gradient-to-br from-card/80 to-background/80 backdrop-blur-sm rounded-3xl p-6 border border-border/50 shadow-xl">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="h-3 w-3 rounded-full bg-red-500" />
+                    <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                    <div className="h-3 w-3 rounded-full bg-green-500" />
+                    <div className="ml-auto text-sm text-muted-foreground">WISS Forum</div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="px-4 py-3 rounded-xl bg-primary/5 border border-primary/10">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={user ? getAvatarUrl(user.username) : getAvatarUrl("student")} alt="User" />
+                          <AvatarFallback>S</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-medium">Welcome{user ? `, ${user.displayName}` : ""}!</span>
+                          <span className="text-xs text-muted-foreground">Let's explore topics today</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Active Categories</span>
+                        <Badge variant="outline">{stats.categoryCount}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Topics Available</span>
+                        <Badge variant="outline">{stats.topicCount}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Community Size</span>
+                        <Badge variant="outline">{stats.userCount} members</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
