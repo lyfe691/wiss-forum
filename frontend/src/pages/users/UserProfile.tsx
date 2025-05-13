@@ -139,13 +139,10 @@ export function UserProfile() {
           <CardHeader className="pb-2">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
               <Avatar className="h-24 w-24 border">
-                {profile.avatar ? (
-                  <AvatarImage src={getAvatarUrl(profile.username, profile.avatar)} alt={profile.displayName || profile.username} />
-                ) : (
-                  <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                    {getInitials(profile.displayName || profile.username)}
-                  </AvatarFallback>
-                )}
+                <AvatarImage src={getAvatarUrl(profile.username, profile.avatar)} alt={profile.displayName || profile.username} />
+                <AvatarFallback className="text-lg bg-primary/10 text-primary">
+                  {getInitials(profile.displayName || profile.username)}
+                </AvatarFallback>
               </Avatar>
               
               <div className="text-center sm:text-left">

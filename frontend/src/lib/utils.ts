@@ -23,7 +23,12 @@ export function formatDate(date: Date) {
  * @returns URL to the avatar image
  */
 export function getAvatarUrl(username: string, fallback?: string): string {
-  if (fallback) return fallback;
+  // Only use fallback if it's a valid URL string and not empty
+  if (fallback && fallback.trim().length > 0 && (fallback.startsWith('http') || fallback.startsWith('data:'))) {
+    return fallback;
+  }
+  
+  // Use Dicebear with consistent seed for deterministic avatars
   return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(username)}`;
 }
 

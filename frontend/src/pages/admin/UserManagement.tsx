@@ -41,7 +41,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import axios from 'axios';
-import { getRoleBadgeColor, formatRoleName } from '@/lib/utils';
+import { getRoleBadgeColor, formatRoleName, getAvatarUrl } from '@/lib/utils';
 
 interface UserData {
   _id: string;
@@ -286,13 +286,10 @@ export function UserManagement() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
-                            {userData.avatar ? (
-                              <AvatarImage src={userData.avatar} alt={userData.displayName || userData.username} />
-                            ) : (
-                              <AvatarFallback className="bg-primary/10 text-primary">
-                                {getInitials(userData.displayName || userData.username)}
-                              </AvatarFallback>
-                            )}
+                            <AvatarImage src={getAvatarUrl(userData.username, userData.avatar)} alt={userData.displayName || userData.username} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {getInitials(userData.displayName || userData.username)}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="font-medium">{userData.displayName || userData.username}</div>

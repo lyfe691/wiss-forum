@@ -19,7 +19,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
-import { getRoleBadgeColor, formatRoleName } from '@/lib/utils';
+import { getRoleBadgeColor, formatRoleName, getAvatarUrl } from '@/lib/utils';
 
 interface User {
   _id: string;
@@ -153,13 +153,13 @@ export function Users() {
                   <CardHeader className="pb-2">
                     <div className="flex items-start gap-3">
                       <Avatar className="h-12 w-12 border">
-                        {user.avatar ? (
-                          <AvatarImage src={user.avatar} alt={user.displayName || user.username} />
-                        ) : (
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {getInitials(user.displayName || user.username)}
-                          </AvatarFallback>
-                        )}
+                        <AvatarImage 
+                          src={getAvatarUrl(user.username, user.avatar)} 
+                          alt={user.displayName || user.username} 
+                        />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {getInitials(user.displayName || user.username)}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <CardTitle className="text-base font-medium hover:text-primary transition-colors">{user.displayName || user.username}</CardTitle>
