@@ -1,8 +1,8 @@
 package ch.wiss.forum.payload.request;
 
 import ch.wiss.forum.model.Role;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -10,23 +10,24 @@ import lombok.Data;
 public class RegisterRequest {
     
     @NotBlank
-    @Size(min = 3, max = 20)
+    @Pattern(regexp = "^\\S{3,20}$", message = "Username must be 3-20 characters with no spaces")
     private String username;
     
     @NotBlank
-    @Size(max = 50)
-    @Email
+    @Pattern(regexp = "^[\\w.-]+@wiss-edu\\.ch$", message = "Email must end with @wiss-edu.ch")
     private String email;
     
     @NotBlank
-    @Size(min = 6, max = 40)
+    @Pattern(regexp = "^\\S{6,}$", message = "Password must be at least 6 characters long and must not contain spaces")
     private String password;
     
     @NotBlank
+    @Size(min = 3, max = 50, message = "Display name must be between 3 and 50 characters")
     private String displayName;
     
     private Role role;
     
+    @Size(max = 500, message = "Bio must not exceed 500 characters")
     private String bio;
     
     private String avatar;

@@ -16,6 +16,7 @@ import ch.wiss.forum.payload.request.RegisterRequest;
 import ch.wiss.forum.payload.response.JwtResponse;
 import ch.wiss.forum.repository.UserRepository;
 import ch.wiss.forum.security.JwtUtils;
+import ch.wiss.forum.validation.UserValidator;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,6 +27,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final UserValidator userValidator;
     
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
         String usernameOrEmail = loginRequest.getUsernameOrEmail();
@@ -69,6 +71,31 @@ public class AuthService {
     }
     
     public JwtResponse registerUser(RegisterRequest registerRequest) {
+        // Validate username format
+        if (!userValidator.isValidUsername(registerRequest.getUsername())) {
+            throw new RuntimeException("Error: Username must be 3-20 characters with no spaces or inappropriate terms!");
+        }
+        
+        // Validate email format
+        if (!userValidator.isValidEmail(registerRequest.getEmail())) {
+            throw new RuntimeException("Error: Email must end with @wiss-edu.ch!");
+        }
+        
+        // Validate password format
+        if (!userValidator.isValidPassword(registerRequest.getPassword())) {
+            throw new RuntimeException("Error: Password must be at least 6 characters long and must not contain spaces!");
+        }
+        
+        // Validate display name
+        if (!userValidator.isValidDisplayName(registerRequest.getDisplayName())) {
+            throw new RuntimeException("Error: Display name must be between 3 and 50 characters!");
+        }
+        
+        // Validate bio if provided
+        if (registerRequest.getBio() != null && !userValidator.isValidBio(registerRequest.getBio())) {
+            throw new RuntimeException("Error: Bio must not exceed 500 characters!");
+        }
+        
         // Check if username is already taken
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new RuntimeException("Error: Username is already taken!");

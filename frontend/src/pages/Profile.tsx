@@ -199,18 +199,26 @@ export function Profile() {
     
     if (!profileForm.username.trim()) {
       newErrors.username = 'Username is required';
-    } else if (profileForm.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+    } else if (profileForm.username.includes(' ')) {
+      newErrors.username = 'Username must not contain spaces';
+    } else if (profileForm.username.length < 3 || profileForm.username.length > 20) {
+      newErrors.username = 'Username must be between 3 and 20 characters';
     }
     
     if (!profileForm.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(profileForm.email)) {
-      newErrors.email = 'Email is invalid';
+    } else if (!profileForm.email.match(/^[\w.-]+@wiss-edu\.ch$/)) {
+      newErrors.email = 'Email must end with @wiss-edu.ch';
     }
     
     if (!profileForm.displayName.trim()) {
       newErrors.displayName = 'Display name is required';
+    } else if (profileForm.displayName.length < 3 || profileForm.displayName.length > 50) {
+      newErrors.displayName = 'Display name must be between 3 and 50 characters';
+    }
+    
+    if (profileForm.bio && profileForm.bio.length > 500) {
+      newErrors.bio = 'Bio must not exceed 500 characters';
     }
     
     setErrors(newErrors);
@@ -282,6 +290,8 @@ export function Profile() {
       newErrors.newPassword = 'New password is required';
     } else if (passwordForm.newPassword.length < 6) {
       newErrors.newPassword = 'New password must be at least 6 characters';
+    } else if (passwordForm.newPassword.includes(' ')) {
+      newErrors.newPassword = 'New password must not contain spaces';
     }
     
     if (!passwordForm.confirmPassword) {
@@ -569,7 +579,7 @@ export function Profile() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="username">Username</Label>
+                      <Label htmlFor="username">Username (3-20 characters)</Label>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
                           @
@@ -580,6 +590,7 @@ export function Profile() {
                           value={profileForm.username}
                           onChange={handleProfileChange}
                           className="pl-8"
+                          maxLength={20}
                         />
                       </div>
                       {errors.username && (
@@ -588,7 +599,7 @@ export function Profile() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">Email (@wiss-edu.ch)</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -606,7 +617,7 @@ export function Profile() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="displayName">Display Name</Label>
+                      <Label htmlFor="displayName">Display Name (3-50 characters)</Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -615,6 +626,7 @@ export function Profile() {
                           value={profileForm.displayName}
                           onChange={handleProfileChange}
                           className="pl-10"
+                          maxLength={50}
                         />
                       </div>
                       {errors.displayName && (
@@ -623,7 +635,7 @@ export function Profile() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="bio">Bio</Label>
+                      <Label htmlFor="bio">Bio (max 500 characters)</Label>
                       <Textarea
                         id="bio"
                         name="bio"
@@ -631,7 +643,14 @@ export function Profile() {
                         onChange={handleProfileChange}
                         placeholder="Tell us about yourself..."
                         className="min-h-32"
+                        maxLength={500}
                       />
+                      <p className="text-sm text-muted-foreground">
+                        {profileForm.bio.length}/500 characters
+                      </p>
+                      {errors.bio && (
+                        <p className="text-sm font-medium text-destructive">{errors.bio}</p>
+                      )}
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end">

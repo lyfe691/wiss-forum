@@ -35,13 +35,26 @@ export function Register() {
       return;
     }
     
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+    // Username validation: no spaces
+    if (username.includes(' ')) {
+      setError('Username must not contain spaces');
       return;
     }
     
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    // Email validation: must end with @wiss-edu.ch
+    if (!email.match(/^[\w.-]+@wiss-edu\.ch$/)) {
+      setError('Email must end with @wiss-edu.ch');
+      return;
+    }
+    
+    // Password validation: at least 6 characters, no spaces
+    if (password.length < 6 || password.includes(' ')) {
+      setError('Password must be at least 6 characters long and must not contain spaces');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
     
@@ -91,7 +104,7 @@ export function Register() {
           <Input
             id="username"
             name="username"
-            placeholder="Choose a unique username"
+            placeholder="Choose a unique username (no spaces)"
             value={formData.username}
             onChange={handleChange}
             required
@@ -103,7 +116,7 @@ export function Register() {
             id="email"
             name="email"
             type="email"
-            placeholder="Enter your email address"
+            placeholder="Enter your @wiss-edu.ch email address"
             value={formData.email}
             onChange={handleChange}
             required
@@ -115,7 +128,7 @@ export function Register() {
             id="password"
             name="password"
             type="password"
-            placeholder="Create a password (min. 6 characters)"
+            placeholder="Create a password (min. 6 characters, no spaces)"
             value={formData.password}
             onChange={handleChange}
             required

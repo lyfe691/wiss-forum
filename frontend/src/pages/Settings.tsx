@@ -73,6 +73,49 @@ export function Settings() {
     setError(null);
     setIsSubmitting(true);
     
+    // Validate fields
+    if (!formState.username) {
+      setError('Username is required');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (formState.username.includes(' ')) {
+      setError('Username must not contain spaces');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (formState.username.length < 3 || formState.username.length > 20) {
+      setError('Username must be between 3 and 20 characters');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (!formState.email.match(/^[\w.-]+@wiss-edu\.ch$/)) {
+      setError('Email must end with @wiss-edu.ch');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (!formState.displayName) {
+      setError('Display name is required');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (formState.displayName.length < 3 || formState.displayName.length > 50) {
+      setError('Display name must be between 3 and 50 characters');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (formState.bio && formState.bio.length > 500) {
+      setError('Bio must not exceed 500 characters');
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       // Prepare update data
       const updateData = {
@@ -134,8 +177,14 @@ export function Settings() {
       return;
     }
     
-    if (formState.newPassword.length < 8) {
-      setError('New password must be at least 8 characters long');
+    if (formState.newPassword.length < 6) {
+      setError('New password must be at least 6 characters long');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (formState.newPassword.includes(' ')) {
+      setError('New password must not contain spaces');
       setIsSubmitting(false);
       return;
     }
@@ -215,13 +264,14 @@ export function Settings() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">Username (3-20 characters)</Label>
                   <Input
                     id="username"
                     name="username"
                     value={formState.username}
                     onChange={handleInputChange}
-                    placeholder="Username"
+                    placeholder="Username (no spaces)"
+                    maxLength={20}
                   />
                 </div>
                 
@@ -233,24 +283,25 @@ export function Settings() {
                     type="email"
                     value={formState.email}
                     onChange={handleInputChange}
-                    placeholder="Email address"
+                    placeholder="@wiss-edu.ch email address"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
+                <Label htmlFor="displayName">Display Name (3-50 characters)</Label>
                 <Input
                   id="displayName"
                   name="displayName"
                   value={formState.displayName}
                   onChange={handleInputChange}
-                  placeholder="Display name (optional)"
+                  placeholder="Your display name"
+                  maxLength={50}
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">Bio (max 500 characters)</Label>
                 <Textarea
                   id="bio"
                   name="bio"
@@ -258,7 +309,11 @@ export function Settings() {
                   onChange={handleInputChange}
                   placeholder="Tell others about yourself..."
                   rows={4}
+                  maxLength={500}
                 />
+                <p className="text-sm text-muted-foreground">
+                  {formState.bio?.length || 0}/500 characters
+                </p>
               </div>
               
               <div className="flex justify-end">
@@ -304,7 +359,7 @@ export function Settings() {
                   type="password"
                   value={formState.newPassword}
                   onChange={handleInputChange}
-                  placeholder="Enter your new password"
+                  placeholder="At least 6 characters, no spaces"
                 />
               </div>
               

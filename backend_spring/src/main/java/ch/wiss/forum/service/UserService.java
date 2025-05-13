@@ -15,6 +15,7 @@ import ch.wiss.forum.model.User;
 import ch.wiss.forum.repository.UserRepository;
 import ch.wiss.forum.model.Post;
 import ch.wiss.forum.repository.PostRepository;
+import ch.wiss.forum.validation.UserValidator;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -24,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostRepository postRepository;
+    private final UserValidator userValidator;
     
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -83,6 +85,11 @@ public class UserService {
         
         // Only update fields that are allowed
         if (userDetails.getUsername() != null) {
+            // Validate username format
+            if (!userValidator.isValidUsername(userDetails.getUsername())) {
+                throw new RuntimeException("Username must be 3-20 characters with no spaces or inappropriate terms");
+            }
+            
             // Check if username is already taken
             if (!userDetails.getUsername().equals(user.getUsername()) && 
                 userRepository.existsByUsername(userDetails.getUsername())) {
@@ -92,6 +99,11 @@ public class UserService {
         }
         
         if (userDetails.getEmail() != null) {
+            // Validate email format
+            if (!userValidator.isValidEmail(userDetails.getEmail())) {
+                throw new RuntimeException("Email must end with @wiss-edu.ch");
+            }
+            
             // Check if email is already taken
             if (!userDetails.getEmail().equals(user.getEmail()) && 
                 userRepository.existsByEmail(userDetails.getEmail())) {
@@ -101,10 +113,18 @@ public class UserService {
         }
         
         if (userDetails.getDisplayName() != null) {
+            // Validate display name
+            if (!userValidator.isValidDisplayName(userDetails.getDisplayName())) {
+                throw new RuntimeException("Display name must be between 3 and 50 characters");
+            }
             user.setDisplayName(userDetails.getDisplayName());
         }
         
         if (userDetails.getBio() != null) {
+            // Validate bio
+            if (!userValidator.isValidBio(userDetails.getBio())) {
+                throw new RuntimeException("Bio must not exceed 500 characters");
+            }
             user.setBio(userDetails.getBio());
         }
         
@@ -126,6 +146,11 @@ public class UserService {
         // Check if the user is updating their own password or is an admin
         if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {
             throw new RuntimeException("Not authorized to update this user's password");
+        }
+        
+        // Validate password format
+        if (!userValidator.isValidPassword(newPassword)) {
+            throw new RuntimeException("Password must be at least 6 characters long and must not contain spaces");
         }
         
         User user = getUserById(id);
