@@ -21,7 +21,7 @@ export function Footer() {
             
             <div className="flex items-center gap-4 mt-6">
             <a
-              href="https://github.com/barkintaco/wiss-forum"
+              href="https://github.com/lyfe691/wiss-forum"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center font-semibold text-sm gap-2 bg-background/40 border border-primary/20 hover:border-primary/30 hover:bg-primary/5 px-3 py-2 rounded-md transition-colors"

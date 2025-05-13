@@ -149,7 +149,7 @@ export function Settings() {
       await userAPI.changePassword(data);
       
       toast.success("Password changed", {
-        description: "Your password has been changed successfully. Please log in again."
+        description: "Your password has been changed successfully"
       });
       
       // Clear password fields
@@ -159,12 +159,6 @@ export function Settings() {
         newPassword: '',
         confirmPassword: ''
       }));
-      
-      // Log out after password change
-      setTimeout(() => {
-        logout();
-        navigate('/login');
-      }, 2000);
       
     } catch (error: any) {
       console.error('Failed to change password:', error);
