@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usersAPI } from '@/lib/api';
-import { getAvatarUrl, getRoleBadgeColor, formatRoleName } from '@/lib/utils';
+import { getAvatarUrl, getRoleBadgeColor, formatRoleName, getInitials } from '@/lib/utils';
 import {
   Card,
   CardContent,
@@ -57,15 +57,6 @@ export function Leaderboard() {
 
     fetchLeaderboard();
   }, []);
-
-  // Get initials for avatar fallback
-  const getInitials = (name: string = 'User') => {
-    return name
-      .split(' ')
-      .map(part => part.charAt(0).toUpperCase())
-      .join('')
-      .substring(0, 2);
-  };
 
   // Get medal color based on rank
   const getMedalColor = (rank: number) => {

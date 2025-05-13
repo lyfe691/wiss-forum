@@ -18,8 +18,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
-import { getAvatarUrl } from '@/lib/utils';
+import { cn, getAvatarUrl, getInitials } from '@/lib/utils';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -125,14 +124,6 @@ export function LatestTopics() {
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase();
   };
 
   return (

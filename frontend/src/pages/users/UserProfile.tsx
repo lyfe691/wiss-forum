@@ -17,7 +17,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
-import { getAvatarUrl, getRoleBadgeColor, formatRoleName } from '@/lib/utils';
+import { getAvatarUrl, getRoleBadgeColor, formatRoleName, getInitials } from '@/lib/utils';
 
 interface UserProfile {
   _id: string;
@@ -65,14 +65,6 @@ export function UserProfile() {
 
     fetchUserProfile();
   }, [idOrUsername]);
-
-  // Get initials for avatar fallback
-  const getInitials = (name: string) => {
-    return name.split(' ')
-      .map(part => part.charAt(0).toUpperCase())
-      .join('')
-      .substring(0, 2);
-  };
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">

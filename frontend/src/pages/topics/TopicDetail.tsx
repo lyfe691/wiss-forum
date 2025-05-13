@@ -48,8 +48,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { getAvatarUrl } from '@/lib/utils';
+import { cn, getAvatarUrl, getInitials } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
 
@@ -642,14 +641,6 @@ export function TopicDetail() {
     } catch (error) {
       return '';
     }
-  };
-
-  const getInitials = (name: string = 'User') => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase();
   };
 
   // Check if the current user can manage a post

@@ -51,7 +51,7 @@ export function getRoleBadgeColor(role: string): string {
 }
 
 /**
- * Returns consistently formatted role name with proper capitalization
+ * Returns formatted role name with proper capitalization
  * @param role - The user role in any case format
  * @returns Properly capitalized role name (e.g., "Admin", "Teacher", "Student")
  */
@@ -68,5 +68,25 @@ export function formatRoleName(role: string): string {
     default:
       return normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1);
   }
+}
+
+/**
+ * Returns initials from a name string
+ * @param name - The name to get initials from
+ * @param fallback - Optional fallback character if name is invalid
+ * @returns One or two character string of initials
+ */
+export function getInitials(name?: string | null, fallback: string = 'U'): string {
+  if (!name || typeof name !== 'string' || name.trim() === '') {
+    return fallback;
+  }
+  
+  return name
+    .trim()
+    .split(' ')
+    .map(part => part.charAt(0))
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 }
 

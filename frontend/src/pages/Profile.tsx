@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAvatarUrl, getRoleBadgeColor, formatRoleName } from '@/lib/utils';
+import { getAvatarUrl, getRoleBadgeColor, formatRoleName, getInitials } from '@/lib/utils';
 
 interface UserProfile {
   _id: string;
@@ -323,15 +323,6 @@ export function Profile() {
     } finally {
       setIsChangingPassword(false);
     }
-  };
-
-  // Get initials for avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase();
   };
 
   // Format date

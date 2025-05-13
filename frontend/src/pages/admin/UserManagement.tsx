@@ -41,7 +41,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import axios from 'axios';
-import { getRoleBadgeColor, formatRoleName, getAvatarUrl } from '@/lib/utils';
+import { getRoleBadgeColor, formatRoleName, getAvatarUrl, getInitials } from '@/lib/utils';
 
 interface UserData {
   _id: string;
@@ -151,13 +151,6 @@ export function UserManagement() {
       console.error('Failed to update user role:', err);
       setError('Failed to update user role. Please try again.');
     }
-  };
-
-  const getInitials = (name: string) => {
-    return name.split(' ')
-      .map(part => part.charAt(0).toUpperCase())
-      .join('')
-      .substring(0, 2);
   };
 
   const formatDate = (dateString: string) => {
