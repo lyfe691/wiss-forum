@@ -74,22 +74,54 @@ export function Home() {
 
   return (
     <div className="space-y-12 mx-auto px-0 sm:px-2 py-4">
-      {/* Hero Section - Redesigned with better responsiveness */}
-      <section className="relative pt-8 pb-12 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent pointer-events-none" />
+      {/* Hero Section with smoother fade effects */}
+      <section className="relative pt-10 pb-16 overflow-hidden rounded-2xl">
+        {/* Create a container with mask image for smooth fade on all sides */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Main colored background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/8 to-violet-500/5" />
+          
+          {/* Decorative blobs */}
+          <div className="absolute top-0 right-0 -mt-20 -mr-20 lg:-mt-40 lg:-mr-40 w-64 h-64 lg:w-96 lg:h-96 rounded-full bg-primary/20 blur-3xl opacity-60" />
+          <div className="absolute bottom-0 left-0 -mb-20 -ml-20 lg:-mb-40 lg:-ml-40 w-64 h-64 lg:w-96 lg:h-96 rounded-full bg-violet-500/20 blur-3xl opacity-60" />
+          
+          {/* Additional blobs for more vibrant look */}
+          <div className="absolute top-1/3 left-1/4 w-32 h-32 rounded-full bg-blue-500/10 blur-3xl opacity-50" />
+          <div className="absolute bottom-1/3 right-1/4 w-40 h-40 rounded-full bg-pink-500/10 blur-3xl opacity-50" />
+        </div>
         
-        {/* Make blob positions responsive */}
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 lg:-mt-40 lg:-mr-40 w-64 h-64 lg:w-96 lg:h-96 rounded-full bg-primary/20 blur-3xl opacity-70" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 lg:-mb-40 lg:-ml-40 w-64 h-64 lg:w-96 lg:h-96 rounded-full bg-violet-500/20 blur-3xl opacity-70" />
+        {/* Mask overlay for smooth fade on all sides - critical for smooth edges */}
+        <div className="absolute inset-0" style={{
+          background: `
+            linear-gradient(to right, 
+              rgb(var(--background) / 1) 0%, 
+              rgb(var(--background) / 0.1) 10%, 
+              rgb(var(--background) / 0) 20%,
+              rgb(var(--background) / 0) 80%,
+              rgb(var(--background) / 0.1) 90%,
+              rgb(var(--background) / 1) 100%
+            ),
+            linear-gradient(to bottom, 
+              rgb(var(--background) / 1) 0%, 
+              rgb(var(--background) / 0.1) 5%, 
+              rgb(var(--background) / 0) 15%,
+              rgb(var(--background) / 0) 85%,
+              rgb(var(--background) / 0.1) 95%,
+              rgb(var(--background) / 1) 100%
+            )
+          `,
+          pointerEvents: 'none',
+          zIndex: 5
+        }} />
         
         {/* Hide decorative elements on small screens */}
-        <div className="absolute right-10 top-20 animate-float-slow hidden md:block">
+        <div className="absolute right-10 top-20 animate-float-slow hidden md:block z-10">
           <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 rotate-12 flex items-center justify-center text-primary">
             <BookOpen className="w-8 h-8 lg:w-10 lg:h-10" />
           </div>
         </div>
         
-        <div className="absolute left-10 bottom-20 animate-float hidden md:block">
+        <div className="absolute left-10 bottom-20 animate-float hidden md:block z-10">
           <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-violet-500/10 backdrop-blur-sm border border-violet-500/20 flex items-center justify-center text-violet-500">
             <GraduationCap className="w-6 h-6 lg:w-8 lg:h-8" />
           </div>
