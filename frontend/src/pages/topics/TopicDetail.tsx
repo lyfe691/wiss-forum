@@ -637,14 +637,11 @@ export function TopicDetail() {
           <Card 
             id={`post-${post._id}`} 
             className={cn(
-              "border relative transition-all duration-200 hover:shadow-md mb-2",
+              "border relative transition-all duration-200 hover:shadow-md mb-4",
               replyToPost?._id === post._id && "ring-2 ring-primary/30",
-              post.replyTo && "ml-8 border-l-4 border-l-primary/30"  // Indent replies with clearer border
+              post.replyTo && "ml-6" // Simplified indentation for replies
             )}
           >
-            {post.replyTo && (
-              <div className="absolute -left-6 top-6 h-6 w-6 border-t-2 border-l-2 border-primary/30 rounded-tl-md"></div>
-            )}
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
@@ -699,7 +696,7 @@ export function TopicDetail() {
             </CardHeader>
             
             <CardContent className="prose prose-sm max-w-none pb-3">
-              {/* Show who this post is replying to */}
+              {/* Make the "Replying to" section more prominent */}
               {post.replyTo && post.replyToAuthor && (
                 <div className="mb-3 text-sm flex items-center gap-2 text-muted-foreground bg-muted/30 px-3 py-2 rounded-md">
                   <Reply className="h-3.5 w-3.5 text-primary/70" />
@@ -770,7 +767,7 @@ export function TopicDetail() {
             replyToPost._id && 
             post._id && 
             post._id === replyToPost._id && (
-            <div className="ml-8 mb-8 border-l-4 border-l-primary/30 pl-4">
+            <div className="ml-6 mb-6"> {/* Match the indentation of replies */}
               <Card className="bg-card/50 shadow-sm">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 mb-3">
