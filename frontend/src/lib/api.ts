@@ -443,7 +443,16 @@ export const topicsAPI = {
       
       throw error;
     }
-  }
+  },
+  
+  incrementViewCount: async (topicId: string) => {
+    try {
+      await api.post(`/topics/${topicId}/view`);
+    } catch (error) {
+      console.error('Failed to increment view count:', error);
+      throw error;
+    }
+  },
 };
 
 // Posts API

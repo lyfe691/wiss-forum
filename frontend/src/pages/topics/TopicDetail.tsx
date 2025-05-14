@@ -213,6 +213,9 @@ export function TopicDetail() {
           })));
           
           setPosts(sortedPosts);
+
+          // Increment view count
+          await topicsAPI.incrementViewCount(topicData._id);
         } catch (error) {
           console.error('Failed to fetch posts:', error);
           setPosts([]);
