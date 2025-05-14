@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Github} from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
+// footer 
+
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const { isAuthenticated } = useAuth();

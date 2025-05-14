@@ -21,6 +21,11 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Role, roleUtils } from '@/lib/types';
 
+// ------------------------------------------------------------
+// side nav component, its bugged rn but looks good.
+// bug: when i scroll down and then navigate, it lifts the whole nav items. weird
+// ------------------------------------------------------------
+
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
@@ -110,7 +115,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
   useEffect(() => {
-    if (isMobileSidebar) return; // Don't run resize detection if we're explicitly in mobile mode
+    if (isMobileSidebar) return; 
 
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1024);
@@ -120,7 +125,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     return () => window.removeEventListener('resize', handleResize);
   }, [isMobileSidebar]);
   
-  // Get user role and check permissions
+  // get user role and check permissions
   const userRole = roleUtils.normalizeRole(user?.role);
   const isAdmin = userRole === Role.ADMIN;
   const isTeacher = userRole === Role.TEACHER;
@@ -167,12 +172,12 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     }
   ] : [];
   
-  // Define admin nav items based on role permissions
+  // define admin nav items based on role permissions
   let adminNavItems: any[] = [];
   
   if (isAuthenticated) {
     if (isAdmin) {
-      // Full admin navigation for admins
+      // full admin navigation for admins
       adminNavItems = [
         {
           icon: <LayoutDashboard className="h-5 w-5" />,
@@ -191,7 +196,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
         }
       ];
     } else if (isTeacher) {
-      // Limited admin navigation for teachers - only categories
+      // limited admin navigation for teachers - only categories
       adminNavItems = [
         {
           icon: <Book className="h-5 w-5" />,
@@ -218,11 +223,11 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
 
   const renderNavItems = (items: any[]) => {
     return items.map((item, index) => {
-      // Special case for admin dashboard - don't highlight when on admin/users or admin/categories
+      // special case for admin dashboard - don't highlight when on admin/users or admin/categories
       const isExactMatch = location.pathname === item.href;
       const isParentPath = item.href !== '/' && location.pathname.startsWith(item.href);
       
-      // Exclude specific cases where we don't want parent highlighting
+      // exclude specific cases where we don't want parent highlighting
       const excludeFromParentHighlight = 
         (item.href === '/admin' && (
           location.pathname === '/admin/users' || 

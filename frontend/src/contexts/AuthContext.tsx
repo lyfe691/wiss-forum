@@ -4,6 +4,15 @@ import { authAPI } from '@/lib/api';
 import { userAPI } from '@/lib/api';
 import { User, Role, roleUtils } from '@/lib/types';
 
+// AUTH CONTEXT
+// context is used for: 
+// - storing user data
+// - checking if user is authenticated
+// - logging in and out
+// - refreshing user data
+// - registering a new user
+
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;

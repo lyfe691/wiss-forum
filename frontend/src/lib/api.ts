@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-// Create axios instance with default config
+
+// API
+// used for a lot.
+// such as making requests to the backend etc.
+
+
+// create axios instance with default config
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
   headers: {
@@ -9,12 +15,11 @@ const api = axios.create({
   withCredentials: true
 });
 
-// Add a request interceptor to attach the auth token
+// add a request interceptor to attach the auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Make sure we're sending a clean token without any "Bearer " prefix
       const cleanToken = token.replace(/^Bearer\s+/i, '').trim();
       config.headers.Authorization = `Bearer ${cleanToken}`;
     }
@@ -25,26 +30,26 @@ api.interceptors.request.use(
   }
 );
 
-// Add a response interceptor to handle auth errors
+// add a response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const errorStatus = error.response?.status;
     const isAuthEndpoint = error.config?.url?.includes('/auth/');
     
-    // Handle 404 errors specifically to provide better error messages
+    // handle 404 errors specifically to provide better error messages
     if (errorStatus === 404) {
       console.error('Resource not found:', error.config?.url);
-      // We'll let the component handle this error with appropriate UI
+      // we'll let the component handle this error with appropriate iu
       return Promise.reject({
         ...error,
         message: error.response?.data?.message || 'Resource not found'
       });
     }
     
-    // For non-auth endpoints with 401 errors, redirect to login
+    // for non-auth endpoints with 401 errors, redirect to login
     if (errorStatus === 401 && !isAuthEndpoint && !error.config?.__isRetry) {
-      // Try token refresh once
+      // try token refresh once
       try {
         const refreshResponse = await api.post('/auth/refresh-token');
         
@@ -52,7 +57,7 @@ api.interceptors.response.use(
           const newToken = refreshResponse.data.token.replace(/^Bearer\s+/i, '').trim();
           localStorage.setItem('token', newToken);
           
-          // Retry the original request with the new token
+          // retry the original request with the new token
           const originalRequest = error.config;
           originalRequest.__isRetry = true;
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -60,7 +65,7 @@ api.interceptors.response.use(
           return axios(originalRequest);
         }
       } catch (refreshError) {
-        // Clear localStorage and redirect to login on auth error
+        // clear localStorage and redirect to login on auth error
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
@@ -71,7 +76,7 @@ api.interceptors.response.use(
   }
 );
 
-// Helper to normalize data with consistent id fields
+// helper to normalize data with consistent id fields
 const normalizeId = (item: any) => {
   if (!item) return item;
   return {
@@ -571,14 +576,13 @@ export const statsAPI = {
         const topicsData = await api.get('/topics?page=0&size=1');
         topicCount = topicsData.data?.totalElements || 0;
       } catch (error) {
-        // Continue if error
       }
       
       return {
         userCount,
         categoryCount,
         topicCount,
-        postCount: 0 // Simplified
+        postCount: 0 // simplified
       };
     } catch (error) {
       return {

@@ -34,7 +34,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Detect scroll for navbar appearance change
+  // detect scroll for navbar appearsance change
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -72,16 +72,16 @@ export function Navbar() {
     )}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left side: Logo (Desktop) + Mobile Menu Toggle */}
+          {/* left side: logo (desktop) + mobile menu toggle */}
           <div className="flex items-center">
-            {/* Logo - Fixed position on Desktop */}
+            {/* logo - fixed position on desktop */}
             <div className="hidden lg:flex items-center justify-center w-64 border-r fixed top-0 left-0 h-16 bg-muted/30 backdrop-blur-sm z-50">
               <Link to="/">
                 <img src="/logo.png" alt="WISS Forum Logo" className=" h-25 w-auto" />
               </Link>
             </div>
 
-            {/* Mobile Menu Button */} 
+            {/* mobile menu button */} 
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild className="lg:hidden mr-2">
                 <Button variant="ghost" size="icon" className="lg:hidden relative text-foreground">
@@ -104,7 +104,7 @@ export function Navbar() {
                     </SheetClose>
                   </div>
 
-                  {/* Use mobile version of SideNav */}
+                  {/* use mobile version of sidenav */}
                   <div className="flex-1 overflow-y-auto bg-muted/30">
                     {isAuthenticated && (
                       <div className="px-4 py-3 border-b border-border">
@@ -127,7 +127,7 @@ export function Navbar() {
                       </div>
                     )}
                     
-                    {/* Render mobile nav */}
+                    {/* render mobile nav */}
                     <SideNav isMobileSidebar={true} onItemClick={closeMobileMenu} />
                   </div>
                   
@@ -151,11 +151,11 @@ export function Navbar() {
             </Sheet>
           </div>
           
-          {/* Right side controls */}
+          {/* right side controls */}
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                {/* Create Post button - desktop only */}
+                {/* create post button - desktop only */}
                 <Button size="sm" asChild className="hidden sm:flex mr-2">
                   <Link to="/create-topic">
                     <Plus className="mr-2 h-4 w-4" />
@@ -163,7 +163,7 @@ export function Navbar() {
                   </Link>
                 </Button>
                 
-                {/* User profile dropdown */}
+                {/* user profile dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
@@ -215,7 +215,7 @@ export function Navbar() {
                       </>
                     )}
                     
-                    {/* Show category management option directly for teachers */}
+                    {/* show category management option directly for teachers */}
                     {user && isTeacher && !isAdmin && (
                       <>
                         <DropdownMenuSeparator />

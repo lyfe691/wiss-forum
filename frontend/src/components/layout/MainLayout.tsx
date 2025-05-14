@@ -5,6 +5,8 @@ import { SideNav } from './SideNav';
 import { NewPostButton } from '@/components/NewPostButton';
 import { useEffect, useState } from 'react';
 
+// main layout component, used to wrap the main pages
+
 export function MainLayout() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isScrolled, setIsScrolled] = useState(false);

@@ -1,4 +1,8 @@
 // Theme definitions
+
+// using shadcn themeing
+// ive got it from a doc
+
 export type Theme = 'light' | 'dark' | 'steam';
 
 export const themes: Record<Theme, string> = {

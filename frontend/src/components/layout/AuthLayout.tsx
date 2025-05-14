@@ -1,6 +1,8 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
+// auth layout component, used to wrap the auth pages
+
 export function AuthLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,10 +16,9 @@ export function AuthLayout() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      {/* Header */}
       <header className="p-4 flex justify-between items-center border-b border-border">
         <Link to="/">
-          <img src="/logo.png" alt="Wiss Forum Logo" className="h-8 w-auto" /> {/* Adjusted size */}
+          <img src="/logo.png" alt="Wiss Forum Logo" className="h-8 w-auto" />
         </Link>
         <nav className="space-x-4 flex items-center"> 
           <Button 
@@ -26,7 +27,6 @@ export function AuthLayout() {
           > 
             Help
           </Button>
-          {/* Conditionally show Sign In/Sign Up based on current page */}
           {!isLoginPage && (
             <Button 
               variant="outline"
@@ -46,12 +46,12 @@ export function AuthLayout() {
         </nav>
       </header>
 
-      {/* Main Content - Render child routes here */}
+      {/* main content - render child routes here */}
       <main className="flex-grow flex flex-col items-center justify-center px-4">
-        <Outlet /> {/* Child routes (Login, Register) will render here */}
+        <Outlet /> 
       </main>
 
-      {/* Footer */}
+      {/* footer */}
       <footer className="p-4 text-center text-sm text-muted-foreground border-t border-border">
         <Button 
           variant="link" 
