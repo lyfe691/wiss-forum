@@ -16,7 +16,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
-        // Check if the input is an email by looking for @ symbol
+        // check if the input is an email by looking for @ symbol
         if (usernameOrEmail.contains("@")) {
             System.out.println("Looking up user by email: " + usernameOrEmail);
             return userRepository.findByEmail(usernameOrEmail)

@@ -41,7 +41,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 String username = jwtUtils.getUsernameFromJwtToken(jwt);
                 
                 try {
-                    // First try to load user by username 
+                    // first try to load user by username
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
@@ -49,7 +49,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                     
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } catch (UsernameNotFoundException e) {
-                    // If username not found, try to find user by userId from token
+                    // if username not found, try to find user by userId from token
                     String userId = jwtUtils.getUserIdFromJwtToken(jwt);
                     if (userId != null) {
                         userRepository.findById(userId).ifPresent(user -> {

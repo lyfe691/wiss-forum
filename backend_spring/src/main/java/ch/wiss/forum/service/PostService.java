@@ -46,17 +46,17 @@ public class PostService {
         String topicId = post.getTopic().getId();
         Topic topic = topicService.getTopicById(topicId);
         
-        // Set metadata
+        // set metadata
         post.setAuthor(currentUser);
         post.setTopic(topic);
         post.setCreatedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
         post.setEdited(false);
         
-        // Save the post
+        // save the post
         Post savedPost = postRepository.save(post);
         
-        // Update the topic's reply count and last post info
+        // update the topic's reply count and last post info
         topic.setReplyCount(topic.getReplyCount() + 1);
         topic.setLastPost(savedPost);
         topic.setLastPostAt(LocalDateTime.now());
@@ -69,7 +69,7 @@ public class PostService {
     public Post updatePost(String id, Post postDetails, User currentUser) {
         Post post = getPostById(id);
         
-        // Check if the user is authorized to update the post
+        // check if the user is authorized to update the post
         if (!post.getAuthor().getId().equals(currentUser.getId()) && 
                 !("admin".equals(currentUser.getRole()) || "teacher".equals(currentUser.getRole()))) {
             throw new RuntimeException("Not authorized to update this post");
@@ -87,19 +87,19 @@ public class PostService {
     public void deletePost(String id, User currentUser) {
         Post post = getPostById(id);
         
-        // Check if the user is authorized to delete the post
+        // check if the user is authorized to delete the post
         if (!post.getAuthor().getId().equals(currentUser.getId()) && 
                 !("admin".equals(currentUser.getRole()) || "teacher".equals(currentUser.getRole()))) {
             throw new RuntimeException("Not authorized to delete this post");
         }
         
-        // Update topic's reply count
+        // update topic's reply count
         Topic topic = post.getTopic();
         topic.setReplyCount(topic.getReplyCount() - 1);
         
-        // If this was the last post, update the last post info
+        // if this was the last post, update the last post info
         if (topic.getLastPost() != null && topic.getLastPost().getId().equals(post.getId())) {
-            // Find the new latest post for this topic
+            // find the new latest post for this topic
             List<Post> topicPosts = postRepository.findByTopicAndReplyToIsNullOrderByCreatedAtAsc(topic);
             if (!topicPosts.isEmpty()) {
                 Post latestPost = topicPosts.get(topicPosts.size() - 1);
@@ -118,11 +118,11 @@ public class PostService {
         
         topicRepository.save(topic);
         
-        // Delete replies to this post first
+        // delete replies to this post first
         List<Post> replies = postRepository.findByReplyTo(post);
         postRepository.deleteAll(replies);
         
-        // Delete the post
+        // delete the post
         postRepository.delete(post);
     }
     

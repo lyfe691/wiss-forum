@@ -1,5 +1,7 @@
 package ch.wiss.forum.payload.response;
 
+// message response
+
 public class MessageResponse {
     private String message;
     

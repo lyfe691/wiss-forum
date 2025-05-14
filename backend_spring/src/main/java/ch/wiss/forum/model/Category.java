@@ -12,6 +12,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// category model
+
 @Data
 @Builder
 @NoArgsConstructor

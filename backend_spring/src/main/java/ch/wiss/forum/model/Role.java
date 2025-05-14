@@ -1,8 +1,8 @@
 package ch.wiss.forum.model;
 
 /**
- * Enum representing user roles in the system with a clear hierarchy.
- * STUDENT < TEACHER < ADMIN in terms of permissions.
+ * enum representing user roles in the system with a clear hierarchy.
+ * STUDENT < TEACHER < ADMIN in terms of permissions, ADMIN being the highest privilege
  */
 public enum Role {
     STUDENT,
@@ -10,10 +10,10 @@ public enum Role {
     ADMIN;
     
     /**
-     * Safely converts a string to a Role enum value.
+     * safely converts a string to a Role enum value
      * 
-     * @param roleStr The string to convert
-     * @return The corresponding Role or STUDENT if invalid
+     * @param roleStr the string to convert
+     * @return the corresponding Role or STUDENT if invalid
      */
     public static Role fromString(String roleStr) {
         if (roleStr == null) {
@@ -28,9 +28,9 @@ public enum Role {
     }
     
     /**
-     * Checks if this role has equal or higher privileges than the specified role.
+     * checks if this role has equal or higher privileges than the specified role
      * 
-     * @param role The role to compare against
+     * @param role the role to compare against
      * @return true if this role has equal or higher privileges
      */
     public boolean hasAtLeastSamePrivilegesAs(Role role) {

@@ -16,6 +16,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// user model
+
 @Data
 @Builder
 @NoArgsConstructor

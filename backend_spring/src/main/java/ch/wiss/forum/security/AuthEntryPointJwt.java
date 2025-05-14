@@ -36,7 +36,7 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
                                  request.getRequestURI(), System.currentTimeMillis()));
     }
     
-    // Simple error response class
+    // simple error response class
     private static class ErrorResponse {
         public int status;
         public String message;

@@ -7,6 +7,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import ch.wiss.forum.model.Category;
 
+// category repository
+
 public interface CategoryRepository extends MongoRepository<Category, String> {
     
     Optional<Category> findBySlug(String slug);

@@ -17,6 +17,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// post model
+
 @Data
 @Builder
 @NoArgsConstructor

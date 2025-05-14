@@ -38,6 +38,7 @@ public class PostController {
     private final PostService postService;
     private final TopicService topicService;
     
+    // get posts by topic
     @GetMapping("/topic/{topicId}")
     public ResponseEntity<?> getPostsByTopic(
             @PathVariable String topicId,
@@ -58,12 +59,14 @@ public class PostController {
         }
     }
     
+    // get post by id
     @GetMapping("/{id}")
     public ResponseEntity<Post> getPostById(@PathVariable String id) {
         Post post = postService.getPostById(id);
         return ResponseEntity.ok(post);
     }
-    
+
+    // create post
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> createPost(@Valid @RequestBody Map<String, Object> requestBody) {
@@ -90,7 +93,7 @@ public class PostController {
                     Post replyTo = postService.getPostById(replyToId);
                     post.setReplyTo(replyTo);
                 } catch (Exception e) {
-                    // Ignore if reply-to post not found
+                    // just ignore if reply to post not found
                 }
             }
             
@@ -102,7 +105,8 @@ public class PostController {
                 .body("Failed to create post: " + e.getMessage());
         }
     }
-    
+
+    // update post
     @PutMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Post> updatePost(@PathVariable String id, @Valid @RequestBody Post post) {
@@ -116,7 +120,8 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
-    
+
+    // delete post
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deletePost(@PathVariable String id) {
@@ -130,7 +135,8 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
-    
+
+    // like post
     @PostMapping("/{id}/like")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Post> likePost(@PathVariable String id) {
@@ -140,7 +146,8 @@ public class PostController {
         Post post = postService.likePost(id, currentUser);
         return ResponseEntity.ok(post);
     }
-    
+
+    // unlike post
     @PostMapping("/{id}/unlike")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Post> unlikePost(@PathVariable String id) {

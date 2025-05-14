@@ -40,6 +40,7 @@ public class TopicController {
     private final TopicService topicService;
     private final CategoryService categoryService;
     
+    // get all topics
     @GetMapping
     public ResponseEntity<Page<Topic>> getAllTopics(
             @RequestParam(defaultValue = "0") int page,
@@ -53,7 +54,8 @@ public class TopicController {
         Page<Topic> topics = topicService.getAllTopics(pageable);
         return ResponseEntity.ok(topics);
     }
-    
+
+    // get topics by category
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<?> getTopicsByCategory(
             @PathVariable String categoryId,
@@ -61,16 +63,15 @@ public class TopicController {
             @RequestParam(defaultValue = "10") int size) {
         
         try {
-            // Create pageable with descending sort by createdAt
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
             
-            // First try to get by ID
+            // first try to get by id
             try {
                 Category category = categoryService.getCategoryById(categoryId);
                 Page<Topic> topicsPage = topicService.getTopicsByCategory(categoryId, pageable);
                 return ResponseEntity.ok(topicsPage.getContent());
             } catch (Exception idError) {
-                // If not found by ID, try by slug
+                // if not found by id, try by slug
                 Category category = categoryService.getCategoryBySlug(categoryId);
                 Page<Topic> topicsPage = topicService.getTopicsByCategory(category.getId(), pageable);
                 return ResponseEntity.ok(topicsPage.getContent());
@@ -79,13 +80,15 @@ public class TopicController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-    
+
+    // get recent topics
     @GetMapping("/recent")
     public ResponseEntity<List<Topic>> getRecentTopics() {
         List<Topic> topics = topicService.getRecentTopics();
         return ResponseEntity.ok(topics);
     }
-    
+
+    // search topics
     @GetMapping("/search")
     public ResponseEntity<Page<Topic>> searchTopics(
             @RequestParam String term,
@@ -96,22 +99,23 @@ public class TopicController {
         Page<Topic> topics = topicService.searchTopics(term, pageable);
         return ResponseEntity.ok(topics);
     }
-    
+
+    // get topic by id or slug
     @GetMapping("/{idOrSlug}")
     public ResponseEntity<?> getTopicById(@PathVariable String idOrSlug) {
         try {
-            // Check for null or invalid id
+            // check for null or invalid id
             if (idOrSlug == null || idOrSlug.equals("null") || idOrSlug.equals("undefined") || idOrSlug.trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MessageResponse("Topic not found: Invalid ID/slug"));
             }
             
             try {
-                // First try to look up by ID
+                // first try to look up by id
                 Topic topic = topicService.getTopicById(idOrSlug);
                 return ResponseEntity.ok(topic);
             } catch (Exception idError) {
-                // If ID lookup fails, try to find by slug
+                // if id lookup fails, try to find by slug
                 Topic topic = topicService.getTopicBySlug(idOrSlug);
                 return ResponseEntity.ok(topic);
             }
@@ -120,11 +124,12 @@ public class TopicController {
                 .body(new MessageResponse("Topic not found with ID or slug: " + idOrSlug));
         }
     }
-    
+
+    // get topic by slug
     @GetMapping("/slug/{slug}")
     public ResponseEntity<?> getTopicBySlug(@PathVariable String slug) {
         try {
-            // Check for null or invalid slug
+            // check for null or invalid slug
             if (slug == null || slug.equals("null") || slug.equals("undefined") || slug.trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MessageResponse("Topic not found: Invalid slug"));
@@ -137,7 +142,8 @@ public class TopicController {
                 .body(new MessageResponse("Topic not found with slug: " + slug));
         }
     }
-    
+
+    // increment view count
     @PostMapping("/{id}/view")
     public ResponseEntity<Topic> incrementViewCount(@PathVariable String id) {
         try {
@@ -147,7 +153,8 @@ public class TopicController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
+    // create topic
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> createTopic(@Valid @RequestBody Map<String, Object> requestBody) {
@@ -166,7 +173,7 @@ public class TopicController {
             
             User currentUser = (User) authentication.getPrincipal();
             
-            // Extract data from request
+            // extract data from request
             String title = (String) requestBody.get("title");
             String content = (String) requestBody.get("content");
             String categoryId = (String) requestBody.get("categoryId");
@@ -177,7 +184,7 @@ public class TopicController {
                     .body(new MessageResponse("Title, content, and categoryId are required"));
             }
             
-            // Fetch the category
+            // fetch the category
             Category category;
             try {
                 category = categoryService.getCategoryById(categoryId);
@@ -186,7 +193,7 @@ public class TopicController {
                     .body(new MessageResponse("Category not found with ID: " + categoryId));
             }
             
-            // Create Topic
+            // create topic
             Topic topic = new Topic();
             topic.setTitle(title);
             topic.setContent(content);
@@ -203,14 +210,15 @@ public class TopicController {
                 .body(new MessageResponse("Failed to create topic: " + e.getMessage()));
         }
     }
-    
+
+    // update topic
     @PutMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Topic> updateTopic(@PathVariable String id, @Valid @RequestBody Topic topic) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         
-        // Check if the user is the author or an admin/teacher
+        // check if the user is the author or an admin/teacher
         Topic existingTopic = topicService.getTopicById(id);
         if (!existingTopic.getAuthor().getId().equals(currentUser.getId()) && 
                 !("admin".equals(currentUser.getRole()) || "teacher".equals(currentUser.getRole()))) {
@@ -220,17 +228,18 @@ public class TopicController {
         Topic updatedTopic = topicService.updateTopic(id, topic);
         return ResponseEntity.ok(updatedTopic);
     }
-    
+
+    // delete topic
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteTopic(@PathVariable String id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         
-        // Get the topic
+        // get the topic
         Topic existingTopic = topicService.getTopicById(id);
         
-        // Check permissions using centralized utility
+        // check permissions using centralized utility
         if (!PermissionUtils.canModifyContent(currentUser, existingTopic.getAuthor().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import ch.wiss.forum.model.User;
 
+// user repository
+
 public interface UserRepository extends MongoRepository<User, String> {
     
     Optional<User> findByUsername(String username);

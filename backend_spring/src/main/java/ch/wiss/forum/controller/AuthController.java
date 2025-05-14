@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.LoginRequest;
 import ch.wiss.forum.payload.request.RegisterRequest;
 import ch.wiss.forum.payload.response.JwtResponse;
@@ -25,6 +24,7 @@ public class AuthController {
     
     private final AuthService authService;
     
+    // register
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
@@ -32,24 +32,25 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new MessageResponse("User registered successfully!"));
         } catch (RuntimeException e) {
-            // Return an appropriate error response
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Registration failed: " + e.getMessage()));
         }
     }
     
+    // login
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             JwtResponse response = authService.authenticateUser(loginRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace(); // Add detailed logging to help debug
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse("Authentication failed: " + e.getMessage()));
         }
     }
     
+    // check if user is authenticated
     @GetMapping("/check")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MessageResponse> checkAuthentication() {

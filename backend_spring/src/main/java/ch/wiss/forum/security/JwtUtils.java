@@ -20,10 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 import javax.crypto.SecretKey;
 import jakarta.annotation.PostConstruct;
 
+// jwt utils
+
 @Component
 @Slf4j
 public class JwtUtils {
     
+    // currently im using them hardcoded in application.properties, in production i will use env as said before.
     @Value("${app.jwt.secret}")
     private String jwtSecret;
     
@@ -34,7 +37,7 @@ public class JwtUtils {
     
     @PostConstruct
     public void init() {
-        // Use a secure key for HS512
+        // use a secure key for HS512
         key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     }
     

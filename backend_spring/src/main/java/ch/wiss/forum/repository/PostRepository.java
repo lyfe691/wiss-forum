@@ -10,6 +10,8 @@ import ch.wiss.forum.model.Post;
 import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 
+// post repository
+
 public interface PostRepository extends MongoRepository<Post, String> {
     
     Page<Post> findByTopicOrderByCreatedAtAsc(Topic topic, Pageable pageable);

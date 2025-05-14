@@ -30,19 +30,20 @@ public class CategoryController {
     
     private final CategoryService categoryService;
     
+    // get all categories
     @GetMapping
     public ResponseEntity<List<Category>> getAllCategories() {
         List<Category> categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
-    
+
+    // get category by id
     @GetMapping("/{id}")
     public ResponseEntity<?> getCategoryById(@PathVariable String id) {
         try {
             Category category = categoryService.getCategoryById(id);
             return ResponseEntity.ok(category);
         } catch (RuntimeException e) {
-            // Try to find by slug instead if ID lookup fails
             try {
                 Category category = categoryService.getCategoryBySlug(id);
                 return ResponseEntity.ok(category);
@@ -52,7 +53,8 @@ public class CategoryController {
             }
         }
     }
-    
+
+    // get category by slug
     @GetMapping("/slug/{slug}")
     public ResponseEntity<?> getCategoryBySlug(@PathVariable String slug) {
         try {
@@ -64,6 +66,7 @@ public class CategoryController {
         }
     }
     
+    // create category
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
     public ResponseEntity<Category> createCategory(@Valid @RequestBody Category category) {
@@ -73,14 +76,16 @@ public class CategoryController {
         Category createdCategory = categoryService.createCategory(category, currentUser);
         return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
     }
-    
+
+    // update category
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
     public ResponseEntity<Category> updateCategory(@PathVariable String id, @Valid @RequestBody Category category) {
         Category updatedCategory = categoryService.updateCategory(id, category);
         return ResponseEntity.ok(updatedCategory);
     }
-    
+
+    // delete category
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
     public ResponseEntity<Void> deleteCategory(@PathVariable String id) {

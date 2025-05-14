@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+// Configures global Jackson settings: disables timestamps for dates, ignores nulls, and supports Java 8 time types.
 @Configuration
 public class JacksonConfig {
 
@@ -20,7 +21,7 @@ public class JacksonConfig {
                 .modules(new JavaTimeModule())
                 .build();
         
-        // Configure to handle circular references
+        // configure to handle circular references
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         
         return mapper;

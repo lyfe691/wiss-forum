@@ -11,6 +11,6 @@ public class PasswordUpdateRequest {
     private String currentPassword;
     
     @NotBlank
-    @Pattern(regexp = "^\\S{6,}$", message = "Password must be at least 6 characters long and must not contain spaces")
+    @Pattern(regexp = "^\\S{6,}$", message = "Password must be at least 6 characters and cannot contain spaces")
     private String newPassword;
 } 

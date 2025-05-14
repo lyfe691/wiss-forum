@@ -44,28 +44,29 @@ public class UserController {
     private final TopicService topicService;
     private final PostService postService;
     
-    // Secret key for bootstrap process - In a real app, use environment variables
+    // secret key for bootstrap process (JUST IN DEVELOPMENT, IN PRODUCTION I'LL USE ENV VARIABLES)
     private static final String BOOTSTRAP_ADMIN_KEY = "WISS_ADMIN_SETUP_2024";
     private static final String BOOTSTRAP_TEACHER_KEY = "WISS_ADMIN_SETUP_2024";
     private static final String BOOTSTRAP_STUDENT_KEY = "WISS_ADMIN_SETUP_2024";
     
+    // bootstrap admin
     @PostMapping("/bootstrap-admin")
     public ResponseEntity<?> bootstrapAdmin(@RequestBody RoleBootstrapRequest request) {
         try {
-            // Validate the bootstrap key
+            // validate the bootstrap key
             if (!BOOTSTRAP_ADMIN_KEY.equals(request.getKey())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse("Invalid bootstrap key"));
             }
             
-            // Get the user
+            // get the user
             User user = userService.getUserById(request.getUserId());
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MessageResponse("User not found"));
             }
             
-            // Update role to ADMIN
+            // update role to admin
             user.setRole(Role.ADMIN);
             User updatedUser = userService.save(user);
             
@@ -76,23 +77,24 @@ public class UserController {
         }
     }
     
+    // bootstrap student
     @PostMapping("/bootstrap-student")
     public ResponseEntity<?> bootstrapStudent(@RequestBody RoleBootstrapRequest request) {
         try {
-            // Validate the bootstrap key
+            // validate the bootstrap key
             if (!BOOTSTRAP_STUDENT_KEY.equals(request.getKey())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse("Invalid bootstrap key"));
             }
             
-            // Get the user
+            // get the user
             User user = userService.getUserById(request.getUserId());
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MessageResponse("User not found"));
             }
             
-            // Update role to STUDENT
+            // update role to student
             user.setRole(Role.STUDENT);
             User updatedUser = userService.save(user);
             
@@ -106,20 +108,20 @@ public class UserController {
     @PostMapping("/bootstrap-teacher")
     public ResponseEntity<?> bootstrapTeacher(@RequestBody RoleBootstrapRequest request) {
         try {
-            // Validate the bootstrap key
+            // validate the bootstrap key
             if (!BOOTSTRAP_TEACHER_KEY.equals(request.getKey())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse("Invalid bootstrap key"));
             }
             
-            // Get the user
+            // get the user
             User user = userService.getUserById(request.getUserId());
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MessageResponse("User not found"));
             }
             
-            // Update role to TEACHER
+            // update role to teacher
             user.setRole(Role.TEACHER);
             User updatedUser = userService.save(user);
             
@@ -130,6 +132,7 @@ public class UserController {
         }
     }
     
+    // get all users
     @GetMapping
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -137,18 +140,21 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
     
+    // get user by username
     @GetMapping("/{username}")
     public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
         User user = userService.getUserByUsername(username);
         return ResponseEntity.ok(user);
     }
     
+    // get recent users
     @GetMapping("/public")
     public ResponseEntity<List<User>> getRecentUsers() {
         List<User> users = userService.getPublicUsersList();
         return ResponseEntity.ok(users);
     }
     
+    // get user topics
     @GetMapping("/{username}/topics")
     public ResponseEntity<List<Topic>> getUserTopics(
             @PathVariable String username,
@@ -165,7 +171,8 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-    
+
+    // get user posts
     @GetMapping("/{username}/posts")
     public ResponseEntity<List<Post>> getUserPosts(
             @PathVariable String username,
@@ -182,18 +189,20 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-    
+
+    // get current user profile
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> getCurrentUserProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         
-        // Refresh user details
+        // refresh user details
         User user = userService.getUserById(currentUser.getId());
         return ResponseEntity.ok(user);
     }
-    
+
+    // update current user profile
     @PutMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> updateCurrentUserProfile(@Valid @RequestBody User userDetails) {
@@ -203,12 +212,13 @@ public class UserController {
         User updatedUser = userService.updateUser(currentUser.getId(), userDetails, currentUser);
         return ResponseEntity.ok(updatedUser);
     }
-    
+
+    // update current user password
     @PutMapping("/profile/password")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> updateCurrentUserPassword(@Valid @RequestBody PasswordUpdateRequest passwordRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication != null && authentication.getPrincipal() instanceof User) {
             User currentUser = (User) authentication.getPrincipal();
             
@@ -229,7 +239,8 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new MessageResponse("User not authenticated"));
     }
-    
+
+    // update user (admin only)
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<User> updateUser(@PathVariable String id, @Valid @RequestBody User userDetails) {
@@ -239,7 +250,8 @@ public class UserController {
         User updatedUser = userService.updateUser(id, userDetails, currentUser);
         return ResponseEntity.ok(updatedUser);
     }
-    
+
+    // update user role (admin only)
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateUserRole(@PathVariable String id, @RequestBody String roleStr) {
@@ -247,10 +259,10 @@ public class UserController {
         User currentUser = (User) authentication.getPrincipal();
         
         try {
-            // Get the target user
+            // get the target user
             User targetUser = userService.getUserById(id);
             
-            // Check if the target user is already an admin - prevent changing other admins
+            // check if the target user is already an admin (prevent changing other admins)
             if (Role.ADMIN.equals(targetUser.getRole()) && !targetUser.getId().equals(currentUser.getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new MessageResponse("You cannot change the role of another admin"));
@@ -264,7 +276,8 @@ public class UserController {
                 .body(new MessageResponse("Error updating user role: " + e.getMessage()));
         }
     }
-    
+
+    // delete user (admin only)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
@@ -274,7 +287,8 @@ public class UserController {
         userService.deleteUser(id, currentUser);
         return ResponseEntity.noContent().build();
     }
-    
+
+    // get user leaderboard
     @GetMapping("/leaderboard")
     public ResponseEntity<?> getUserLeaderboard() {
         try {

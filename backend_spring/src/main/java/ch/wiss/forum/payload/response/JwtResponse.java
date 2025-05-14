@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+// jwt response
+
 @Data
 @Builder
 @AllArgsConstructor

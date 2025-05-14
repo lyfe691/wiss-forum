@@ -44,29 +44,29 @@ public class TopicService {
     }
     
     public Topic createTopic(Topic topic, User currentUser) {
-        // Set creation metadata
+        // set creation metadata
         topic.setAuthor(currentUser);
         topic.setCreatedAt(LocalDateTime.now());
         topic.setUpdatedAt(LocalDateTime.now());
         topic.setViewCount(0);
         topic.setReplyCount(0);
         
-        // Generate a slug if not provided
+        // generate a slug if not provided
         if (topic.getSlug() == null || topic.getSlug().isEmpty()) {
             String baseSlug = topic.getTitle().toLowerCase()
-                .replaceAll("[^a-z0-9\\s-]", "") // Remove special characters
-                .replaceAll("\\s+", "-")         // Replace spaces with hyphens
-                .replaceAll("-+", "-")           // Replace multiple hyphens with single one
-                .trim();                         // Trim spaces
+                .replaceAll("[^a-z0-9\\s-]", "") // remove special characters
+                .replaceAll("\\s+", "-")         // replace spaces with hyphens
+                .replaceAll("-+", "-")           // replace multiple hyphens with single one
+                .trim();                         // trim spaces
             
-            // Add timestamp to ensure uniqueness
+            // add timestamp to ensure uniqueness
             String uniqueSlug = baseSlug + "-" + System.currentTimeMillis();
             topic.setSlug(uniqueSlug);
         }
         
-        // Ensure slug is unique - only check if slug is non-null
+        // ensure slug is unique - only check if slug is non-null
         if (topic.getSlug() != null && topicRepository.existsBySlug(topic.getSlug())) {
-            // Make it unique by adding timestamp
+            // make it unique by adding timestamp
             topic.setSlug(topic.getSlug() + "-" + System.currentTimeMillis());
         }
         
@@ -82,7 +82,7 @@ public class TopicService {
         topic.setTags(topicDetails.getTags());
         topic.setUpdatedAt(LocalDateTime.now());
         
-        // Ensure slug is unique (unless it's the same slug as before)
+        // ensure slug is unique (unless it's the same slug as before)
         if (!topic.getSlug().equals(topicDetails.getSlug()) && 
                 topicRepository.existsBySlug(topicDetails.getSlug())) {
             throw new IllegalArgumentException("Topic with slug '" + topicDetails.getSlug() + "' already exists");

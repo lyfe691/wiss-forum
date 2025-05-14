@@ -12,7 +12,8 @@ import ch.wiss.forum.model.Category;
 import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.repository.CategoryRepository;
-import ch.wiss.forum.service.TopicService;
+
+// category service
 
 @Service
 public class CategoryService {
@@ -45,25 +46,25 @@ public class CategoryService {
     }
     
     public Category createCategory(Category category, User currentUser) {
-        // Set creation metadata
+        // set creation metadata
         category.setCreatedAt(LocalDateTime.now());
         category.setUpdatedAt(LocalDateTime.now());
         category.setCreatedBy(currentUser);
         
-        // Generate a slug if not provided
+        // generate a slug if not provided
         if (category.getSlug() == null || category.getSlug().isEmpty()) {
             String baseSlug = category.getName().toLowerCase()
-                .replaceAll("[^a-z0-9\\s-]", "") // Remove special characters
-                .replaceAll("\\s+", "-")         // Replace spaces with hyphens
-                .replaceAll("-+", "-")           // Replace multiple hyphens with single one
-                .trim();                         // Trim spaces
+                .replaceAll("[^a-z0-9\\s-]", "") // remove special characters
+                .replaceAll("\\s+", "-")         // replace spaces with hyphens
+                .replaceAll("-+", "-")           // replace multiple hyphens with single one
+                .trim();                         // trim spaces
             
             category.setSlug(baseSlug);
         }
         
-        // Ensure slug is unique
+        // ensure slug is unique
         if (categoryRepository.existsBySlug(category.getSlug())) {
-            // Make it unique by adding timestamp
+            // make it unique by adding timestamp
             category.setSlug(category.getSlug() + "-" + System.currentTimeMillis());
         }
         
@@ -73,7 +74,7 @@ public class CategoryService {
     public Category updateCategory(String id, Category categoryDetails) {
         Category category = getCategoryById(id);
         
-        // Update fields
+        // update fields
         if (categoryDetails.getName() != null) {
             category.setName(categoryDetails.getName());
         }
@@ -83,7 +84,7 @@ public class CategoryService {
         }
         
         if (categoryDetails.getSlug() != null) {
-            // Ensure slug is unique (unless it's the same slug as before)
+            // ensure slug is unique (unless its the same slug as before)
             if (!category.getSlug().equals(categoryDetails.getSlug()) && 
                     categoryRepository.existsBySlug(categoryDetails.getSlug())) {
                 throw new RuntimeException("Category with slug '" + categoryDetails.getSlug() + "' already exists");
@@ -91,7 +92,7 @@ public class CategoryService {
             category.setSlug(categoryDetails.getSlug());
         }
         
-        // Order is a primitive int, so we can't check for null directly
+        // order is a primitive int, so we can't check for null directly
         category.setOrder(categoryDetails.getOrder());
         
         // isActive is a primitive boolean
@@ -105,7 +106,7 @@ public class CategoryService {
     public void deleteCategory(String id) {
         Category category = getCategoryById(id);
         
-        // Check if the category has any topics
+        // check if the category has any topics
         Page<Topic> topics = topicService.getTopicsByCategory(id, PageRequest.of(0, 1));
         if (topics.getTotalElements() > 0) {
             throw new RuntimeException("Cannot delete category that contains topics. Please remove all topics first.");

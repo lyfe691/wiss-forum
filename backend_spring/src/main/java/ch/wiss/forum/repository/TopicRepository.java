@@ -11,6 +11,8 @@ import ch.wiss.forum.model.Category;
 import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 
+// topic repository
+
 public interface TopicRepository extends MongoRepository<Topic, String> {
     
     Optional<Topic> findBySlug(String slug);

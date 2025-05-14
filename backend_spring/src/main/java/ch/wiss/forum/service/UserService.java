@@ -38,7 +38,7 @@ public class UserService {
             .collect(Collectors.toList());
     }
     
-    // Helper method to remove sensitive data from User objects
+    // helper method to remove sensitive data from User objects
     private User sanitizeUserForPublic(User user) {
         User sanitizedUser = new User();
         sanitizedUser.setId(user.getId());
@@ -63,11 +63,11 @@ public class UserService {
     }
     
     public User getUserByIdOrUsername(String idOrUsername) {
-        // Try to find by ID first
+        // try to find by ID first
         try {
             return getUserById(idOrUsername);
         } catch (RuntimeException e) {
-            // If not found by ID, try by username
+            // if not found by ID, try by username
             try {
                 return getUserByUsername(idOrUsername);
             } catch (RuntimeException e2) {
@@ -77,21 +77,21 @@ public class UserService {
     }
     
     public User updateUser(String id, User userDetails, User currentUser) {
-        // Check permission using centralized utility
+        // check permission using centralized utility
         if (!PermissionUtils.canModifyUser(currentUser, id)) {
             throw new RuntimeException("Not authorized to update this user");
         }
         
         User user = getUserById(id);
         
-        // Only update fields that are allowed
+        // only update fields that are allowed
         if (userDetails.getUsername() != null) {
-            // Validate username format
+            // validate username format
             if (!userValidator.isValidUsername(userDetails.getUsername())) {
                 throw new RuntimeException("Username must be 3-20 characters with no spaces or inappropriate terms");
             }
             
-            // Check if username is already taken
+            // check if username is already taken
             if (!userDetails.getUsername().equals(user.getUsername()) && 
                 userRepository.existsByUsername(userDetails.getUsername())) {
                 throw new RuntimeException("Username is already taken");
@@ -100,12 +100,12 @@ public class UserService {
         }
         
         if (userDetails.getEmail() != null) {
-            // Validate email format
+            // validate email format
             if (!userValidator.isValidEmail(userDetails.getEmail())) {
                 throw new RuntimeException("Email must end with @wiss-edu.ch");
             }
             
-            // Check if email is already taken
+            // check if email is already taken
             if (!userDetails.getEmail().equals(user.getEmail()) && 
                 userRepository.existsByEmail(userDetails.getEmail())) {
                 throw new RuntimeException("Email is already taken");
@@ -114,7 +114,7 @@ public class UserService {
         }
         
         if (userDetails.getDisplayName() != null) {
-            // Validate display name
+            // validate display name
             if (!userValidator.isValidDisplayName(userDetails.getDisplayName())) {
                 throw new RuntimeException("Display name must be between 3 and 50 characters");
             }
@@ -122,7 +122,7 @@ public class UserService {
         }
         
         if (userDetails.getBio() != null) {
-            // Validate bio
+            // validate bio
             if (!userValidator.isValidBio(userDetails.getBio())) {
                 throw new RuntimeException("Bio must not exceed 500 characters");
             }
@@ -133,7 +133,7 @@ public class UserService {
             user.setAvatar(userDetails.getAvatar());
         }
         
-        // Only admin can update roles
+        // only admin can update roles
         if (userDetails.getRole() != null && PermissionUtils.canModifyUserRole(currentUser, user)) {
             user.setRole(userDetails.getRole());
         }
@@ -144,19 +144,19 @@ public class UserService {
     }
     
     public User updatePassword(String id, String currentPassword, String newPassword, User currentUser) {
-        // Check permission using centralized utility
+        // check permission using centralized utility
         if (!PermissionUtils.canModifyUser(currentUser, id)) {
             throw new RuntimeException("Not authorized to update this user's password");
         }
         
-        // Validate password format
+        // validate password format
         if (!userValidator.isValidPassword(newPassword)) {
             throw new RuntimeException("Password must be at least 6 characters long and must not contain spaces");
         }
         
         User user = getUserById(id);
         
-        // Verify current password if not admin
+        // verify current password if not admin
         if (!id.equals(currentUser.getId()) || passwordEncoder.matches(currentPassword, user.getPassword())) {
             user.setPassword(passwordEncoder.encode(newPassword));
             user.setUpdatedAt(LocalDateTime.now());
@@ -167,14 +167,14 @@ public class UserService {
     }
     
     public void deleteUser(String id, User currentUser) {
-        // Check permissions using centralized utility
+        // check permissions using centralized utility
         if (!PermissionUtils.canModifyUser(currentUser, id)) {
             throw new RuntimeException("Not authorized to delete this user");
         }
         
         User userToDelete = getUserById(id);
         
-        // Check if the current user can modify the role of the user to delete
+        // check if the current user can modify the role of the user to delete
         if (!PermissionUtils.canModifyUserRole(currentUser, userToDelete)) {
             throw new RuntimeException("Admins cannot delete other admin accounts");
         }
@@ -194,12 +194,12 @@ public class UserService {
     public User updateUserRole(String id, Role newRole, User currentUser) {
         User targetUser = getUserById(id);
         
-        // Check permission using centralized utility
+        // check permission using centralized utility
         if (!PermissionUtils.canModifyUserRole(currentUser, targetUser)) {
             throw new RuntimeException("Not authorized to update this user's role");
         }
         
-        // Update the role
+        // update the role
         targetUser.setRole(newRole);
         targetUser.setUpdatedAt(LocalDateTime.now());
         
@@ -207,14 +207,14 @@ public class UserService {
     }
     
     public List<Map<String, Object>> getUserLeaderboard() {
-        // Get all posts
+        // get all posts
         List<Post> allPosts = postRepository.findAll();
         
-        // Create a map to count likes per user
+        // create a map to count likes per user
         Map<String, Integer> userLikesMap = new HashMap<>();
         Map<String, User> userMap = new HashMap<>();
         
-        // Count likes for each user
+        // count likes for each user for the leaderboard
         for (Post post : allPosts) {
             User author = post.getAuthor();
             if (author != null) {
@@ -226,7 +226,7 @@ public class UserService {
             }
         }
         
-        // Convert to list for sorting
+        // convert to list for sorting
         List<Map<String, Object>> leaderboard = new ArrayList<>();
         
         for (Map.Entry<String, Integer> entry : userLikesMap.entrySet()) {
@@ -245,7 +245,7 @@ public class UserService {
             leaderboard.add(userStats);
         }
         
-        // Sort by total likes (descending)
+        // sort by total likes (descending)
         leaderboard.sort((a, b) -> {
             Integer likesA = (Integer) a.get("totalLikes");
             Integer likesB = (Integer) b.get("totalLikes");
