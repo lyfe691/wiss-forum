@@ -81,8 +81,28 @@ export function NewPostButton() {
   const handleCreateTopic = () => {
     if (!selectedCategory) return;
     console.log("Creating topic in category:", selectedCategory);
+    console.log("Available categories:", categories.map(c => ({id: c._id, slug: c.slug, name: c.name})));
+    
+    // Find the selected category object to get its slug for navigation
+    const categoryObj = categories.find(cat => cat.slug === selectedCategory);
+    if (!categoryObj) {
+      console.error("Selected category not found:", selectedCategory);
+      return;
+    }
+    
+    console.log("Navigating to create topic with category:", {
+      id: categoryObj._id,
+      slug: categoryObj.slug,
+      name: categoryObj.name
+    });
+    
     setIsOpen(false);
-    navigate(`/create-topic/${selectedCategory}`);
+    // Pass the category data through state as well as in the URL
+    navigate(`/create-topic/${categoryObj.slug}`, {
+      state: {
+        selectedCategory: categoryObj
+      }
+    });
   };
   
   const handleCreateCategory = async () => {

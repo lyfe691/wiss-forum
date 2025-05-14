@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { categoriesAPI, topicsAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -26,8 +26,9 @@ interface Category {
 }
 
 export function CreateTopic() {
-  const { slug } = useParams<{ slug: string }>();
+  const { categorySlug: slug } = useParams<{ categorySlug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [category, setCategory] = useState<Category | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -39,13 +40,18 @@ export function CreateTopic() {
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
 
+  // Check if we have a category from the navigation state
+  const categoryFromState = location.state?.selectedCategory as Category | undefined;
+
   // Add a console log for debugging
   useEffect(() => {
     console.log('CreateTopic component rendered');
-    console.log('Category slug:', slug);
+    console.log('Current pathname:', location.pathname);
+    console.log('Category slug from URL param:', slug);
+    console.log('Category from navigation state:', categoryFromState);
     console.log('isAuthenticated:', isAuthenticated);
     console.log('user:', user);
-  }, [slug, isAuthenticated, user]);
+  }, [slug, categoryFromState, isAuthenticated, user, location.pathname]);
 
   useEffect(() => {
     const fetchAllCategories = async () => {
@@ -58,16 +64,31 @@ export function CreateTopic() {
         const flattenedCategories = flattenCategories(categoriesData);
         setAllCategories(flattenedCategories);
         
-        // If a slug is provided, try to find and select that category
-        if (slug) {
+        // If we have a category from navigation state, use it
+        if (categoryFromState) {
+          console.log('Using category from navigation state:', categoryFromState);
+          setCategory(categoryFromState);
+          setSelectedCategoryId(categoryFromState._id);
+        }
+        // Otherwise, if a slug is provided, try to find and select that category
+        else if (slug) {
+          console.log('Looking for category with slug:', slug);
           const matchingCategory = flattenedCategories.find(cat => cat.slug === slug);
           if (matchingCategory) {
+            console.log('Found matching category by slug:', matchingCategory);
             setCategory(matchingCategory);
             setSelectedCategoryId(matchingCategory._id);
-            console.log('Found matching category:', matchingCategory);
           } else {
-            console.error('No matching category found for slug:', slug);
-            setError('Invalid category. Please select a category from the dropdown.');
+            // Try finding by ID as a fallback
+            const matchingCategoryById = flattenedCategories.find(cat => cat._id === slug);
+            if (matchingCategoryById) {
+              console.log('Found matching category by ID:', matchingCategoryById);
+              setCategory(matchingCategoryById);
+              setSelectedCategoryId(matchingCategoryById._id);
+            } else {
+              console.error('No matching category found for slug or ID:', slug);
+              setError('Invalid category. Please select a category from the dropdown.');
+            }
           }
         }
       } catch (error) {
@@ -79,7 +100,7 @@ export function CreateTopic() {
     };
 
     fetchAllCategories();
-  }, [slug]);
+  }, [slug, categoryFromState]);
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -111,9 +132,20 @@ export function CreateTopic() {
   };
 
   const handleCategoryChange = (value: string) => {
-    const selectedCategory = allCategories.find(cat => cat._id === value);
-    setSelectedCategoryId(value);
-    setCategory(selectedCategory || null);
+    // First try to find by ID
+    let selectedCategory = allCategories.find(cat => cat._id === value);
+    
+    // If not found, try to find by slug (in case we're receiving a slug from NewPostButton)
+    if (!selectedCategory) {
+      selectedCategory = allCategories.find(cat => cat.slug === value);
+    }
+    
+    if (selectedCategory) {
+      setSelectedCategoryId(selectedCategory._id);
+      setCategory(selectedCategory);
+    } else {
+      console.error('Could not find category with ID or slug:', value);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -280,9 +312,12 @@ export function CreateTopic() {
                   <Select 
                     value={selectedCategoryId} 
                     onValueChange={handleCategoryChange}
+                    defaultValue={selectedCategoryId}
                   >
                     <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder="Select a category">
+                        {category ? category.name : "Select a category"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {allCategories.map((cat) => (

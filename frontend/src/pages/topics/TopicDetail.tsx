@@ -148,8 +148,6 @@ export function TopicDetail() {
   const [newPostContent, setNewPostContent] = useState('');
   const [replyToPost, setReplyToPost] = useState<Post | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [likeInProgress, setLikeInProgress] = useState<{[key: string]: boolean}>({});
   
   // Replace single replyContent with a map of post ID -> content
@@ -457,24 +455,6 @@ export function TopicDetail() {
     }
   };
 
-  // Handle post deletion
-  const handleDeletePost = async () => {
-    if (!postToDelete) return;
-    
-    try {
-      await postsAPI.deletePost(postToDelete);
-      
-      // Remove the deleted post from the list
-      setPosts(prevPosts => prevPosts.filter(post => post._id !== postToDelete));
-      
-      // Close the delete dialog
-      setDeleteDialogOpen(false);
-      setPostToDelete(null);
-    } catch (error) {
-      console.error('Failed to delete post:', error);
-    }
-  };
-
   // Handle reply to a post
   const handleReplyClick = (post: Post) => {
     // Validate post and post._id
@@ -752,28 +732,6 @@ export function TopicDetail() {
                   </div>
                 </div>
               </div>
-              
-              {canManagePost(post.author?._id) && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-muted">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      className="flex items-center text-destructive cursor-pointer hover:bg-destructive/10"
-                      onClick={() => {
-                        setPostToDelete(post._id);
-                        setDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
             </div>
           </CardHeader>
           
@@ -1321,25 +1279,6 @@ export function TopicDetail() {
       
       {/* Reference for scrolling to bottom after new reply */}
       <div ref={bottomRef} />
-      
-      {/* Delete Post Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the post
-              and remove it from the topic.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePost} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 } 
