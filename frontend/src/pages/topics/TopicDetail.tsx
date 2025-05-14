@@ -161,6 +161,8 @@ export function TopicDetail() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const replyFormRef = useRef<HTMLDivElement>(null);
+  // Add a ref to track if we've already counted a view for this topic
+  const viewCountedRef = useRef<string | null>(null);
 
   // Make sure replyToPost is always null on component mount
   useEffect(() => {
@@ -172,6 +174,8 @@ export function TopicDetail() {
   useEffect(() => {
     console.log('Slug changed - clearing replyToPost');
     setReplyToPost(null);
+    // Reset the view counted flag when slug changes
+    viewCountedRef.current = null;
   }, [slug]);
 
   // Fetch topic and posts data
@@ -214,8 +218,12 @@ export function TopicDetail() {
           
           setPosts(sortedPosts);
 
-          // Increment view count
-          await topicsAPI.incrementViewCount(topicData._id);
+          // Increment view count only if we haven't counted this topic yet
+          if (viewCountedRef.current !== topicData._id) {
+            await topicsAPI.incrementViewCount(topicData._id);
+            viewCountedRef.current = topicData._id;
+            console.log('View count incremented for topic:', topicData._id);
+          }
         } catch (error) {
           console.error('Failed to fetch posts:', error);
           setPosts([]);
