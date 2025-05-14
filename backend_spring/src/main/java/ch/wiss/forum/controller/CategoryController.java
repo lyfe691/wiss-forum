@@ -82,7 +82,7 @@ public class CategoryController {
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TEACHER')")
     public ResponseEntity<Void> deleteCategory(@PathVariable String id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();

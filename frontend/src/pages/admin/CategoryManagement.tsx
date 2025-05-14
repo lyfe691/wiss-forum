@@ -352,7 +352,25 @@ export function CategoryManagement() {
       await fetchCategories();
     } catch (err: any) {
       console.error('Failed to delete category:', err);
-      setError(err?.response?.data?.message || 'Failed to delete category. Please try again.');
+      
+      // Provide a clear error message based on the response
+      let errorMessage = 'Failed to delete category.';
+      
+      if (err?.response?.data?.message) {
+        // Use the server's error message if available
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.status === 403) {
+        errorMessage = "You don't have permission to delete this category.";
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      // Check for the specific error about topics
+      if (errorMessage.includes('topics')) {
+        errorMessage = 'Cannot delete category that contains topics. Please use the "Clear All Topics" option first.';
+      }
+      
+      setError(errorMessage);
     }
   };
 
@@ -365,28 +383,34 @@ export function CategoryManagement() {
       setError(null);
       setSuccess(null);
       
-      // Get all topics for this category
-      const response = await fetch(`http://localhost:8080/api/topics/category/${categoryId}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch topics: ${response.status}`);
-      }
+      // Get all topics for this category using the proper API
+      const topics = await topicsAPI.getTopicsByCategory(categoryId);
       
-      const data = await response.json();
-      const topics = data.topics || [];
-      
-      if (topics.length === 0) {
+      if (!topics || topics.length === 0) {
         setSuccess(`No topics found in category "${categoryName}"`);
         return;
       }
       
-      // Delete each topic
+      // Log the topics for debugging
+      console.log('Topics to delete:', topics);
+      
+      // Delete each topic - make sure to handle both id and _id fields
       let deletedCount = 0;
       for (const topic of topics) {
         try {
-          await topicsAPI.deleteTopic(topic._id);
+          // Use a normalized ID (either id or _id)
+          const topicId = topic._id || topic.id;
+          
+          if (!topicId) {
+            console.error('Topic has no ID:', topic);
+            continue;
+          }
+          
+          console.log(`Deleting topic with ID: ${topicId}`);
+          await topicsAPI.deleteTopic(topicId);
           deletedCount++;
         } catch (err) {
-          console.error(`Failed to delete topic ${topic._id}:`, err);
+          console.error(`Failed to delete topic ${topic._id || topic.id}:`, err);
         }
       }
       

@@ -3,18 +3,32 @@ package ch.wiss.forum.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import ch.wiss.forum.model.Category;
+import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.repository.CategoryRepository;
-import lombok.RequiredArgsConstructor;
+import ch.wiss.forum.service.TopicService;
 
 @Service
-@RequiredArgsConstructor
 public class CategoryService {
     
     private final CategoryRepository categoryRepository;
+    private TopicService topicService;
+    
+    @Autowired
+    public CategoryService(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
+    
+    @Autowired
+    public void setTopicService(TopicService topicService) {
+        this.topicService = topicService;
+    }
     
     public List<Category> getAllCategories() {
         return categoryRepository.findAllByOrderByOrderAsc();
@@ -90,6 +104,13 @@ public class CategoryService {
     
     public void deleteCategory(String id) {
         Category category = getCategoryById(id);
+        
+        // Check if the category has any topics
+        Page<Topic> topics = topicService.getTopicsByCategory(id, PageRequest.of(0, 1));
+        if (topics.getTotalElements() > 0) {
+            throw new RuntimeException("Cannot delete category that contains topics. Please remove all topics first.");
+        }
+        
         categoryRepository.delete(category);
     }
 } 

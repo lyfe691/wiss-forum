@@ -355,15 +355,30 @@ export const topicsAPI = {
     // Note: Spring pagination is 0-based, but our frontend uses 1-based pagination
     const response = await api.get(`/topics/category/${categoryId}?page=${page-1}&size=${limit}`);
     
+    // Process the response data to ensure consistent ID fields
+    const processTopics = (topics: any[]) => {
+      return topics.map(topic => ({
+        ...topic,
+        _id: topic._id || topic.id,
+        id: topic.id || topic._id
+      }));
+    };
+    
+    // Log raw data for debugging
+    console.log('Raw topics by category response:', response.data);
+    
+    let topicsData: any[] = [];
+    
     if (Array.isArray(response.data)) {
-      return response.data;
+      topicsData = processTopics(response.data);
     } else if (response.data && Array.isArray(response.data.content)) {
-      return response.data.content;
+      topicsData = processTopics(response.data.content);
     } else if (response.data && Array.isArray(response.data.topics)) {
-      return response.data.topics;
+      topicsData = processTopics(response.data.topics);
     }
     
-    return [];
+    console.log('Processed topics data:', topicsData);
+    return topicsData;
   },
   
   getLatestTopics: async (page = 0, limit = 10) => {
@@ -405,8 +420,29 @@ export const topicsAPI = {
   },
   
   deleteTopic: async (id: string) => {
-    const response = await api.delete(`/topics/${id}`);
-    return response.data;
+    if (!id) {
+      console.error('Cannot delete topic: No ID provided');
+      throw new Error('Topic ID is required for deletion');
+    }
+    
+    try {
+      console.log(`Deleting topic with ID: ${id}`);
+      const response = await api.delete(`/topics/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error deleting topic ${id}:`, error);
+      
+      // Provide more context in the error
+      if (error.response?.status === 404) {
+        throw new Error(`Topic with ID ${id} not found`);
+      } else if (error.response?.status === 403) {
+        throw new Error('You do not have permission to delete this topic');
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      
+      throw error;
+    }
   }
 };
 
