@@ -28,6 +28,7 @@ import {
   Users,
   ArrowLeft
 } from 'lucide-react';
+import { Role, roleUtils } from '@/lib/types';
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -58,12 +59,16 @@ export function AdminDashboard() {
       }
     };
 
-    if (user?.role === 'admin') {
+    const userRole = roleUtils.normalizeRole(user?.role);
+    if (userRole === Role.ADMIN) {
       fetchStats();
     }
   }, [user]);
 
-  if (!user || user.role !== 'admin') {
+  const userRole = user ? roleUtils.normalizeRole(user.role) : null;
+  const isAdmin = userRole === Role.ADMIN;
+
+  if (!user || !isAdmin) {
     return (
       <div className="container mx-auto py-10 text-center">
         <Card>

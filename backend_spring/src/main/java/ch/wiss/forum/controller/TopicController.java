@@ -28,6 +28,7 @@ import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.response.MessageResponse;
 import ch.wiss.forum.service.CategoryService;
 import ch.wiss.forum.service.TopicService;
+import ch.wiss.forum.security.PermissionUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -226,10 +227,11 @@ public class TopicController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         
-        // Check if the user is the author or an admin/teacher
+        // Get the topic
         Topic existingTopic = topicService.getTopicById(id);
-        if (!existingTopic.getAuthor().getId().equals(currentUser.getId()) && 
-                !("admin".equals(currentUser.getRole()) || "teacher".equals(currentUser.getRole()))) {
+        
+        // Check permissions using centralized utility
+        if (!PermissionUtils.canModifyContent(currentUser, existingTopic.getAuthor().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         

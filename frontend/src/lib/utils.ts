@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { Role, roleUtils } from "@/lib/types";
 
 /**
  * Combines multiple class names into a single string and merges Tailwind classes
@@ -34,16 +35,16 @@ export function getAvatarUrl(username: string, fallback?: string): string {
 
 /**
  * Returns consistent badge colors for user roles
- * @param role - The user role (admin, teacher, student)
+ * @param role - The user role (can be string or Role enum)
  * @returns Tailwind classes for badge styling
  */
-export function getRoleBadgeColor(role: string): string {
-  const normalizedRole = role?.toLowerCase() || '';
+export function getRoleBadgeColor(role: Role | string): string {
+  const normalizedRole = roleUtils.normalizeRole(typeof role === 'string' ? role : role);
   
   switch (normalizedRole) {
-    case 'admin':
+    case Role.ADMIN:
       return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-    case 'teacher':
+    case Role.TEACHER:
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
     default: // student or any other role
       return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
@@ -52,21 +53,23 @@ export function getRoleBadgeColor(role: string): string {
 
 /**
  * Returns formatted role name with proper capitalization
- * @param role - The user role in any case format
+ * @param role - The user role (can be string or Role enum)
  * @returns Properly capitalized role name (e.g., "Admin", "Teacher", "Student")
  */
-export function formatRoleName(role: string): string {
-  const normalizedRole = role?.toLowerCase() || '';
+export function formatRoleName(role: Role | string): string {
+  const normalizedRole = roleUtils.normalizeRole(typeof role === 'string' ? role : role);
   
   switch (normalizedRole) {
-    case 'admin':
+    case Role.ADMIN:
       return 'Admin';
-    case 'teacher':
+    case Role.TEACHER:
       return 'Teacher';
-    case 'student':
+    case Role.STUDENT:
       return 'Student';
     default:
-      return normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1);
+      // This should never happen with normalized roles, but just in case
+      const asString = String(role).toLowerCase();
+      return asString.charAt(0).toUpperCase() + asString.slice(1);
   }
 }
 

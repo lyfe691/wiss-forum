@@ -20,6 +20,7 @@ import {
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
 import { getRoleBadgeColor, formatRoleName, getAvatarUrl, getInitials } from '@/lib/utils';
+import { Role, roleUtils } from '@/lib/types';
 
 interface User {
   _id: string;
@@ -27,7 +28,7 @@ interface User {
   displayName?: string;
   email?: string;
   avatar?: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: Role | string;
   bio?: string;
   createdAt: string;
 }
@@ -47,7 +48,8 @@ export function Users() {
       setError(null);
       try {
         let data: User[];
-        if (currentUser?.role === 'admin') {
+        const currentUserRole = roleUtils.normalizeRole(currentUser?.role);
+        if (currentUserRole === Role.ADMIN) {
           // Admin can see full user details
           data = await userAPI.getAllUsers();
         } else {

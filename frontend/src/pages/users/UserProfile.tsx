@@ -25,13 +25,13 @@ interface UserProfile {
   displayName?: string;
   email?: string;
   avatar?: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: string;
   bio?: string;
   createdAt: string;
 }
 
 export function UserProfile() {
-  const { idOrUsername } = useParams<{ idOrUsername: string }>();
+  const { username } = useParams<{ username: string }>();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,28 +43,51 @@ export function UserProfile() {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!idOrUsername) return;
+      if (!username) {
+        console.error('No username provided in URL parameters');
+        setError('User not found');
+        setIsLoading(false);
+        return;
+      }
       
+      console.log(`Fetching profile for username: ${username}`);
       setIsLoading(true);
       setError(null);
       
       try {
-        const data = await userAPI.getUserByUsername(idOrUsername);
-        // Normalize role to lowercase for consistency
-        if (data && data.role) {
-          data.role = data.role.toLowerCase();
+        // Use getPublicUserProfile instead which has better error handling
+        const data = await userAPI.getPublicUserProfile(username);
+        console.log('Profile data received:', data);
+        
+        if (!data || !data.username) {
+          console.error('Invalid user data received');
+          setError('User profile not found');
+          setIsLoading(false);
+          return;
         }
-        setProfile(data);
+        
+        // Ensure we have normalized data
+        const normalizedProfile = {
+          ...data,
+          _id: data._id || data.id || '',
+          role: (data.role || 'student').toLowerCase()
+        };
+        
+        setProfile(normalizedProfile);
       } catch (error: any) {
         console.error('Failed to fetch user profile:', error);
-        setError(error.response?.data?.message || 'Failed to load user profile');
+        const errorMessage = error.response?.data?.message || 
+                             error.message || 
+                             'Failed to load user profile';
+        console.error('Error details:', errorMessage);
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, [idOrUsername]);
+  }, [username]);
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">

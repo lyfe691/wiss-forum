@@ -21,10 +21,12 @@ import {
   LogOut, 
   Settings, 
   Plus,
-  Shield
+  Shield,
+  Book
 } from 'lucide-react';
 import { SideNav } from './SideNav';
 import { getRoleBadgeColor, formatRoleName } from '@/lib/utils';
+import { Role, roleUtils } from '@/lib/types';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -56,6 +58,12 @@ export function Navbar() {
       .join('')
       .toUpperCase();
   };
+
+  // Get user role and check permissions
+  const userRole = roleUtils.normalizeRole(user?.role);
+  const isAdmin = userRole === Role.ADMIN;
+  const isTeacher = userRole === Role.TEACHER;
+  const canManageCategories = isAdmin || isTeacher;
 
   return (
     <header className={cn(
@@ -195,13 +203,26 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     
-                    {(user?.role?.toLowerCase() === 'admin') && (
+                    {user && roleUtils.hasAtLeastSamePrivilegesAs(roleUtils.normalizeRole(user.role), Role.ADMIN) && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link to="/admin" className="cursor-pointer">
                             <Shield className="mr-2 h-4 w-4" />
                             <span>Admin Dashboard</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
+                    {/* Show category management option directly for teachers */}
+                    {user && isTeacher && !isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/categories" className="cursor-pointer">
+                            <Book className="mr-2 h-4 w-4" />
+                            <span>Manage Categories</span>
                           </Link>
                         </DropdownMenuItem>
                       </>

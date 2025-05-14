@@ -54,6 +54,7 @@ import {
 import axios from 'axios';
 import { getRoleBadgeColor, formatRoleName, getAvatarUrl, getInitials } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Role, roleUtils } from '@/lib/types';
 
 interface UserData {
   _id: string;
@@ -61,7 +62,7 @@ interface UserData {
   username: string;
   displayName?: string;
   email: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: Role | string;
   avatar?: string;
   bio?: string;
   createdAt: string;
@@ -82,7 +83,7 @@ export function UserManagement() {
   }, []);
 
   // Add a function to normalize user objects when fetched
-  const normalizeUsers = (users: UserData[]) => {
+  const normalizeUsers = (users: UserData[]): UserData[] => {
     return users.map(user => {
       // Check for empty or undefined IDs
       const userId = user._id || user.id || '';
@@ -92,8 +93,8 @@ export function UserManagement() {
         // Ensure both _id and id fields exist and have the same value
         _id: userId,
         id: userId,
-        // Ensure role is consistently lowercase for the frontend
-        role: user.role?.toLowerCase() as 'student' | 'teacher' | 'admin'
+        // Ensure role is normalized using our utility
+        role: roleUtils.normalizeRole(user.role)
       };
     });
   };
@@ -126,7 +127,7 @@ export function UserManagement() {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: 'student' | 'teacher' | 'admin') => {
+  const updateUserRole = async (userId: string, newRole: Role) => {
     try {
       setError(null);
       
@@ -139,8 +140,8 @@ export function UserManagement() {
       console.log(`Updating role for user ID: ${userId} to ${newRole}`);
       
       // Try using the bootstrap endpoint first based on the role
-      if (newRole === 'admin' || newRole === 'teacher') {
-        const endpoint = newRole === 'admin' ? 'bootstrap-admin' : 'bootstrap-teacher';
+      if (newRole === Role.ADMIN || newRole === Role.TEACHER) {
+        const endpoint = newRole === Role.ADMIN ? 'bootstrap-admin' : 'bootstrap-teacher';
         
         try {
           const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/users/${endpoint}`, {
@@ -382,22 +383,22 @@ export function UserManagement() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
-                              onClick={() => updateUserRole(userData._id, 'student')}
-                              disabled={userData.role === 'student' || (userData.role === 'admin' && user?._id !== userData._id)}
+                              onClick={() => updateUserRole(userData._id, Role.STUDENT)}
+                              disabled={userData.role === Role.STUDENT || (userData.role === Role.ADMIN && user?._id !== userData._id)}
                             >
                               <UserCog className="mr-2 h-4 w-4" />
                               Set as Student
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => updateUserRole(userData._id, 'teacher')}
-                              disabled={userData.role === 'teacher' || (userData.role === 'admin' && user?._id !== userData._id)}
+                              onClick={() => updateUserRole(userData._id, Role.TEACHER)}
+                              disabled={userData.role === Role.TEACHER || (userData.role === Role.ADMIN && user?._id !== userData._id)}
                             >
                               <Shield className="mr-2 h-4 w-4" />
                               Set as Teacher
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => updateUserRole(userData._id, 'admin')}
-                              disabled={userData.role === 'admin'}
+                              onClick={() => updateUserRole(userData._id, Role.ADMIN)}
+                              disabled={userData.role === Role.ADMIN}
                             >
                               <ShieldCheck className="mr-2 h-4 w-4" />
                               Set as Admin
@@ -408,7 +409,7 @@ export function UserManagement() {
                                 setUserToDelete(userData);
                                 setDeleteDialogOpen(true);
                               }}
-                              disabled={userData._id === user?._id || (userData.role === 'admin' && user?._id !== userData._id)}
+                              disabled={userData._id === user?._id || (userData.role === Role.ADMIN && user?._id !== userData._id)}
                               className="text-destructive focus:text-destructive"
                             >
                               <Trash className="mr-2 h-4 w-4" />

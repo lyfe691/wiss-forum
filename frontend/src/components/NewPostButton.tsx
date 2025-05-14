@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert as AlertComponent, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { categoriesAPI, authAPI } from '@/lib/api';
 import axios from 'axios';
+import { Role, roleUtils } from '@/lib/types';
 
 // Define the interface for category objects
 interface Category {
@@ -92,8 +93,9 @@ export function NewPostButton() {
       return;
     }
     
-    // Check if user has sufficient permissions
-    if (user.role !== 'admin' && user.role !== 'teacher') {
+    // Check if user has sufficient permissions using roleUtils
+    const userRole = roleUtils.normalizeRole(user.role);
+    if (!roleUtils.hasAtLeastSamePrivilegesAs(userRole, Role.TEACHER)) {
       setError('You do not have permission to create categories');
       return;
     }
@@ -289,8 +291,9 @@ export function NewPostButton() {
     }
   };
   
-  // Update isAdmin to include teacher role for category creation
-  const isAdmin = user?.role === 'admin' || user?.role === 'teacher';
+  // Update isAdmin to include teacher role for category creation more consistently
+  const userRole = roleUtils.normalizeRole(user?.role);
+  const canManageCategories = roleUtils.hasAtLeastSamePrivilegesAs(userRole, Role.TEACHER);
   
   return (
     <>
@@ -386,11 +389,11 @@ export function NewPostButton() {
                     <FolderPlus className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
                     <h3 className="text-lg font-medium mb-2">No Categories Available</h3>
                     <p className="text-muted-foreground text-sm mb-4">
-                      {isAdmin 
+                      {canManageCategories 
                         ? "There are no categories yet. Create one to get started."
                         : "There are no categories available yet."}
                     </p>
-                    {isAdmin ? (
+                    {canManageCategories ? (
                       <Button onClick={() => setShowCreateCategory(true)}>
                         Create First Category
                       </Button>
@@ -449,7 +452,7 @@ export function NewPostButton() {
                     Continue
                   </Button>
                 ) : (
-                  isAdmin && (
+                  canManageCategories && (
                     <Button 
                       variant="outline" 
                       onClick={() => setIsOpen(false)}
@@ -459,7 +462,7 @@ export function NewPostButton() {
                   )
                 )}
                 
-                {categories.length > 0 && isAdmin && (
+                {categories.length > 0 && canManageCategories && (
                   <Button 
                     variant="outline" 
                     onClick={() => setShowCreateCategory(true)}

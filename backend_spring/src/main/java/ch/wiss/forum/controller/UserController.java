@@ -47,6 +47,7 @@ public class UserController {
     // Secret key for bootstrap process - In a real app, use environment variables
     private static final String BOOTSTRAP_ADMIN_KEY = "WISS_ADMIN_SETUP_2024";
     private static final String BOOTSTRAP_TEACHER_KEY = "WISS_ADMIN_SETUP_2024";
+    private static final String BOOTSTRAP_STUDENT_KEY = "WISS_ADMIN_SETUP_2024";
     
     @PostMapping("/bootstrap-admin")
     public ResponseEntity<?> bootstrapAdmin(@RequestBody RoleBootstrapRequest request) {
@@ -69,6 +70,33 @@ public class UserController {
             User updatedUser = userService.save(user);
             
             return ResponseEntity.ok(new MessageResponse("User role updated to ADMIN successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Error updating user role: " + e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/bootstrap-student")
+    public ResponseEntity<?> bootstrapStudent(@RequestBody RoleBootstrapRequest request) {
+        try {
+            // Validate the bootstrap key
+            if (!BOOTSTRAP_STUDENT_KEY.equals(request.getKey())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Invalid bootstrap key"));
+            }
+            
+            // Get the user
+            User user = userService.getUserById(request.getUserId());
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("User not found"));
+            }
+            
+            // Update role to STUDENT
+            user.setRole(Role.STUDENT);
+            User updatedUser = userService.save(user);
+            
+            return ResponseEntity.ok(new MessageResponse("User role updated to STUDENT successfully"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new MessageResponse("Error updating user role: " + e.getMessage()));

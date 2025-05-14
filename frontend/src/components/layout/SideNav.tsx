@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Role, roleUtils } from '@/lib/types';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -119,6 +120,12 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     return () => window.removeEventListener('resize', handleResize);
   }, [isMobileSidebar]);
   
+  // Get user role and check permissions
+  const userRole = roleUtils.normalizeRole(user?.role);
+  const isAdmin = userRole === Role.ADMIN;
+  const isTeacher = userRole === Role.TEACHER;
+  const canManageCategories = isAdmin || isTeacher;
+
   const navItems = [
     {
       icon: <Home className="h-5 w-5" />,
@@ -160,31 +167,41 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     }
   ] : [];
   
-  const adminNavItems = isAuthenticated ? (
-    (user?.role?.toLowerCase() === 'admin') ? [
-      {
-        icon: <LayoutDashboard className="h-5 w-5" />,
-        label: "Dashboard",
-        href: "/admin"
-      },
-      {
-        icon: <Book className="h-5 w-5" />,
-        label: "Categories",
-        href: "/admin/categories"
-      },
-      {
-        icon: <Users className="h-5 w-5" />,
-        label: "Users",
-        href: "/admin/users"
-      }
-    ] : (user?.role?.toLowerCase() === 'teacher') ? [
-      {
-        icon: <Book className="h-5 w-5" />,
-        label: "Categories",
-        href: "/admin/categories"
-      }
-    ] : []
-  ) : [];
+  // Define admin nav items based on role permissions
+  let adminNavItems: any[] = [];
+  
+  if (isAuthenticated) {
+    if (isAdmin) {
+      // Full admin navigation for admins
+      adminNavItems = [
+        {
+          icon: <LayoutDashboard className="h-5 w-5" />,
+          label: "Dashboard",
+          href: "/admin"
+        },
+        {
+          icon: <Book className="h-5 w-5" />,
+          label: "Categories",
+          href: "/admin/categories"
+        },
+        {
+          icon: <Users className="h-5 w-5" />,
+          label: "Users",
+          href: "/admin/users"
+        }
+      ];
+    } else if (isTeacher) {
+      // Limited admin navigation for teachers - only categories
+      adminNavItems = [
+        {
+          icon: <Book className="h-5 w-5" />,
+          label: "Categories",
+          href: "/admin/categories"
+        }
+      ];
+    }
+  }
+
   const helpNavItems = [
     {
       icon: <HelpCircle className="h-5 w-5" />,

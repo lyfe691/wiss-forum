@@ -1,9 +1,10 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { Role, roleUtils } from '@/lib/types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'user' | 'teacher' | 'admin' | 'STUDENT' | 'TEACHER' | 'ADMIN';
+  requiredRole?: Role | string;
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
@@ -22,18 +23,12 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
   // Check role if required
   if (requiredRole && user) {
-    const normalizedUserRole = user.role?.toLowerCase() || '';
-    const normalizedRequiredRole = requiredRole.toLowerCase();
+    // Convert both to our Role type to ensure consistent comparison
+    const userRole = roleUtils.normalizeRole(user.role);
+    const requiredRoleNormalized = roleUtils.normalizeRole(requiredRole);
     
-    // For admin routes, redirect to home if not admin
-    if (normalizedRequiredRole === 'admin' && normalizedUserRole !== 'admin') {
-      return <Navigate to="/" replace />;
-    }
-    
-    // For teacher routes, allow admin access too
-    if (normalizedRequiredRole === 'teacher' && 
-        normalizedUserRole !== 'teacher' && 
-        normalizedUserRole !== 'admin') {
+    // Use our utility to check if the user has sufficient privileges
+    if (!roleUtils.hasAtLeastSamePrivilegesAs(userRole, requiredRoleNormalized)) {
       return <Navigate to="/" replace />;
     }
   }

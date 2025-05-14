@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { authAPI } from '@/lib/api';
 import axios from 'axios';
+import { Role, roleUtils } from '@/lib/types';
 
 interface Category {
   _id: string;
@@ -158,8 +159,9 @@ export function CategoryManagement() {
       return;
     }
     
-    // Check permissions
-    if (user.role !== 'admin' && user.role !== 'teacher') {
+    // Check permissions using roleUtils
+    const userRole = roleUtils.normalizeRole(user.role);
+    if (!roleUtils.hasAtLeastSamePrivilegesAs(userRole, Role.TEACHER)) {
       setError('You do not have permission to create categories');
       return;
     }
@@ -435,7 +437,10 @@ export function CategoryManagement() {
     );
   });
 
-  if (!user || (user.role !== 'admin' && user.role !== 'teacher')) {
+  const userRole = user ? roleUtils.normalizeRole(user.role) : null;
+  const hasManageAccess = userRole === Role.ADMIN || userRole === Role.TEACHER;
+
+  if (!user || !hasManageAccess) {
     return (
       <div className="container mx-auto py-10 text-center">
         <Card>

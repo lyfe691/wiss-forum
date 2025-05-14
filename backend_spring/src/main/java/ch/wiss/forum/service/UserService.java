@@ -15,6 +15,7 @@ import ch.wiss.forum.model.User;
 import ch.wiss.forum.repository.UserRepository;
 import ch.wiss.forum.model.Post;
 import ch.wiss.forum.repository.PostRepository;
+import ch.wiss.forum.security.PermissionUtils;
 import ch.wiss.forum.validation.UserValidator;
 import lombok.RequiredArgsConstructor;
 
@@ -76,8 +77,8 @@ public class UserService {
     }
     
     public User updateUser(String id, User userDetails, User currentUser) {
-        // Check if the user is updating their own profile or is an admin
-        if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {
+        // Check permission using centralized utility
+        if (!PermissionUtils.canModifyUser(currentUser, id)) {
             throw new RuntimeException("Not authorized to update this user");
         }
         
@@ -133,7 +134,7 @@ public class UserService {
         }
         
         // Only admin can update roles
-        if (Role.ADMIN.equals(currentUser.getRole()) && userDetails.getRole() != null) {
+        if (userDetails.getRole() != null && PermissionUtils.canModifyUserRole(currentUser, user)) {
             user.setRole(userDetails.getRole());
         }
         
@@ -143,8 +144,8 @@ public class UserService {
     }
     
     public User updatePassword(String id, String currentPassword, String newPassword, User currentUser) {
-        // Check if the user is updating their own password or is an admin
-        if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {
+        // Check permission using centralized utility
+        if (!PermissionUtils.canModifyUser(currentUser, id)) {
             throw new RuntimeException("Not authorized to update this user's password");
         }
         
@@ -166,17 +167,15 @@ public class UserService {
     }
     
     public void deleteUser(String id, User currentUser) {
-        // Check permissions
-        if (!id.equals(currentUser.getId()) && !Role.ADMIN.equals(currentUser.getRole())) {
+        // Check permissions using centralized utility
+        if (!PermissionUtils.canModifyUser(currentUser, id)) {
             throw new RuntimeException("Not authorized to delete this user");
         }
         
         User userToDelete = getUserById(id);
         
-        // Prevent admins from deleting other admins
-        if (!id.equals(currentUser.getId()) && 
-            Role.ADMIN.equals(userToDelete.getRole()) && 
-            Role.ADMIN.equals(currentUser.getRole())) {
+        // Check if the current user can modify the role of the user to delete
+        if (!PermissionUtils.canModifyUserRole(currentUser, userToDelete)) {
             throw new RuntimeException("Admins cannot delete other admin accounts");
         }
         
@@ -193,16 +192,18 @@ public class UserService {
     }
     
     public User updateUserRole(String id, Role newRole, User currentUser) {
-        // Only admin can update roles
-        if (!Role.ADMIN.equals(currentUser.getRole())) {
-            throw new RuntimeException("Only admin can update user roles");
+        User targetUser = getUserById(id);
+        
+        // Check permission using centralized utility
+        if (!PermissionUtils.canModifyUserRole(currentUser, targetUser)) {
+            throw new RuntimeException("Not authorized to update this user's role");
         }
         
-        User user = getUserById(id);
-        user.setRole(newRole);
-        user.setUpdatedAt(LocalDateTime.now());
+        // Update the role
+        targetUser.setRole(newRole);
+        targetUser.setUpdatedAt(LocalDateTime.now());
         
-        return userRepository.save(user);
+        return userRepository.save(targetUser);
     }
     
     public List<Map<String, Object>> getUserLeaderboard() {

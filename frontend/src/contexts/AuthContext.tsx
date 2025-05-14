@@ -2,19 +2,7 @@ import { createContext, useState, useContext, useEffect, ReactNode } from 'react
 import { toast } from 'sonner';
 import { authAPI } from '@/lib/api';
 import { userAPI } from '@/lib/api';
-
-type Role = 'student' | 'teacher' | 'admin';
-
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  displayName: string;
-  role: Role;
-  avatar?: string;
-  bio?: string;
-  createdAt?: string;
-}
+import { User, Role, roleUtils } from '@/lib/types';
 
 interface AuthContextType {
   user: User | null;
@@ -32,18 +20,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const normalizeUserData = (userData: any): User | null => {
   if (!userData) return null;
 
-  let role: Role = 'student';
-  if (userData.role) {
-    const roleValue = typeof userData.role === 'string'
-      ? userData.role.toLowerCase()
+  const role = roleUtils.normalizeRole(
+    typeof userData.role === 'string'
+      ? userData.role
       : typeof userData.role === 'object' && userData.role !== null
-        ? String(userData.role.name || userData.role).toLowerCase()
-        : 'student';
-
-    if (roleValue === 'admin' || roleValue === 'teacher' || roleValue === 'student') {
-      role = roleValue as Role;
-    }
-  }
+        ? String(userData.role.name || userData.role)
+        : undefined
+  );
 
   const id = userData._id || userData.id || '';
   const username = userData.username || '';
@@ -132,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           username,
           email,
           displayName,
-          role: 'student',
+          role: Role.STUDENT,
           avatar: undefined,
         };
 
@@ -154,14 +137,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const finalDisplayName = response.displayName || displayName || username;
-
-      let role: Role = 'student';
-      if (response.role) {
-        const lowerRole = String(response.role).toLowerCase();
-        if (lowerRole === 'admin' || lowerRole === 'teacher' || lowerRole === 'student') {
-          role = lowerRole as Role;
-        }
-      }
+      
+      const role = roleUtils.normalizeRole(response.role);
 
       const userData: User = {
         _id: response.id,
@@ -202,13 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const displayName = response.displayName || response.username || username;
 
-      let role: Role = 'student';
-      if (response.role) {
-        const lowerRole = String(response.role).toLowerCase();
-        if (lowerRole === 'admin' || lowerRole === 'teacher' || lowerRole === 'student') {
-          role = lowerRole as Role;
-        }
-      }
+      let role = roleUtils.normalizeRole(response.role);
 
       const userData: User = {
         _id: response.id,

@@ -6,6 +6,7 @@ import { AuthLayout } from '@/components/layout/AuthLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { themeUtils } from '@/lib/theme';
 import { useEffect } from 'react';
+import { Role } from '@/lib/types';
 
 // Pages
 import { Home } from '@/pages/Home';
@@ -35,106 +36,84 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <AuthProvider>
+    <AuthProvider>
+      <Router>
         <Routes>
-          {/* Auth Routes with AuthLayout */}
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+          {/* Auth Routes */}
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="categories/:slug" element={<CategoryDetail />} />
+            <Route path="topics/latest" element={<LatestTopics />} />
+            <Route path="topics/:slug" element={<TopicDetail />} />
+            <Route path="users" element={<Users />} />
+            <Route path="users/:username" element={<UserProfile />} />
+            <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="help" element={<Help />} />
+            
+            {/* Protected Routes - require login */}
+            <Route path="profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="create-topic" element={
+              <ProtectedRoute>
+                <CreateTopic />
+              </ProtectedRoute>
+            } />
+            <Route path="create-topic/:categorySlug" element={
+              <ProtectedRoute>
+                <CreateTopic />
+              </ProtectedRoute>
+            } />
+
+            {/* Admin Routes - for admin users only */}
+            <Route path="admin" element={
+              <ProtectedRoute requiredRole={Role.ADMIN}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="admin/users" element={
+              <ProtectedRoute requiredRole={Role.ADMIN}>
+                <UserManagement />
+              </ProtectedRoute>
+            } />
+            
+            {/* Category management - accessible to both admins and teachers */}
+            <Route path="admin/categories" element={
+              <ProtectedRoute requiredRole={Role.TEACHER}>
+                <CategoryManagement />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="admin-tool" element={
+              <ProtectedRoute>
+                <AdminTool />
+              </ProtectedRoute>
+            } />
           </Route>
 
-          {/* Main Layout Routes */}
-          <Route element={<MainLayout />}>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/categories/:slug" element={<CategoryDetail />} />
-            <Route path="/topics/latest" element={<LatestTopics />} />
-            <Route path="/topics/:slug" element={<TopicDetail />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/users/:idOrUsername" element={<UserProfile />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/admin-tool" element={<AdminTool />} />
-            <Route path="/help" element={<Help />} />
-            
-            {/* Protected Routes */}
-            <Route 
-              path="/create-topic" 
-              element={
-                <ProtectedRoute>
-                  <CreateTopic />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/create-topic/:slug" 
-              element={
-                <ProtectedRoute>
-                  <CreateTopic />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Admin Routes */}
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/users" 
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <UserManagement />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/categories" 
-              element={
-                <ProtectedRoute requiredRole="teacher">
-                  <CategoryManagement />
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
+          {/* Auth Layout Routes */}
+          <Route path="/" element={<AuthLayout />}>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
           </Route>
+
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
-
-        <Toaster
-          richColors
-          duration={5000}
-          position="top-center"
-        />
-      </AuthProvider>
-    </Router>
+      </Router>
+      <Toaster
+        position="top-center"
+        richColors
+      />
+    </AuthProvider>
   );
 }
 

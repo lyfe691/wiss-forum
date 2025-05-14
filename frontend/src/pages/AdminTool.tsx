@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle, Key } from 'lucide-react';
-import { userAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, CheckCircle, Key, ArrowLeft } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { userAPI } from '@/lib/api';
 import axios from 'axios';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useNavigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Role, roleUtils } from '@/lib/types';
 
 export function AdminTool() {
   const [userId, setUserId] = useState('');
-  const [role, setRole] = useState<'ADMIN' | 'TEACHER'>('ADMIN');
   const [secretKey, setSecretKey] = useState('WISS_ADMIN_SETUP_2024');
+  const [role, setRole] = useState(Role.ADMIN.toString());
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -44,32 +46,37 @@ export function AdminTool() {
     fetchCurrentUser();
   }, [user]);
 
+  // No role-based access blocking - intentionally accessible to all authenticated users during development
+
   const updateRole = async () => {
     if (!userId) {
       setError('Please enter a user ID');
       return;
     }
-
+    
     try {
       setIsLoading(true);
       setError('');
       setSuccess('');
       
-      // Use the bootstrap endpoint for Spring
-      const endpoint = role === 'ADMIN' ? 'bootstrap-admin' : 'bootstrap-teacher';
+      // Determine which endpoint to use based on the selected role
+      const endpoint = 
+        role === Role.ADMIN.toString() ? 'bootstrap-admin' : 
+        role === Role.TEACHER.toString() ? 'bootstrap-teacher' : 
+        'bootstrap-student';
       
+      // Format the request data to match the backend's expected format
+      const requestData = {
+        userId: userId,
+        key: secretKey
+      };
+      
+      console.log('Sending bootstrap request:', endpoint, requestData);
+      
+      // Use direct API connection without auth headers 
+      // since bootstrap endpoints should be publicly accessible
+      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
       try {
-        // Format the request data to match the backend's expected format
-        const requestData = {
-          userId: userId,
-          key: secretKey
-        };
-        
-        console.log('Sending bootstrap request:', endpoint, requestData);
-        
-        // Use direct API connection without auth headers 
-        // since bootstrap endpoints should be publicly accessible
-        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
         const response = await axios.post(
           `${apiBaseUrl}/users/${endpoint}`, 
           requestData,
@@ -89,20 +96,12 @@ export function AdminTool() {
           if (userId === user?._id) {
             await refreshUser();
           }
-          
-          return;
         }
-      } catch (bootstrapError: any) {
-        console.error(`Bootstrap ${role.toLowerCase()} method failed:`, bootstrapError);
-        const errorMessage = bootstrapError.response?.data?.message || 
-                           bootstrapError.response?.data || 
-                           `Failed to update user to ${role.toLowerCase()} role`;
-        setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
-        return;
+      } catch (err: any) {
+        setError(`Bootstrap failed: ${err.response?.data?.message || err.message}`);
       }
     } catch (err: any) {
-      console.error('Failed to update role:', err);
-      setError(err?.response?.data?.message || 'Failed to update user role');
+      setError(err.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -110,6 +109,15 @@ export function AdminTool() {
 
   return (
     <div className="container max-w-xl mx-auto py-10">
+      <Button 
+        variant="outline" 
+        onClick={() => navigate(-1)}
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
+      
       <Card>
         <CardHeader>
           <CardTitle>Admin Role Manager</CardTitle>
@@ -142,9 +150,11 @@ export function AdminTool() {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="user-id">User ID</Label>
-            <Input 
-              id="user-id" 
+            <label htmlFor="userId" className="text-sm font-medium">
+              User ID
+            </label>
+            <Input
+              id="userId"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               placeholder="Enter user ID"
@@ -155,29 +165,34 @@ export function AdminTool() {
           </div>
           
           <div className="space-y-2">
-            <Label>Role</Label>
-            <RadioGroup value={role} onValueChange={(value) => setRole(value as 'ADMIN' | 'TEACHER')}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="ADMIN" id="admin" />
-                <Label htmlFor="admin">Admin</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="TEACHER" id="teacher" />
-                <Label htmlFor="teacher">Teacher</Label>
-              </div>
-            </RadioGroup>
+            <label htmlFor="role" className="text-sm font-medium">
+              Role
+            </label>
+            <Select 
+              value={role} 
+              onValueChange={(value) => setRole(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={Role.ADMIN.toString()}>Admin</SelectItem>
+                <SelectItem value={Role.TEACHER.toString()}>Teacher</SelectItem>
+                <SelectItem value={Role.STUDENT.toString()}>Student</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="secret-key" className="flex items-center gap-1">
+            <label htmlFor="secretKey" className="flex items-center gap-1 text-sm font-medium">
               <Key className="h-3.5 w-3.5" />
               Secret Key
-            </Label>
-            <Input 
-              id="secret-key" 
+            </label>
+            <Input
+              id="secretKey"
+              type="password"
               value={secretKey}
               onChange={(e) => setSecretKey(e.target.value)}
-              type="password"
             />
             <p className="text-xs text-muted-foreground">
               Special key needed for the bootstrap process
@@ -191,7 +206,7 @@ export function AdminTool() {
             disabled={isLoading || !userId || !secretKey}
             className="w-full"
           >
-            {isLoading ? 'Processing...' : `Make ${role === 'ADMIN' ? 'Admin' : 'Teacher'}`}
+            {isLoading ? 'Processing...' : `Make ${role.toLowerCase()}`}
           </Button>
         </CardFooter>
       </Card>

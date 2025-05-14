@@ -32,6 +32,16 @@ api.interceptors.response.use(
     const errorStatus = error.response?.status;
     const isAuthEndpoint = error.config?.url?.includes('/auth/');
     
+    // Handle 404 errors specifically to provide better error messages
+    if (errorStatus === 404) {
+      console.error('Resource not found:', error.config?.url);
+      // We'll let the component handle this error with appropriate UI
+      return Promise.reject({
+        ...error,
+        message: error.response?.data?.message || 'Resource not found'
+      });
+    }
+    
     // For non-auth endpoints with 401 errors, redirect to login
     if (errorStatus === 401 && !isAuthEndpoint && !error.config?.__isRetry) {
       // Try token refresh once
@@ -210,8 +220,24 @@ export const userAPI = {
   },
   
   getUserByUsername: async (username: string) => {
-    const response = await api.get(`/users/${username}`);
-    return response.data;
+    try {
+      console.log(`API call: Getting user by username: ${username}`);
+      const response = await api.get(`/users/${username}`);
+      const userData = response.data;
+      
+      // Normalize the response
+      return normalizeId({
+        ...userData,
+        role: typeof userData.role === 'string' 
+          ? userData.role.toLowerCase() 
+          : (userData.role && userData.role.name 
+              ? userData.role.name.toLowerCase() 
+              : 'student')
+      });
+    } catch (error) {
+      console.error(`Error fetching user by username ${username}:`, error);
+      throw error;
+    }
   },
   
   getPublicUserProfile: async (usernameOrId: string) => {

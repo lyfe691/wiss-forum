@@ -388,19 +388,35 @@ export function TopicDetail() {
     
     setLikeInProgress(prev => ({ ...prev, [postId]: true }));
     
+    // Helper function to recursively update nested posts
+    const updateNestedPost = (posts: Post[], targetId: string, updateFn: (post: Post) => Post): Post[] => {
+      return posts.map(post => {
+        if (post._id === targetId) {
+          return updateFn(post);
+        }
+        
+        // Process children recursively if they exist
+        if (post.children && post.children.length > 0) {
+          return {
+            ...post,
+            children: updateNestedPost(post.children, targetId, updateFn)
+          };
+        }
+        
+        return post;
+      });
+    };
+    
     try {
-      // Optimistic update
+      // Optimistic update - works for both top-level and nested posts
       setPosts(prevPosts => 
-        prevPosts.map(post => {
-          if (post._id === postId) {
-            const newIsLiked = !post.isLiked;
-            return {
-              ...post,
-              isLiked: newIsLiked,
-              likes: post.likes + (newIsLiked ? 1 : -1)
-            };
-          }
-          return post;
+        updateNestedPost(prevPosts, postId, (post: Post) => {
+          const newIsLiked = !post.isLiked;
+          return {
+            ...post,
+            isLiked: newIsLiked,
+            likes: post.likes + (newIsLiked ? 1 : -1)
+          };
         })
       );
       
@@ -410,33 +426,27 @@ export function TopicDetail() {
       // Update with server data if available
       if (response && response.post) {
         setPosts(prevPosts => 
-          prevPosts.map(post => {
-            if (post._id === postId) {
-              return {
-                ...post,
-                likes: response.post.likes,
-                isLiked: response.post.isLiked
-              };
-            }
-            return post;
+          updateNestedPost(prevPosts, postId, (post: Post) => {
+            return {
+              ...post,
+              likes: response.post.likes,
+              isLiked: response.post.isLiked
+            };
           })
         );
       }
     } catch (error) {
       console.error('Failed to toggle like:', error);
       
-      // Revert on error
+      // Revert on error - also works for nested posts
       setPosts(prevPosts => 
-        prevPosts.map(post => {
-          if (post._id === postId) {
-            const revertIsLiked = !post.isLiked;
-            return {
-              ...post,
-              isLiked: revertIsLiked,
-              likes: post.likes + (revertIsLiked ? 1 : -1)
-            };
-          }
-          return post;
+        updateNestedPost(prevPosts, postId, (post: Post) => {
+          const revertIsLiked = !post.isLiked;
+          return {
+            ...post,
+            isLiked: revertIsLiked,
+            likes: post.likes + (revertIsLiked ? 1 : -1)
+          };
         })
       );
     } finally {
