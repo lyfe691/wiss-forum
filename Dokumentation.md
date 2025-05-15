@@ -60,19 +60,19 @@ Die komplette Commit-Historie und Entwicklung des Projekts können Sie im [GitHu
 
 ### Wochenübersicht
 
-| KW | Zeitraum | Wöchentliche Highlights |
-|----|----------|-------------------------|
-| 09 (24. 02 – 02. 03) | Projektstart: Initial Commit & Lizenzdatei. |
-| 10 (03. 03 – 09. 03) | Grundgerüst aufgesetzt – React + TypeScript-Frontend, Express/Node-Backend & MongoDB verbunden; erste Auth-Routen. |
-| 11 (10. 03 – 16. 03) | Feature-Sprint: Routing, Nutzerverzeichnis & -profile, Latest-Topics-Feed, Statistik-API, Benachrichtigungssystem, erste Admin-Bootstrap-Funktionen. |
-| 12 (17. 03 – 23. 03) | Auth-Härtung (Refresh-Token, AuthContext-Refactor), Steam-Theme, zahlreiche UX- & Performance-Optimierungen. |
-| 13 – 14 (24. 03 – 06. 04) | – keine Commits – Vorbereitung der Backend-Neuausrichtung. |
-| 15 (07. 04 – 13. 04) | Grosse UI-Überarbeitung: Navbar/SideNav/Footer refactored, Toaster & Skeleton-Loader implementiert, Topic-View-/Reply-Zähler eingeführt. |
-| 16 (14. 04 – 20. 04) | Weitere UX-Politur: Versionsanzeige, Login/Register-Rework, Help-Page, Theme-Switch-Optimierungen. |
-| 17 (21. 04 – 27. 04) | Legacy-Bootstrap-Code entfernt, Category/Topic/User-Role-Handling gestrafft, allgemeine Code-Aufräumarbeiten. |
-| 18 (28. 04 – 04. 05) | UI-Housekeeping: Benachrichtigungen entfernt, Toast-Styles aufgeräumt, Port/ENV-Cleanup, Topic-Creation-Flow verfeinert. |
-| **19 (05. 05 – 11. 05)** | **Grosser Meilenstein:** **Migration von Express/Node → Spring Boot** (spring init, neue Controller-Struktur, Jackson-Config); Admin-Tools aktiviert, Rollen normalisiert, Pagination-Fixes. |
-| 20 (12. 05 – 18. 05) | End-Polish: Docker-Setup lauffähig, Category-Management-UI verbessert, View-Counter & Leaderboard-Fixes, Markdown-/Dok-Bereinigung – bereit für M223-Abgabe. |
+| Zeitraum | Wöchentliche Highlights |  
+|----|----------|
+| 24. 02 – 02. 03 | Projektstart: Initial Commit & Lizenzdatei. ||
+| 03. 03 – 09. 03 | Grundgerüst aufgesetzt – React + TypeScript-Frontend, Express/Node-Backend & MongoDB verbunden; erste Auth-Routen. |
+| 10. 03 – 16. 03 | Feature-Sprint: Routing, Nutzerverzeichnis & -profile, Latest-Topics-Feed, Statistik-API, Benachrichtigungssystem, erste Admin-Bootstrap-Funktionen. |
+| 17. 03 – 23. 03 | Auth-Härtung (Refresh-Token, AuthContext-Refactor), Steam-Theme, zahlreiche UX- & Performance-Optimierungen. |
+| 24. 03 – 06. 04 | – keine Commits – Vorbereitung der Backend-Neuausrichtung. ||
+| 07. 04 – 13. 04 | Grosse UI-Überarbeitung: Navbar/SideNav/Footer refactored, Toaster & Skeleton-Loader implementiert, Topic-View-/Reply-Zähler eingeführt. |
+| 14. 04 – 20. 04 | Weitere UX-Politur: Versionsanzeige, Login/Register-Rework, Help-Page, Theme-Switch-Optimierungen. |
+| 21. 04 – 27. 04 | Legacy-Bootstrap-Code entfernt, Category/Topic/User-Role-Handling gestrafft, allgemeine Code-Aufräumarbeiten. |
+| 28. 04 – 04. 05 | UI-Housekeeping: Benachrichtigungen entfernt, Toast-Styles aufgeräumt, Port/ENV-Cleanup, Topic-Creation-Flow verfeinert. |
+| **19 (05. 05 – 11. 05)** | **Grosser Meilenstein:** **Migration von Express/Node -> Spring Boot** (spring init, neue Controller-Struktur, Jackson-Config); Admin-Tools aktiviert, Rollen normalisiert, Pagination-Fixes. | 
+| 12. 05 – 18. 05 | End-Polish: Docker-Setup lauffähig, Category-Management-UI verbessert, View-Counter & Leaderboard-Fixes, Markdown-/Dok-Bereinigung – bereit für M223-Abgabe. |
 
 
 ---
