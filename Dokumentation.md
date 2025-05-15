@@ -1,50 +1,51 @@
 # WISS Forum – Projektdokumentation
 
-> **Modul:** 223, Multiuser-Systeme mit Rollen  
-> **Datum:** 15.05.2025  
-> **Teammitglieder & Beiträge:**  
-> - Yanis Sebastian Zürcher — Projektleitung, vollständige Umsetzung von Backend & Frontend, Rollen- & Authentifizierungssystem, Dokumentation  
-> - Jason Bichsel — Unterstützung durch Recherche und Feedback  
-> - Dominik Könitzer — Unterstützung durch Recherche und Feedback
-
+> **Modul:** 223, Multiuser-Systeme mit Rollen**Datum:** 15.05.2025**Teammitglieder & Beiträge:**
+>
+> - Yanis Sebastian Zürcher - Projektleitung, vollständige Umsetzung von Backend & Frontend, Rollen- & Authentifizierungssystem, Dokumentation
+> - Jason Bichsel - Unterstützung durch Recherche und Feedback (Gruppenwechsel zu uns)
+> - Dominik Könitzer - Unterstützung durch Recherche und Feedback
 
 ## Inhaltsübersicht
 
 * [1. Projektprospekt](#1-projektprospekt)
 * [2. Entwicklungstimeline](#2-entwicklungstimeline)
-* [3. Installationsanleitung (Windows 10/11)](#3-installationsanleitung-windows-1011)
+* [3. Installationsanleitung](#3-installationsanleitung)
 * [4. Benutzeranleitung](#4-benutzeranleitung)
 * [5. Technologie‑Stack](#5-technologie-stack)
-* [6. Architektur & Hauptkomponenten](#6-architektur--hauptkomponenten)
-* [7. Feature‑Übersicht](#7-feature-übersicht)
-* [8. Sicherheit & Datenschutz](#8-sicherheit--datenschutz)
+* [6. Architektur &amp; Hauptkomponenten](#6-architektur--hauptkomponenten)
+* [7. Feature‑Übersicht](#7-feature-uebersicht)
+* [8. Sicherheit &amp; Datenschutz](#8-sicherheit--datenschutz)
 * [9. Fazit / Reflexion](#9-fazit--reflexion)
 * [10. Anhang](#10-anhang)
 
 ---
 
 ## 1. Projektprospekt
+
 Warum das WISS Forum die perfekte Lösung für moderne schulische Kommunikation und Motivation ist.
 
-### Problem ⇨ Lösung
+### Problem -> Lösung
 
-| Herausforderung an Schulen | Wie das WISS Forum hilft |
-| -------------------------- | ------------------------ |
-| Verstreute Kommunikation über E‑Mails & Chat-Gruppen | Zentrale, durchsuchbare Diskussionsplattform – alles an einem Ort, transparent & nachvollziehbar |
-| Schwierige Praktikumssuche | Sichtbarkeit durch aktives Profil & Platzierung im Leaderboard – Engagement kann überzeugen |
-| Geringe Beteiligung im Unterricht | Gamifiziertes Punktesystem & Ranking motivieren zur aktiven Teilnahme |
+| Herausforderung an Schulen                             | Wie das WISS Forum hilft                                                                          |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Verstreute Kommunikation über E‑Mails & Chat-Gruppen | Zentrale, durchsuchbare Diskussionsplattform -- alles an einem Ort, transparent & nachvollziehbar |
+| Schwierige Praktikumssuche                             | Sichtbarkeit durch aktives Profil & Platzierung im Leaderboard -- Engagement kann überzeugen     |
+| Geringe Beteiligung im Unterricht                      | Gamifiziertes Punktesystem & Ranking motivieren zur aktiven Teilnahme                             |
 
 ### Was macht das WISS Forum einzigartig? (USP)
 
-🎭 Rollenbasiertes System – klare Funktionen für Studenten, Lehrpersonen und Admins
+🎭 Rollenbasiertes System -- klare Funktionen für Studenten, Lehrpersonen und Admins
 
-🌗 Anpassbares UI – Light Mode, Dark Mode & sogar ein Steam Theme für Gamer*innen
+🌗 Anpassbares UI -- Light Mode, Dark Mode & sogar ein Steam Theme für Gamer*innen
 
-🔌 Technisch erweiterbar – moderne Architektur (React + REST API) ermöglicht neue Features, z. B.:
+🔌 Technisch erweiterbar -- moderne Architektur (React + REST API) ermöglicht neue Features, z. B.:
+
 - Automatische Praktikumsempfehlungen auf Basis von Beiträgen
 - Interne Umfragen & Feedback-Tools
 
 ### Der Mehrwert für die Schule
+
 Das WISS Forum löst nicht nur das Kommunikationsproblem – es bindet Schüler aktiv ein, fördert digitale Selbstverantwortung und bietet eine Plattform, auf der sich Engagement zeigt und belohnt wird. Arbeitgeber könnten künftig direkt Leaderboard-Profile mitdiskutierter Beiträge einsehen – eine neue Art von Lebenslauf.
 
 ---
@@ -63,11 +64,12 @@ Die komplette Commit-Historie und Entwicklung des Projekts können Sie im [GitHu
 
 * **Windows** mit **WSL 2**
 * **Docker Desktop (gestartet und ready)**
-Sie können es hier herunterladen falls Sie es nicht schon haben: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
+  Sie können es hier herunterladen falls Sie es nicht schon haben: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
 
 ### 3.2 Services starten
+
 > DOCKER, DOCKER ENGINE MUSS GESTARTET SEIN
-Begeben sie sich in das Verzeichnis des Projekts `wiss-forum` und führen folgenden Befehl aus:
+> Begeben sie sich in das Verzeichnis des Projekts `wiss-forum` und führen folgenden Befehl aus:
 
 ```bash
 docker compose up -d
@@ -98,7 +100,6 @@ voraussetzungen:
 
 alles sollte bereit sein.
 
-
 1. navigieren sie in das Verzeichnis `wiss-forum/backend` und führen folgende Befehle aus:
 
 ```bash
@@ -125,12 +126,12 @@ Jetzt sollten sie folgende Seite sehen:
 
 ### 3.5 Troubleshooting
 
-| Problem                           | Lösung                                               |
-| --------------------------------- | ---------------------------------------------------- |
-| "Cannot connect to Docker daemon" | Docker Desktop öffnen & Engine starten               |
-| Port 3000 / 8080 bereits belegt   | killen Sie die Prozesse die den Port 3000 / 8080 benutzen (netstat -ano | findstr :3000 oder 8080 zum finden der PID und taskkill /PID <PID> /F zum killen) |
-| Weisse Seite im Browser            | console logs im browser anschauen (meistens missing dependencies (wenn man den Namen findet kann man es installieren zb npm install <name>))    |
-| Allgemeine MongoDB Fehler | MongoDB starten und docker container neu starten oder halt manuell starten |
+| Problem                           | Lösung                                                                                                                                         |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Cannot connect to Docker daemon" | Docker Desktop öffnen & Engine starten                                                                                                         |
+| Port 3000 / 8080 bereits belegt   | killen Sie die Prozesse die den Port 3000 / 8080 benutzen (netstat -ano                                                                         |
+| Weisse Seite im Browser           | console logs im browser anschauen (meistens missing dependencies (wenn man den Namen findet kann man es installieren zb npm install`<name>`)) |
+| Allgemeine MongoDB Fehler         | MongoDB starten und docker container neu starten oder halt manuell starten                                                                      |
 
 ---
 
@@ -149,10 +150,10 @@ Jetzt sollten sie folgende Seite sehen:
 
 * Nach dem Login sehen Sie die authentifizierte sicht.
 
-    ![1747327493811](image/Dokumentation/1747327493811.png)
+  ![1747327493811](image/Dokumentation/1747327493811.png)
 
 1. Klicken Sie auch das `+` unten rechts um einen neuen Beitrag zu erstellen, dann fällt Ihnen auf das es noch gar keine Kategorien gibt.
-2. Sie können noch keine Beiträge erstellen da Sie die Rolle `Student` haben (nur Admins und Teachers können Kategorien erstellen). 
+2. Sie können noch keine Beiträge erstellen da Sie die Rolle `Student` haben (nur Admins und Teachers können Kategorien erstellen).
 
 ### 4.3 Rollen wechseln
 
@@ -160,9 +161,8 @@ Jetzt sollten sie folgende Seite sehen:
 2. Jetzt können Sie beliebig Ihre Rolle wechseln. Der Secret Key ist aus development gründen schon eingetragen für Sie.
 3. Nachdem Sie Ihre Rolle zu `Admin` oder `Teacher` geändert haben werden Sie ausgeloggt und müssen sich erneut einloggen.
 4. Jetzt können Sie Kategorien erstellen.
-    ![1747328029912](image/Dokumentation/1747328029912.png)
-    ![1747328117759](image/Dokumentation/1747328117759.png)
-
+   ![1747328029912](image/Dokumentation/1747328029912.png)
+   ![1747328117759](image/Dokumentation/1747328117759.png)
 
 ### 4.4 Kategorie & Topic erstellen
 
@@ -184,6 +184,7 @@ Ich empfehle Ihnen mal einfach ein paar Benutzer zu erstellen, zu liken und zu a
 
 * Display Name, Username, Email, Bio & Passwort unter **Profile** oder **Settings** anpassen.
 * Theme‑Umschaltung (Light / Dark / Steam) in **Settings**.
+
 > Profil
 
 ![1747328807072](image/Dokumentation/1747328807072.png)
@@ -206,6 +207,7 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 > Category Management
 
 ![1747329457497](image/Dokumentation/1747329457497.png)
+
 ### 4.8 Admin‑Funktionen (Rolle Admin)
 
 * **Admin Dashboard** - Benutzer‑ & Kategorien­verwaltung.
@@ -224,7 +226,7 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 
 ![1747329457497](image/Dokumentation/1747329457497.png)
 
-#### Das waren die Kernfunktionen der app, Sie können sich gerne weitere Funktionen anschauen und ausprobieren wie zb: 
+#### Das waren die Kernfunktionen der app, Sie können sich gerne weitere Funktionen anschauen und ausprobieren wie zb:
 
 * Community: `localhost:3000/community`
 * View Count, Reply Count: Sehen sie zb. in `http://localhost:3000/topics/latest`
@@ -234,12 +236,12 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 
 ## 5. Technologie‑Stack
 
-| Ebene      | Technologie                       | Kommentar                     |
-| ---------- | --------------------------------- | ----------------------------- |
-| Frontend   | React 18 + TypeScript + Vite      | UI - Tailwind CSS + shadcn/ui |
-| Backend    | Spring Boot, Maven                | REST API, JWT‑Auth    |
-| DB         | MongoDB                           | Persistenz                    |
-| Deployment | Docker Compose                    | Mehrere Container → One‑Click |
+| Ebene      | Technologie                  | Kommentar                       |
+| ---------- | ---------------------------- | ------------------------------- |
+| Frontend   | React 18 + TypeScript + Vite | UI - Tailwind CSS + shadcn/ui   |
+| Backend    | Spring Boot, Maven           | REST API, JWT‑Auth             |
+| DB         | MongoDB                      | Persistenz                      |
+| Deployment | Docker Compose               | Mehrere Container → One‑Click |
 
 ---
 
@@ -251,8 +253,6 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 [ Browser ] ⇄ [ Frontend ] ⇄ REST ⇄ [ Backend ] ⇄ [MongoDB ]
 ```
 
-
-
 * **AuthProvider.tsx** hält JWT‑Session im React Context.
 * **ProtectedRoute.tsx** schützt Seiten & prüft Rollen.
 * **AuthContext.tsx** handelt die Authentifizierung und kann einfach verwendet werden mit `useAuth()` hook.
@@ -263,14 +263,14 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 
 ## 7. Feature‑Übersicht
 
-| **Kategorie**          | **Highlights**                                                                                   |
-| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| **Kategorie**          | **Highlights**                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | **Benutzerverwaltung** | Selbstregistrierung, Rollenwechsel & Deletion über Admin-Tool, Avatare via DiceBear API                     |
-| **Diskussionen**       | Kategorien, Topics, Replies, Pagination & Accepted Answers                        |
-| **Gamification**       | Punktesystem basierend auf Aktivität, **Leaderboard** für Motivation & Sichtbarkeit         |
-| **Sicherheit**         | Passwörter mit **BCrypt** gehasht, JWT in **HttpOnly-Cookies**, rollenbasierte Zugriffskontrolle |
-| **Admin-Funktionen**   | Benutzerverwaltung, Rollen-Upgrade/Downgrade, Kategorie-Management, Statistiken                  |
-| **Design & Usability** | Drei Themes (Light, Dark, Steam) – lokal gespeichert, responsive & performant                    |
+| **Diskussionen**       | Kategorien, Topics, Replies, Pagination & Accepted Answers                                                   |
+| **Gamification**       | Punktesystem basierend auf Aktivität,**Leaderboard** für Motivation & Sichtbarkeit                   |
+| **Sicherheit**         | Passwörter mit**BCrypt** gehasht, JWT in **HttpOnly-Cookies**, rollenbasierte Zugriffskontrolle |
+| **Admin-Funktionen**   | Benutzerverwaltung, Rollen-Upgrade/Downgrade, Kategorie-Management, Statistiken                              |
+| **Design & Usability** | Drei Themes (Light, Dark, Steam) – lokal gespeichert, responsive & performant                               |
 
 ---
 
@@ -305,10 +305,10 @@ Am anfang war es relativ schwer das ganze rollen zeug zu verstehen und zu implem
 
 ### 10.2 Nutzermanagement
 
-| Standardrolle | Berechtigungen                                         |
-| ------------- | ------------------------------------------------------ |
-| Student       | Lesen, Antworten, liken, Profil bearbeiten            |
-| Teacher       | Kategorie-Management                         |
-| Admin         | Benutzer-Management, Kategorie-Management    |
+| Standardrolle | Berechtigungen                             |
+| ------------- | ------------------------------------------ |
+| Student       | Lesen, Antworten, liken, Profil bearbeiten |
+| Teacher       | Kategorie-Management                       |
+| Admin         | Benutzer-Management, Kategorie-Management  |
 
 ---
