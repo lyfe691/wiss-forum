@@ -218,7 +218,7 @@ export function Leaderboard() {
                 </TableBody>
               </Table>
               <div className="text-xs text-muted-foreground mt-4">
-                You'll appear here once you reply to a post or reply.
+                You'll appear here once you reply in/to a post.
               </div>
             </>
           )}

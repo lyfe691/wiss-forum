@@ -10,6 +10,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Role, roleUtils } from '@/lib/types';
+import { toast } from 'sonner';
 
 export function AdminTool() {
   const [userId, setUserId] = useState('');
@@ -19,8 +20,9 @@ export function AdminTool() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -90,12 +92,22 @@ export function AdminTool() {
         console.log('Bootstrap response:', response.data);
         
         if (response.data && (response.data.success || response.status === 200)) {
-          setSuccess(`User has been made a ${role.toLowerCase()} successfully! Please refresh the page or log out and back in to see changes.`);
+          setSuccess(`User has been made a ${role.toLowerCase()} successfully! Please log back in for the changes to apply.`);
           
           // If the user updated their own role, refresh their auth context
           if (userId === user?._id) {
             await refreshUser();
+            
+            // Log out after a brief delay to show the success message
+            setTimeout(() => {
+              logout();
+              navigate('/login');
+            }, 2000);
+            toast.success("Logged out", {
+              description: "Please log back in for the changes to apply.",
+            });
           }
+          
         }
       } catch (err: any) {
         setError(`Bootstrap failed: ${err.response?.data?.message || err.message}`);
