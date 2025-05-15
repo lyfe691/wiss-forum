@@ -10,16 +10,16 @@
 
 ## Inhaltsübersicht
 
-* [1. Projektprospekt](#1-projektprospekt)
-* [2. Entwicklungstimeline](#2entwicklungstimeline)
-* [3. Installationsanleitung (Windows 10/11)](#3installationsanleitung-windows-1011)
-* [4. Benutzeranleitung](#4benutzeranleitung)
-* [5. Technologie‑Stack](#5technologie-stack)
-* [6. Architektur & Hauptkomponenten](#6architektur--hauptkomponenten)
-* [7. Feature‑Übersicht](#7feature-übersicht)
-* [8. Sicherheit & Datenschutz](#8sicherheit--datenschutz)
-* [9. Fazit / Reflexion](#9fazit--reflexion)
-* [10. Anhang](#10anhang)
+* [1. Projektprospekt](#1-projektprospekt)
+* [2. Entwicklungstimeline](#2-entwicklungstimeline)
+* [3. Installationsanleitung (Windows 10/11)](#3-installationsanleitung-windows-1011)
+* [4. Benutzeranleitung](#4-benutzeranleitung)
+* [5. Technologie‑Stack](#5-technologie-stack)
+* [6. Architektur & Hauptkomponenten](#6-architektur--hauptkomponenten)
+* [7. Feature‑Übersicht](#7-feature-übersicht)
+* [8. Sicherheit & Datenschutz](#8-sicherheit--datenschutz)
+* [9. Fazit / Reflexion](#9-fazit--reflexion)
+* [10. Anhang](#10-anhang)
 
 ---
 
@@ -49,23 +49,23 @@ Das WISS Forum löst nicht nur das Kommunikationsproblem – es bindet Schüler 
 
 ---
 
-## 2. Entwicklungstimeline
+## 2. Entwicklungstimeline
 
 Die komplette Commit-Historie und Entwicklung des Projekts können Sie im [GitHub Repository](https://github.com/lyfe691/wiss-forum/) nachverfolgen.
 
 ---
 
-## 3. Installationsanleitung
+## 3. Installationsanleitung
 
-### 3.1 Voraussetzungen
+### 3.1 Voraussetzungen
 
 > *Falls Sie es mit docker machen wollen:*
 
-* **Windows** mit **WSL 2**
-* **Docker Desktop (gestartet und ready)**
+* **Windows** mit **WSL 2**
+* **Docker Desktop (gestartet und ready)**
 Sie können es hier herunterladen falls Sie es nicht schon haben: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
 
-### 3.2 Services starten
+### 3.2 Services starten
 > DOCKER, DOCKER ENGINE MUSS GESTARTET SEIN
 Begeben sie sich in das Verzeichnis des Projekts `wiss-forum` und führen folgenden Befehl aus:
 
@@ -113,34 +113,35 @@ npm install
 npm run dev
 ```
 
-### 3.4 Applikation aufrufen
+### 3.4 Applikation aufrufen
 
 Jetzt können sie die Applikation unter [http://localhost:3000](http://localhost:3000) aufrufen.
 
 Jetzt sollten sie folgende Seite sehen:
 
 ![1747326752914](image/Dokumentation/1747326752914.png)
+
 > *Startseite ohne Login.*
 
-### 3.5 Troubleshooting
+### 3.5 Troubleshooting
 
 | Problem                           | Lösung                                               |
 | --------------------------------- | ---------------------------------------------------- |
-| „Cannot connect to Docker daemon“ | Docker Desktop öffnen & Engine starten               |
-| Port 3000 / 8080 bereits belegt   | killen Sie die Prozesse die den Port 3000 / 8080 benutzen (netstat -ano | findstr :3000 oder 8080 zum finden der PID und taskkill /PID <PID> /F zum killen) |
+| "Cannot connect to Docker daemon" | Docker Desktop öffnen & Engine starten               |
+| Port 3000 / 8080 bereits belegt   | killen Sie die Prozesse die den Port 3000 / 8080 benutzen (netstat -ano | findstr :3000 oder 8080 zum finden der PID und taskkill /PID <PID> /F zum killen) |
 | Weisse Seite im Browser            | console logs im browser anschauen (meistens missing dependencies (wenn man den Namen findet kann man es installieren zb npm install <name>))    |
 | Allgemeine MongoDB Fehler | MongoDB starten und docker container neu starten oder halt manuell starten |
 
 ---
 
-## 4. Benutzeranleitung
+## 4. Benutzeranleitung
 
-### 4.1 Erste Schritte – Registrierung
+### 4.1 Erste Schritte – Registrierung
 
 > NOTE: Sie sollten wissen das `forgot password` nicht funktioniert in der `Login` Seite, da ich meine Mail konfigurationen nicht teile. Sie können es einfach ignorieren.
 
 1. Rufen Sie [http://localhost:3000](http://localhost:3000) auf.
-2. Klicken Sie **Sign Up** -> Formular ausfüllen -> **Register**.
+2. Klicken Sie **Sign Up** -> Formular ausfüllen -> **Register**.
 
    ![1747327401494](image/Dokumentation/1747327401494.png)
 
@@ -153,7 +154,7 @@ Jetzt sollten sie folgende Seite sehen:
 1. Klicken Sie auch das `+` unten rechts um einen neuen Beitrag zu erstellen, dann fällt Ihnen auf das es noch gar keine Kategorien gibt.
 2. Sie können noch keine Beiträge erstellen da Sie die Rolle `Student` haben (nur Admins und Teachers können Kategorien erstellen). 
 
-### 4.3 Rollen wechseln
+### 4.3 Rollen wechseln
 
 1. Navigieren Sie zum Bootstrap Tool [http://localhost:3000/admin-tool](http://localhost:3000/admin-tool)
 2. Jetzt können Sie beliebig Ihre Rolle wechseln. Der Secret Key ist aus development gründen schon eingetragen für Sie.
@@ -163,7 +164,7 @@ Jetzt sollten sie folgende Seite sehen:
     ![1747328117759](image/Dokumentation/1747328117759.png)
 
 
-### 4.4 Kategorie & Topic erstellen
+### 4.4 Kategorie & Topic erstellen
 
 1. Kategorie erstellen, entweder per `+` unten rechts oder per `localhost:3000/admin/categories`
 2. Klicken Sie auf das `+` unten rechts um einen neuen Beitrag zu erstellen.
@@ -179,14 +180,16 @@ Ich empfehle Ihnen mal einfach ein paar Benutzer zu erstellen, zu liken und zu a
 
 ![1747328632245](image/Dokumentation/1747328632245.png)
 
-### 4.5 Profil & Einstellungen
+### 4.5 Profil & Einstellungen
 
-* Display Name, Username, Email, Bio & Passwort unter **Profile** oder **Settings** anpassen.
-* Theme‑Umschaltung (Light / Dark / Steam) in **Settings**.
+* Display Name, Username, Email, Bio & Passwort unter **Profile** oder **Settings** anpassen.
+* Theme‑Umschaltung (Light / Dark / Steam) in **Settings**.
 > Profil
+
 ![1747328807072](image/Dokumentation/1747328807072.png)
 
 > Settings (theme)
+
 ![1747328845960](image/Dokumentation/1747328845960.png)
 
 ### 4.6 Leaderboard
@@ -201,20 +204,24 @@ Wie Sie sehen können wird ein gamification angewendet.
 Ein Teacher hat nur zugriff auf das category management (CRUD).
 
 > Category Management
-![1747329457497](image/Dokumentation/1747329457497.png)
-### 4.8 Admin‑Funktionen (Rolle Admin)
 
-* **Admin Dashboard** - Benutzer‑ & Kategorien­verwaltung.
+![1747329457497](image/Dokumentation/1747329457497.png)
+### 4.8 Admin‑Funktionen (Rolle Admin)
+
+* **Admin Dashboard** - Benutzer‑ & Kategorien­verwaltung.
 * Rollen upgraden / downgraden per Dropdown neben dem Benutzer­namen in `http://localhost:3000/admin/users`. Man kann auch Benutzer (Student, Teacher) löschen als Admin.
-* Kategorien CRUD unter **Admin -> Categories** in `http://localhost:3000/admin/categories`.
+* Kategorien CRUD unter **Admin -> Categories** in `http://localhost:3000/admin/categories`.
 
 > Admin Dashboard
+
 ![1747329412215](image/Dokumentation/1747329412215.png)
 
 > User Management
+
 ![1747329256635](image/Dokumentation/1747329256635.png)
 
 > Category Management
+
 ![1747329457497](image/Dokumentation/1747329457497.png)
 
 #### Das waren die Kernfunktionen der app, Sie können sich gerne weitere Funktionen anschauen und ausprobieren wie zb: 
@@ -225,36 +232,36 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 
 ---
 
-## 5. Technologie‑Stack
+## 5. Technologie‑Stack
 
 | Ebene      | Technologie                       | Kommentar                     |
 | ---------- | --------------------------------- | ----------------------------- |
-| Frontend   | React 18 + TypeScript + Vite      | UI - Tailwind CSS + shadcn/ui |
-| Backend    | Spring Boot, Maven                | REST API, JWT‑Auth    |
+| Frontend   | React 18 + TypeScript + Vite      | UI - Tailwind CSS + shadcn/ui |
+| Backend    | Spring Boot, Maven                | REST API, JWT‑Auth    |
 | DB         | MongoDB                           | Persistenz                    |
-| Deployment | Docker Compose                    | Mehrere Container → One‑Click |
+| Deployment | Docker Compose                    | Mehrere Container → One‑Click |
 
 ---
 
-## 6. Architektur & Hauptkomponenten
+## 6. Architektur & Hauptkomponenten
 
 ![1747330914740](image/Dokumentation/1747330914740.png)
 
 ```
-[ Browser ] ⇄ [ Frontend ] ⇄ REST ⇄ [ Backend ] ⇄ [MongoDB ]
+[ Browser ] ⇄ [ Frontend ] ⇄ REST ⇄ [ Backend ] ⇄ [MongoDB ]
 ```
 
 
 
-* **AuthProvider.tsx** hält JWT‑Session im React Context.
-* **ProtectedRoute.tsx** schützt Seiten & prüft Rollen.
+* **AuthProvider.tsx** hält JWT‑Session im React Context.
+* **ProtectedRoute.tsx** schützt Seiten & prüft Rollen.
 * **AuthContext.tsx** handelt die Authentifizierung und kann einfach verwendet werden mit `useAuth()` hook.
 * **roleUtils.ts** ist ein utility um die rollen zu prüfen.
 * **api.ts** handlet fast all api requests.
 
 ---
 
-## 7. Feature‑Übersicht
+## 7. Feature‑Übersicht
 
 | **Kategorie**          | **Highlights**                                                                                   |
 | ---------------------- | ------------------------------------------------------------------------------------------------ |
@@ -267,15 +274,15 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 
 ---
 
-## 8. Sicherheit & Datenschutz
+## 8. Sicherheit & Datenschutz
 
 * BCrypt‑Hashing für Passwörter
-* JWT in **HttpOnly‑Cookies**
-* Rollen‑Checks server‑ & client‑seitig (`roleUtils.tsx`)
+* JWT in **HttpOnly‑Cookies**
+* Rollen‑Checks server‑ & client‑seitig (`roleUtils.tsx`)
 
 ---
 
-## 9. Fazit / Reflexion
+## 9. Fazit / Reflexion
 
 Das **WISS Forum** zeigt, wie moderne Webtechnologien, eine modulare Architektur und gezielte UX-Entscheidungen zu einer **skalierbaren und motivierenden Lernplattform** für Schulen kombiniert werden können. Besonders der Gamification-Ansatz hebt die Beteiligung deutlich hervor und bringt einen echten Mehrwert in der schulischen Kommunikation.
 
@@ -286,5 +293,22 @@ Am anfang war es relativ schwer das ganze rollen zeug zu verstehen und zu implem
 * **Shift‑Left Testing** spart langfristig Zeit – die späte Testphase verzögerte den MVP.
 * **Rollenbasierte Features** sollten frühzeitig definiert und eingeplant werden – nachträgliche Änderungen sind aufwändig.
 * **Dokumentation & Ownership** sind entscheidend – eine klare Projektverantwortung verbessert Qualität und Tempo.
+
+---
+
+## 10. Anhang
+
+### 10.1 Projektquellen
+
+* [GitHub Repository](https://github.com/lyfe691/wiss-forum/)
+* Verwendete Bibliotheken und Frameworks sind in den jeweiligen package.json und pom.xml Dateien aufgeführt
+
+### 10.2 Nutzermanagement
+
+| Standardrolle | Berechtigungen                                         |
+| ------------- | ------------------------------------------------------ |
+| Student       | Lesen, Antworten, liken, Profil bearbeiten            |
+| Teacher       | Kategorie-Management                         |
+| Admin         | Benutzer-Management, Kategorie-Management    |
 
 ---
