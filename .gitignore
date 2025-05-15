@@ -2,3 +2,18 @@ node_modules/
 .env
 *.env
 */node_modules/
+
+# Docker related
+.docker
+/docker-compose.override.yml
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
