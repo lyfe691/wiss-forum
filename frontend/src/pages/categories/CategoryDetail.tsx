@@ -481,7 +481,7 @@ export function CategoryDetail() {
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center">
                           <User className="h-4 w-4 mr-1" />
-                          <span>{topic.author.displayName || topic.author.username}</span>
+                          <span>{topic.author ? (topic.author.displayName || topic.author.username || 'Unknown User') : 'Unknown User'}</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-1" />
@@ -502,6 +502,9 @@ export function CategoryDetail() {
                         {topic.lastPost && (
                           <span className="text-xs">
                             Last reply {formatRelativeTime(topic.lastPost.createdAt)}
+                            {topic.lastPost.author && 
+                              <> by {topic.lastPost.author.displayName || topic.lastPost.author.username || 'Unknown User'}</>
+                            }
                           </span>
                         )}
                       </div>

@@ -29,15 +29,45 @@ export function Register() {
     e.preventDefault();
     const { username, email, password, confirmPassword, displayName } = formData;
     
-    // Validation
+    // Validation - all fields required
     if (!username || !email || !password || !confirmPassword || !displayName) {
       setError('All fields are required');
       return;
     }
     
-    // Username validation: no spaces
+    // Username validation: 3-20 characters and no spaces
+    if (username.length < 3) {
+      setError('Username must be at least 3 characters long');
+      return;
+    }
+    
+    if (username.length > 20) {
+      setError('Username cannot exceed 20 characters');
+      return;
+    }
+    
     if (username.includes(' ')) {
       setError('Username must not contain spaces');
+      return;
+    }
+    
+    // Check for inappropriate terms in username (basic check)
+    const inappropriateTerms = ['admin', 'root', 'moderator', 'fuck', 'shit', 'porn', 'nsfw'];
+    const lowercaseUsername = username.toLowerCase();
+    const hasInappropriateTerm = inappropriateTerms.some(term => lowercaseUsername.includes(term));
+    if (hasInappropriateTerm) {
+      setError('Username contains inappropriate terms');
+      return;
+    }
+    
+    // Display Name validation: 3-50 characters
+    if (displayName.length < 3) {
+      setError('Display name must be at least 3 characters long');
+      return;
+    }
+    
+    if (displayName.length > 50) {
+      setError('Display name cannot exceed 50 characters');
       return;
     }
     
@@ -48,8 +78,13 @@ export function Register() {
     }
     
     // Password validation: at least 6 characters, no spaces
-    if (password.length < 6 || password.includes(' ')) {
-      setError('Password must be at least 6 characters long and must not contain spaces');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+    
+    if (password.includes(' ')) {
+      setError('Password must not contain spaces');
       return;
     }
     

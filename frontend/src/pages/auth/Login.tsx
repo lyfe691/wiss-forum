@@ -42,8 +42,21 @@ export function Login() {
       // Redirect to the page they were trying to access, or home
       navigate(from, { replace: true });
     } catch (err: any) {
-      // Extract error message from the API response
-      const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      // Use a generic error message for all authentication failures
+      // This avoids revealing whether a username exists or not (security best practice)
+      let errorMessage = 'Invalid username or password';
+      
+      // Only show specific errors for non-authentication issues
+      if (err.response?.data?.message) {
+        const apiError = err.response.data.message.toLowerCase();
+        
+        if (apiError.includes('session expired') || apiError.includes('token')) {
+          errorMessage = 'Your session has expired. Please try again.';
+        } else if (apiError.includes('server') || apiError.includes('unavailable')) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      }
+      
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
