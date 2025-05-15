@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Github} from 'lucide-react';
+import { Github, AlertCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 // footer 
@@ -21,17 +21,25 @@ export function Footer() {
               A forum for WISS students and teachers to discuss topics and share knowledge.
             </p>
             
-            <div className="flex items-center gap-4 mt-6">
-            <a
-              href="https://github.com/lyfe691/wiss-forum"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center font-semibold text-sm gap-2 bg-background/40 border border-primary/20 hover:border-primary/30 hover:bg-primary/5 px-3 py-2 rounded-md transition-colors"
-            >
-              <Github className="h-5 w-5 text-primary" />
-              <span className="text-primary">Contribute to the project</span>
-              <span className="sr-only">GitHub</span>
-            </a>
+            <div className="flex items-center gap-2 mt-6">
+              <a
+                href="https://github.com/lyfe691/wiss-forum"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center font-semibold text-sm gap-1 bg-background/40 border border-primary/20 hover:border-primary/30 hover:bg-primary/5 px-2 py-1.5 rounded-md transition-colors"
+              >
+                <Github className="h-4 w-4 text-primary" />
+                <span className="text-primary">Contribute</span>
+              </a>
+              <a
+                href="https://github.com/lyfe691/wiss-forum/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center font-semibold text-sm gap-1 bg-background/40 border border-primary/20 hover:border-primary/30 hover:bg-primary/5 px-2 py-1.5 rounded-md transition-colors"
+              >
+                <AlertCircle className="h-4 w-4 text-primary" />
+                <span className="text-primary">Issues</span>
+              </a>
             </div>
           </div>
           
