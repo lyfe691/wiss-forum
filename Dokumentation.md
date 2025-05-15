@@ -1,6 +1,10 @@
 # WISS Forum – Projektdokumentation
 
-> **Modul:** 223, Multiuser-Systeme mit Rollen**Datum:** 15.05.2025**Teammitglieder & Beiträge:**
+> **Modul:** 223, Multiuser-Systeme mit Rollen
+>
+> **Datum:** 15.05.2025
+>
+> **Teammitglieder & Beiträge:**
 >
 > - Yanis Sebastian Zürcher - Projektleitung, vollständige Umsetzung von Backend & Frontend, Rollen- & Authentifizierungssystem, Dokumentation
 > - Jason Bichsel - Unterstützung durch Recherche und Feedback (Gruppenwechsel zu uns)
@@ -12,9 +16,9 @@
 * [2. Entwicklungstimeline](#2-entwicklungstimeline)
 * [3. Installationsanleitung](#3-installationsanleitung)
 * [4. Benutzeranleitung](#4-benutzeranleitung)
-* [5. Technologie‑Stack](#5-technologie-stack)
+* [5. Technologie‑Stack](#5-technologie--stack)
 * [6. Architektur &amp; Hauptkomponenten](#6-architektur--hauptkomponenten)
-* [7. Feature‑Übersicht](#7-feature-uebersicht)
+* [7. Feature‑Übersicht](#7-feature--übersicht)
 * [8. Sicherheit &amp; Datenschutz](#8-sicherheit--datenschutz)
 * [9. Fazit / Reflexion](#9-fazit--reflexion)
 * [10. Anhang](#10-anhang)
@@ -54,13 +58,30 @@ Das WISS Forum löst nicht nur das Kommunikationsproblem – es bindet Schüler 
 
 Die komplette Commit-Historie und Entwicklung des Projekts können Sie im [GitHub Repository](https://github.com/lyfe691/wiss-forum/) nachverfolgen.
 
+### Wochenübersicht
+
+| KW | Zeitraum | Wöchentliche Highlights |
+|----|----------|-------------------------|
+| 09 (24. 02 – 02. 03) | Projektstart: Initial Commit & Lizenzdatei. |
+| 10 (03. 03 – 09. 03) | Grundgerüst aufgesetzt – React + TypeScript-Frontend, Express/Node-Backend & MongoDB verbunden; erste Auth-Routen. |
+| 11 (10. 03 – 16. 03) | Feature-Sprint: Routing, Nutzerverzeichnis & -profile, Latest-Topics-Feed, Statistik-API, Benachrichtigungssystem, erste Admin-Bootstrap-Funktionen. |
+| 12 (17. 03 – 23. 03) | Auth-Härtung (Refresh-Token, AuthContext-Refactor), Steam-Theme, zahlreiche UX- & Performance-Optimierungen. |
+| 13 – 14 (24. 03 – 06. 04) | – keine Commits – Vorbereitung der Backend-Neuausrichtung. |
+| 15 (07. 04 – 13. 04) | Grosse UI-Überarbeitung: Navbar/SideNav/Footer refactored, Toaster & Skeleton-Loader implementiert, Topic-View-/Reply-Zähler eingeführt. |
+| 16 (14. 04 – 20. 04) | Weitere UX-Politur: Versionsanzeige, Login/Register-Rework, Help-Page, Theme-Switch-Optimierungen. |
+| 17 (21. 04 – 27. 04) | Legacy-Bootstrap-Code entfernt, Category/Topic/User-Role-Handling gestrafft, allgemeine Code-Aufräumarbeiten. |
+| 18 (28. 04 – 04. 05) | UI-Housekeeping: Benachrichtigungen entfernt, Toast-Styles aufgeräumt, Port/ENV-Cleanup, Topic-Creation-Flow verfeinert. |
+| **19 (05. 05 – 11. 05)** | **Grosser Meilenstein:** **Migration von Express/Node → Spring Boot** (spring init, neue Controller-Struktur, Jackson-Config); Admin-Tools aktiviert, Rollen normalisiert, Pagination-Fixes. |
+| 20 (12. 05 – 18. 05) | End-Polish: Docker-Setup lauffähig, Category-Management-UI verbessert, View-Counter & Leaderboard-Fixes, Markdown-/Dok-Bereinigung – bereit für M223-Abgabe. |
+
+
 ---
 
 ## 3. Installationsanleitung
 
 ### 3.1 Voraussetzungen
 
-> *Falls Sie es mit docker machen wollen:*
+> *Falls Sie es mit Docker machen wollen:*
 
 * **Windows** mit **WSL 2**
 * **Docker Desktop (gestartet und ready)**
@@ -90,7 +111,7 @@ Wenn es fertig ist, sollten sie ungefähr folgende Ausgabe sehen:
 
 > *Wenn Sie es ohne docker machen wollen oder probleme haben (können sie skippen wenn docker funktioniert):*
 
-voraussetzungen:
+Voraussetzungen:
 
 * [Node.js](https://nodejs.org/en/download)
 * [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
@@ -126,12 +147,12 @@ Jetzt sollten sie folgende Seite sehen:
 
 ### 3.5 Troubleshooting
 
-| Problem                           | Lösung                                                                                                                                         |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| "Cannot connect to Docker daemon" | Docker Desktop öffnen & Engine starten                                                                                                         |
-| Port 3000 / 8080 bereits belegt   | killen Sie die Prozesse die den Port 3000 / 8080 benutzen (netstat -ano                                                                         |
-| Weisse Seite im Browser           | console logs im browser anschauen (meistens missing dependencies (wenn man den Namen findet kann man es installieren zb npm install`<name>`)) |
-| Allgemeine MongoDB Fehler         | MongoDB starten und docker container neu starten oder halt manuell starten                                                                      |
+| Problem                           | Lösung                                                                                                                                          |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| "Cannot connect to Docker daemon" | Docker Desktop öffnen & Engine starten                                                                                                          |
+| Port 3000 / 8080 bereits belegt   | killen Sie die Prozesse die den Port 3000 / 8080 benutzen (netstat -ano                                                                          |
+| Weisse Seite im Browser           | console logs im browser anschauen (meistens missing dependencies (wenn man den Namen findet kann man es installieren zb npm install `<name>`)) |
+| Allgemeine MongoDB Fehler         | MongoDB starten und docker container neu starten oder halt manuell starten                                                                       |
 
 ---
 
@@ -241,7 +262,7 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 | Frontend   | React 18 + TypeScript + Vite | UI - Tailwind CSS + shadcn/ui   |
 | Backend    | Spring Boot, Maven           | REST API, JWT‑Auth             |
 | DB         | MongoDB                      | Persistenz                      |
-| Deployment | Docker Compose               | Mehrere Container → One‑Click |
+| Deployment | Docker Compose               | Mehrere Container -> One‑Click |
 
 ---
 
@@ -286,7 +307,9 @@ Ein Teacher hat nur zugriff auf das category management (CRUD).
 
 Das **WISS Forum** zeigt, wie moderne Webtechnologien, eine modulare Architektur und gezielte UX-Entscheidungen zu einer **skalierbaren und motivierenden Lernplattform** für Schulen kombiniert werden können. Besonders der Gamification-Ansatz hebt die Beteiligung deutlich hervor und bringt einen echten Mehrwert in der schulischen Kommunikation.
 
-Am anfang war es relativ schwer das ganze rollen zeug zu verstehen und zu implementieren. Z.B. die verschiedenen ansicheten der Rollen, jedoch nachdem ich eine solidere rollen implementierung hatte, war es einfach alles zu verstehen und zu implementieren.
+Am anfang war es relativ schwer das ganze rollen zeug zu verstehen und zu implementieren. Z.B. die verschiedenen ansicheten der Rollen, jedoch nachdem ich eine solidere rollen Implementierung hatte, war es einfach alles zu verstehen und zu implementieren.
+
+Ebenfalls mühsam war die Konvertierung von Node.js/Express zu Spring Boot.
 
 ### 💡 Learnings
 
