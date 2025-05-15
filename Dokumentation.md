@@ -11,15 +11,15 @@
 ## Inhaltsübersicht
 
 * [1. Projektprospekt](#1-projektprospekt)
-* [2. Entwicklungstimeline](#2-entwicklungstimeline)
-* [3. Installationsanleitung (Windows 10/11)](#3-installationsanleitung-windows-1011)
-* [4. Benutzeranleitung](#4-benutzeranleitung)
-* [5. Technologie‑Stack](#5-technologie-stack)
-* [6. Architektur & Hauptkomponenten](#6-architektur--hauptkomponenten)
-* [7. Feature‑Übersicht](#7-feature-übersicht)
-* [8. Sicherheit & Datenschutz](#8-sicherheit--datenschutz)
-* [9. Fazit / Reflexion](#9-fazit--reflexion)
-* [10. Anhang](#10-anhang)
+* [2. Entwicklungstimeline](#2entwicklungstimeline)
+* [3. Installationsanleitung (Windows 10/11)](#3installationsanleitung-windows-1011)
+* [4. Benutzeranleitung](#4benutzeranleitung)
+* [5. Technologie‑Stack](#5technologie-stack)
+* [6. Architektur & Hauptkomponenten](#6architektur--hauptkomponenten)
+* [7. Feature‑Übersicht](#7feature-übersicht)
+* [8. Sicherheit & Datenschutz](#8sicherheit--datenschutz)
+* [9. Fazit / Reflexion](#9fazit--reflexion)
+* [10. Anhang](#10anhang)
 
 ---
 
