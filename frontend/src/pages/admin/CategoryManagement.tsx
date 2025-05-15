@@ -356,18 +356,18 @@ export function CategoryManagement() {
       // Provide a clear error message based on the response
       let errorMessage = 'Failed to delete category.';
       
-      if (err?.response?.data?.message) {
-        // Use the server's error message if available
-        errorMessage = err.response.data.message;
+      if (err?.response?.status === 400 && err?.response?.data?.message) {
+        if (err.response.data.message.includes('topics')) {
+          errorMessage = 'This category contains topics and cannot be deleted. Please use the "Clear All Topics" option first or move the topics to another category.';
+        } else {
+          errorMessage = err.response.data.message;
+        }
       } else if (err?.response?.status === 403) {
         errorMessage = "You don't have permission to delete this category.";
+      } else if (err?.response?.status === 500) {
+        errorMessage = "This category likely contains topics and cannot be deleted. Please use the \"Clear All Topics\" option first.";
       } else if (err?.message) {
         errorMessage = err.message;
-      }
-      
-      // Check for the specific error about topics
-      if (errorMessage.includes('topics')) {
-        errorMessage = 'Cannot delete category that contains topics. Please use the "Clear All Topics" option first.';
       }
       
       setError(errorMessage);
