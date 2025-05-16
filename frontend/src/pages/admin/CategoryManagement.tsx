@@ -668,6 +668,7 @@ export function CategoryManagement() {
                   onChange={handleInputChange}
                   placeholder="e.g. Mathematics"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -680,15 +681,23 @@ export function CategoryManagement() {
                   placeholder="Briefly describe what this category is about"
                   rows={3}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
+              <Button type="button" variant="outline" onClick={() => setShowDialog(false)} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button type="submit">
-                {editingCategory ? 'Save Changes' : 'Create Category'}
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    {editingCategory ? 'Saving...' : 'Creating...'}
+                  </div>
+                ) : (
+                  editingCategory ? 'Save Changes' : 'Create Category'
+                )}
               </Button>
             </DialogFooter>
           </form>
