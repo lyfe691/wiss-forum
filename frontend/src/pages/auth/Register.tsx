@@ -1,102 +1,68 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// define schema with zod
+const registerSchema = z.object({
+  displayName: z.string()
+    .min(3, "Display name must be at least 3 characters")
+    .max(50, "Display name cannot exceed 50 characters"),
+  username: z.string()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username cannot exceed 20 characters")
+    .regex(/^[^\s]+$/, "Username must not contain spaces")
+    .refine(value => {
+      const inappropriateTerms = ['admin', 'root', 'moderator', 'fuck', 'shit', 'porn', 'nsfw'];
+      return !inappropriateTerms.some(term => value.toLowerCase().includes(term));
+    }, "Username contains inappropriate terms"),
+  email: z.string()
+    .email("Invalid email address")
+    .regex(/^[\w.-]+@wiss-edu\.ch$/, "Email must end with @wiss-edu.ch"),
+  password: z.string()
+    .min(6, "Password must be at least 6 characters")
+    .regex(/^[^\s]+$/, "Password must not contain spaces"),
+  confirmPassword: z.string()
+})
+.refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function Register() {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    displayName: '',
-  });
-  const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (error) setError('');
-  };
+  // Initialize form with react-hook-form and zod validation
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      displayName: '',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    }
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { username, email, password, confirmPassword, displayName } = formData;
-    
-    // Validation - all fields required
-    if (!username || !email || !password || !confirmPassword || !displayName) {
-      setError('All fields are required');
-      return;
-    }
-    
-    // Username validation: 3-20 characters and no spaces
-    if (username.length < 3) {
-      setError('Username must be at least 3 characters long');
-      return;
-    }
-    
-    if (username.length > 20) {
-      setError('Username cannot exceed 20 characters');
-      return;
-    }
-    
-    if (username.includes(' ')) {
-      setError('Username must not contain spaces');
-      return;
-    }
-    
-    // Check for inappropriate terms in username (basic check)
-    const inappropriateTerms = ['admin', 'root', 'moderator', 'fuck', 'shit', 'porn', 'nsfw'];
-    const lowercaseUsername = username.toLowerCase();
-    const hasInappropriateTerm = inappropriateTerms.some(term => lowercaseUsername.includes(term));
-    if (hasInappropriateTerm) {
-      setError('Username contains inappropriate terms');
-      return;
-    }
-    
-    // Display Name validation: 3-50 characters
-    if (displayName.length < 3) {
-      setError('Display name must be at least 3 characters long');
-      return;
-    }
-    
-    if (displayName.length > 50) {
-      setError('Display name cannot exceed 50 characters');
-      return;
-    }
-    
-    // Email validation: must end with @wiss-edu.ch
-    if (!email.match(/^[\w.-]+@wiss-edu\.ch$/)) {
-      setError('Email must end with @wiss-edu.ch');
-      return;
-    }
-    
-    // Password validation: at least 6 characters, no spaces
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
-    
-    if (password.includes(' ')) {
-      setError('Password must not contain spaces');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    
+  const onSubmit = async (values: RegisterFormValues) => {
+    setError('');
     setIsSubmitting(true);
     
     try {
-      await register(username, email, password, displayName);
+      await register(values.username, values.email, values.password, values.displayName);
       navigate('/');
     } catch (err: any) {
       // Extract error message from the API response
@@ -108,87 +74,124 @@ export function Register() {
   };
 
   return (
-    <div className="w-full max-w-sm space-y-6"> {/* Container for form elements */}
-      <div className="text-center space-y-2">
-         <h1 className="text-3xl font-bold">Create an account</h1>
-        <p className="text-muted-foreground">
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
+        <CardDescription className="text-center">
           Enter your information to create a new account
-        </p>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-         {error && (
-          <div className="p-3 rounded-md bg-destructive/15 text-destructive flex items-center gap-2 text-sm mb-4">
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <p>{error}</p>
-          </div>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
-        <div className="space-y-2">
-          <Label htmlFor="displayName">Display Name</Label>
-          <Input
-            id="displayName"
-            name="displayName"
-            placeholder="Enter your full name"
-            value={formData.displayName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            name="username"
-            placeholder="Choose a unique username (no spaces)"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Enter your @wiss-edu.ch email address"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Create a password (min. 6 characters, no spaces)"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <Button              
-          type="submit"
-          className="w-full mt-6"
-          disabled={isSubmitting}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Display Name</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter your full name" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Choose a unique username (no spaces)" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="email" 
+                      placeholder="Enter your @wiss-edu.ch email address" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="password" 
+                      placeholder="Create a password (min. 6 characters, no spaces)" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="password" 
+                      placeholder="Confirm your password" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              className="w-full mt-6"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Creating account...' : 'Sign up'}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+      <CardFooter className="flex justify-center">
+        <Button 
+          variant="link" 
+          className="font-normal"
+          onClick={() => navigate('/login')}
         >
-          {isSubmitting ? 'Creating account...' : 'Sign up'}
+          Already have an account? Sign in
         </Button>
-      </form>
-    </div>
+      </CardFooter>
+    </Card>
   );
 } 
