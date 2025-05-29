@@ -30,7 +30,7 @@ public class UserValidator {
             "admin", "root", "moderator", "fuck", "shit", "ass", "sex", 
             "nude", "xxx", "porn", "nsfw", "racist", "nazi"
             // this is just to show that it works, in the future i will add a lib
-            // instad of typing every single word
+            // instead of typing every single word
     );
     
     /**

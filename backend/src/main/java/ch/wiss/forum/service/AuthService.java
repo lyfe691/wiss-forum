@@ -2,6 +2,7 @@ package ch.wiss.forum.service;
 
 import java.time.LocalDateTime;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -9,18 +10,25 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import ch.wiss.forum.model.PasswordResetToken;
 import ch.wiss.forum.model.Role;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.LoginRequest;
 import ch.wiss.forum.payload.request.RegisterRequest;
 import ch.wiss.forum.payload.response.JwtResponse;
+import ch.wiss.forum.repository.PasswordResetTokenRepository;
 import ch.wiss.forum.repository.UserRepository;
 import ch.wiss.forum.security.JwtUtils;
 import ch.wiss.forum.validation.UserValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     
     private final AuthenticationManager authenticationManager;
@@ -28,6 +36,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final UserValidator userValidator;
+    private final EmailService emailService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    
+    @Value("${app.password-reset.expiration-minutes:30}")
+    private int passwordResetExpirationMinutes;
     
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
         String usernameOrEmail = loginRequest.getUsernameOrEmail();
@@ -39,9 +52,9 @@ public class AuthService {
         
         // for logging - helps with debugging
         if (usernameOrEmail.contains("@")) {
-            System.out.println("Attempting to authenticate with email: " + usernameOrEmail);
+            log.debug("Attempting to authenticate with email: {}", usernameOrEmail);
         } else {
-            System.out.println("Attempting to authenticate with username: " + usernameOrEmail);
+            log.debug("Attempting to authenticate with username: {}", usernameOrEmail);
         }
         
         Authentication authentication = authenticationManager.authenticate(
@@ -146,5 +159,69 @@ public class AuthService {
                 user.getDisplayName(),
                 user.getAvatar()
         );
+    }
+
+    // initiate password reset
+    public void initiatePasswordReset(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        
+        // check if email exists and throw exception if not
+        if (userOpt.isEmpty()) {
+            log.info("Password reset requested for non-existent email: {}", email);
+            throw new RuntimeException("No account found with this email address");
+        }
+
+        User user = userOpt.get();
+        
+        // generate unique token
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(passwordResetExpirationMinutes);
+        
+        // delete any existing tokens for this user
+        passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
+        
+        // create and save the password reset token
+        PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+            .token(token)
+            .user(user)
+            .expiryDate(expiryDate)
+            .build();
+        
+        passwordResetTokenRepository.save(passwordResetToken);
+        
+        // send password reset email
+        try {
+            emailService.sendPasswordResetEmail(user.getEmail(), token);
+            log.info("Password reset initiated for user: {}", user.getUsername());
+        } catch (Exception e) {
+            log.error("Failed to send password reset email: {}", e.getMessage());
+            throw new RuntimeException("Failed to send password reset email");
+        }
+    }
+
+
+    // reset password
+    public void resetPassword(String token, String newPassword) {
+        if (!userValidator.isValidPassword(newPassword)) {
+            throw new RuntimeException("Password must be at least 6 characters long and must not contain spaces");
+        }
+        
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token)
+            .orElseThrow(() -> new RuntimeException("Invalid or expired password reset token"));
+            
+        if (passwordResetToken.isExpired()) {
+            passwordResetTokenRepository.delete(passwordResetToken);
+            throw new RuntimeException("Password reset token has expired");
+        }
+        
+        User user = passwordResetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+        
+        // delete the used token
+        passwordResetTokenRepository.delete(passwordResetToken);
+        
+        log.info("Password reset successful for user: {}", user.getUsername());
     }
 } 

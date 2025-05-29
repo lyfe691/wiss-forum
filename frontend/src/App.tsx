@@ -12,6 +12,8 @@ import { Role } from '@/lib/types';
 import { Home } from '@/pages/Home';
 import { Login } from '@/pages/auth/Login';
 import { Register } from '@/pages/auth/Register';
+import { ForgotPassword } from '@/pages/auth/ForgotPassword';
+import { ResetPassword } from '@/pages/auth/ResetPassword';
 import { Categories } from '@/pages/categories/Categories';
 import { CategoryDetail } from '@/pages/categories/CategoryDetail';
 import { CreateTopic } from '@/pages/topics/CreateTopic';
@@ -103,6 +105,8 @@ function App() {
           <Route path="/" element={<AuthLayout />}>
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password" element={<ResetPassword />} />
           </Route>
 
           {/* 404 */}

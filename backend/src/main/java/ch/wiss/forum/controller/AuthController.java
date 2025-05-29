@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
+import ch.wiss.forum.payload.request.ForgotPasswordRequest;
 import ch.wiss.forum.payload.request.LoginRequest;
 import ch.wiss.forum.payload.request.RegisterRequest;
+import ch.wiss.forum.payload.request.ResetPasswordRequest;
 import ch.wiss.forum.payload.response.JwtResponse;
 import ch.wiss.forum.payload.response.MessageResponse;
 import ch.wiss.forum.service.AuthService;
@@ -55,5 +58,28 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MessageResponse> checkAuthentication() {
         return ResponseEntity.ok(new MessageResponse("User is authenticated"));
+    }
+
+    // forgot password
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
+        try {
+            authService.initiatePasswordReset(request.getEmail());
+            return ResponseEntity.ok(new MessageResponse("Password reset instructions sent successfully."));
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("No account found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse(e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponse("Error processing request: " + e.getMessage()));
+        }
+    }
+
+    // reset password
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(new MessageResponse("Password has been reset."));
     }
 } 

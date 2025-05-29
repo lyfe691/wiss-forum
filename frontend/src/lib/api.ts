@@ -209,6 +209,32 @@ export const authAPI = {
   refreshToken: async () => {
     const response = await api.post('/auth/refresh-token');
     return response.data;
+  },
+  
+  forgotPassword: async (email: string) => {
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
+      return {
+        success: true,
+        message: response.data.message || 'Password reset instructions sent successfully.'
+      };
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      throw error;
+    }
+  },
+  
+  resetPassword: async (token: string, newPassword: string) => {
+    try {
+      const response = await api.post('/auth/reset-password', { token, newPassword });
+      return {
+        success: true,
+        message: response.data.message || 'Password has been reset successfully.'
+      };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
   }
 };
 

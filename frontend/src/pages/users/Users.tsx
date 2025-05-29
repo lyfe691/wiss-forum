@@ -50,10 +50,10 @@ export function Users() {
         let data: User[];
         const currentUserRole = roleUtils.normalizeRole(currentUser?.role);
         if (currentUserRole === Role.ADMIN) {
-          // Admin can see full user details
+          // admin can see full user details
           data = await userAPI.getAllUsers();
         } else {
-          // For regular users, we'll use a public endpoint that returns limited user info
+          // for regular users, ill use a public endpoint that returns limited user info
           data = await userAPI.getPublicUsersList();
         }
         setUsers(data);
