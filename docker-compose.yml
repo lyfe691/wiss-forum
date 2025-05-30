@@ -21,7 +21,7 @@ services:
   # Backend service
   backend:
     build:
-      context: ./backend_spring
+      context: ./backend
       dockerfile: Dockerfile
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/wiss_forum
