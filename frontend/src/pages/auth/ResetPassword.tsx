@@ -99,9 +99,9 @@ export function ResetPassword() {
           </Alert>
         )}
         {success && (
-          <Alert className="mb-4 border-green-200 text-green-800" style={{ backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }}>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <AlertDescription className="text-green-800">
+          <Alert variant="success" className="mb-4">
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertDescription>
               Your password has been reset successfully! You will be redirected to the login page.
             </AlertDescription>
           </Alert>

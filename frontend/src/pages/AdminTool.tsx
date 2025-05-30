@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, CheckCircle, Key, ArrowLeft } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Key, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { userAPI } from '@/lib/api';
 import axios from 'axios';
@@ -92,20 +92,17 @@ export function AdminTool() {
         console.log('Bootstrap response:', response.data);
         
         if (response.data && (response.data.success || response.status === 200)) {
-          setSuccess(`User has been made a ${role.toLowerCase()} successfully! Please log back in for the changes to apply.`);
+          setSuccess(`User has been made a ${role.toLowerCase()} successfully! Please log back in for the changes to apply. \n Logging out...`);
           
-          // If the user updated their own role, refresh their auth context
+          // if the user updated their own role, refresh their auth context
           if (userId === user?._id) {
             await refreshUser();
             
-            // Log out after a brief delay to show the success message
+            // log out after a brief delay to show the success message
             setTimeout(() => {
               logout();
               navigate('/login');
-            }, 2000);
-            toast.success("Logged out", {
-              description: "Please log back in for the changes to apply.",
-            });
+            }, 5000); // 5s
           }
           
         }
@@ -146,8 +143,8 @@ export function AdminTool() {
           )}
           
           {success && (
-            <Alert variant="default" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300 border-green-200 dark:border-green-800/30">
-              <CheckCircle className="h-4 w-4" />
+            <Alert variant="success" className="mb-4">
+              <CheckCircle2 className="h-4 w-4" />
               <AlertTitle>Success</AlertTitle>
               <AlertDescription>{success}</AlertDescription>
             </Alert>

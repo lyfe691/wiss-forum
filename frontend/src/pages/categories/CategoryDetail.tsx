@@ -279,7 +279,7 @@ export function CategoryDetail() {
       )}
       
       {success && (
-        <Alert className="bg-green-50 text-green-800 border-green-200 mb-4 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+        <Alert className="mb-4" variant="success">
           <AlertTitle>Success</AlertTitle>
           <AlertDescription>{success}</AlertDescription>
         </Alert>

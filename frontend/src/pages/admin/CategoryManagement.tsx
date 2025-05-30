@@ -49,7 +49,8 @@ import {
   SearchIcon,
   ArrowLeft,
   ShieldCheck,
-  MessageSquare
+  MessageSquare, 
+  CheckCircle2
 } from 'lucide-react';
 import { authAPI } from '@/lib/api';
 import axios from 'axios';
@@ -518,7 +519,8 @@ export function CategoryManagement() {
       )}
       
       {success && (
-        <Alert className="mb-6 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300 border-green-200 dark:border-green-800/30">
+        <Alert variant="success" className="mb-6">
+          <CheckCircle2 className="h-4 w-4" />
           <AlertTitle>Success</AlertTitle>
           <AlertDescription>{success}</AlertDescription>
         </Alert>

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
-import { Send, FileText, Loader2, ChevronLeft, AlertCircle, Info } from 'lucide-react';
+import { Send, FileText, Loader2, ChevronLeft, AlertCircle, Info, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
@@ -297,8 +297,8 @@ export function CreateTopic() {
               )}
               
               {successMessage && (
-                <Alert className="bg-green-50 border-green-200 text-green-800">
-                  <AlertCircle className="h-4 w-4 text-green-600" />
+                <Alert className="mb-4" variant="success">
+                  <CheckCircle2 className="h-4 w-4" />
                   <AlertTitle>Success</AlertTitle>
                   <AlertDescription>{successMessage}</AlertDescription>
                 </Alert>
