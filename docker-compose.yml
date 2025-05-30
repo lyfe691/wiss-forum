@@ -23,6 +23,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    env_file: 
+      - ./backend/.env
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/wiss_forum
       - SPRING_WEB_CORS_ALLOWED_ORIGINS=http://localhost:3000
