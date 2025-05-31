@@ -15,8 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, Eye } from 'lucide-react';
+import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, Eye, ArrowRight } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn, getAvatarUrl, getInitials, formatRoleName, getRoleBadgeColor } from '@/lib/utils';
 
 interface Category {
   _id: string;
@@ -40,6 +42,7 @@ interface Topic {
     _id: string;
     username: string;
     displayName?: string;
+    role?: string;
   };
   category: {
     _id: string;
@@ -462,54 +465,104 @@ export function CategoryDetail() {
             ) : (
               <div className="space-y-4">
                 {sortedTopics.map((topic) => (
-                  <Card key={topic._id}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <Link to={`/topics/${topic.slug}`}>
-                          <CardTitle className="text-xl hover:text-primary transition-colors">
-                            {topic.title}
-                          </CardTitle>
-                        </Link>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                      <p className="line-clamp-2 text-muted-foreground">
-                        {topic.content.replace(/<[^>]*>/g, '')}
-                      </p>
-                    </CardContent>
-                    <CardFooter className="pt-2 text-sm text-muted-foreground flex flex-wrap justify-between items-center">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center">
-                          <User className="h-4 w-4 mr-1" />
-                          <span>{topic.author ? (topic.author.displayName || topic.author.username || 'Unknown User') : 'Unknown User'}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
-                          <span>{formatRelativeTime(topic.createdAt)}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Badge variant="secondary" className="mr-2">
-                          <MessageSquare className="h-3 w-3 mr-1" />
-                          {topic.replyCount !== undefined ? topic.replyCount : (topic.postCount || 0)} {(topic.replyCount !== undefined ? topic.replyCount : (topic.postCount || 0)) === 1 ? 'reply' : 'replies'}
-                        </Badge>
-                        {topic.viewCount !== undefined && (
-                          <Badge variant="outline" className="mr-2">
-                            <Eye className="h-3 w-3 mr-1" />
-                            {topic.viewCount} {topic.viewCount === 1 ? 'view' : 'views'}
-                          </Badge>
-                        )}
-                        {topic.lastPost && (
-                          <span className="text-xs">
-                            Last reply {formatRelativeTime(topic.lastPost.createdAt)}
-                            {topic.lastPost.author && 
-                              <> by {topic.lastPost.author.displayName || topic.lastPost.author.username || 'Unknown User'}</>
-                            }
-                          </span>
-                        )}
-                      </div>
-                    </CardFooter>
-                  </Card>
+                  <div key={topic._id}>
+                    <Link to={`/topics/${topic.slug}`} className="block group">
+                      <Card className="border group-hover:border-primary/30 group-hover:shadow-md transition-all duration-200 overflow-hidden relative">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                              {topic.title}
+                            </CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pb-2">
+                          <p className="line-clamp-2 text-muted-foreground">
+                            {topic.content.replace(/<[^>]*>/g, '')}
+                          </p>
+                        </CardContent>
+                        <CardFooter className="pt-2 text-sm text-muted-foreground flex flex-wrap justify-between items-center">
+                          <div className="flex items-center space-x-4">
+                            {topic.author && (
+                              <div onClick={(e) => e.stopPropagation()} className="z-10">
+                                <Link 
+                                  to={`/users/${topic.author.username}`} 
+                                  className={cn(
+                                    "flex items-center gap-2 rounded-md px-1.5 -ml-1.5 py-1",
+                                    "hover:bg-muted/50 transition-colors"
+                                  )}
+                                >
+                                  <Avatar className={cn(
+                                    "h-7 w-7 border-2 border-background",
+                                    "ring-1 ring-border transition-all"
+                                  )}>
+                                    <AvatarImage 
+                                      src={getAvatarUrl(topic.author.username)} 
+                                      alt={topic.author.displayName || topic.author.username} 
+                                    />
+                                    <AvatarFallback className="text-xs font-medium bg-primary/10">
+                                      {getInitials(topic.author.displayName || topic.author.username)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium leading-tight">
+                                      {topic.author.displayName || topic.author.username}
+                                    </span>
+                                    {topic.author.role && (
+                                      <Badge
+                                        className={cn(
+                                          "px-1.5 py-0.5 text-xs font-normal w-fit mt-0.5",
+                                          getRoleBadgeColor(topic.author.role)
+                                        )}
+                                      >
+                                        {formatRoleName(topic.author.role)}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </Link>
+                              </div>
+                            )}
+                            
+                            {!topic.author && (
+                              <div className="flex items-center gap-2">
+                                <Avatar className={cn(
+                                  "h-7 w-7 border-2 border-background",
+                                  "ring-1 ring-border bg-muted"
+                                )}>
+                                  <AvatarFallback className="bg-muted">
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="text-sm text-muted-foreground">
+                                  Unknown user
+                                </span>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              <span>{formatRelativeTime(topic.createdAt)}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="flex items-center">
+                              <MessageSquare className="h-3 w-3 mr-1" />
+                              {topic.replyCount !== undefined ? topic.replyCount : (topic.postCount || 0)} {(topic.replyCount !== undefined ? topic.replyCount : (topic.postCount || 0)) === 1 ? 'reply' : 'replies'}
+                            </Badge>
+                            {topic.viewCount !== undefined && (
+                              <Badge variant="outline" className="flex items-center">
+                                <Eye className="h-3 w-3 mr-1" />
+                                {topic.viewCount} {topic.viewCount === 1 ? 'view' : 'views'}
+                              </Badge>
+                            )}
+                            <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 group-hover:bg-primary/10 group-hover:text-primary pointer-events-none">
+                              View Topic
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </CardFooter>
+                      </Card>
+                    </Link>
+                  </div>
                 ))}
               </div>
             )}

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn, getAvatarUrl, getInitials } from '@/lib/utils';
+import { cn, getAvatarUrl, getInitials, formatRoleName, getRoleBadgeColor } from '@/lib/utils';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -251,92 +251,134 @@ export function LatestTopics() {
           <div className="space-y-4">
             {topics.map((topic) => (
               <div key={topic._id}>
-                <Card 
-                  className="border hover:border-primary/20 transition-all duration-200 overflow-hidden"
-                >
-                  <CardHeader className="pb-3 pt-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start gap-2">
-                          <CardTitle className="text-lg hover:text-primary transition-colors">
-                            <Link to={`/topics/${topic.slug}`} className="hover:underline">
+                <Link to={`/topics/${topic.slug}`} className="block group">
+                  <Card 
+                    className="border group-hover:border-primary/30 group-hover:shadow-md transition-all duration-200 overflow-hidden relative"
+                  >
+                    <CardHeader className="pb-3 pt-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2">
+                            <CardTitle className="text-lg group-hover:text-primary transition-colors">
                               {topic.title}
-                            </Link>
-                          </CardTitle>
+                            </CardTitle>
+                          </div>
+                          
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                            {topic.category && (
+                              <div onClick={(e) => e.stopPropagation()} className="z-10">
+                                <Link to={`/categories/${topic.category.slug}`} className="hover:opacity-80 transition-opacity">
+                                  <Badge variant="secondary" className="px-2 py-0">
+                                    {topic.category.name}
+                                  </Badge>
+                                </Link>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
+                              {formatDistanceToNow(new Date(topic.createdAt), { addSuffix: true })}
+                            </div>
+                            
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Eye className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
+                              {topic.viewCount || 0} {(topic.viewCount || 0) === 1 ? 'view' : 'views'}
+                            </div>
+
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <MessageSquare className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
+                              {topic.replyCount || 0} {(topic.replyCount || 0) === 1 ? 'reply' : 'replies'}
+                            </div>
+                          </div>
                         </div>
-                        
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
-                          {topic.category && (
-                            <Link to={`/categories/${topic.category.slug}`} className="hover:opacity-80 transition-opacity">
-                              <Badge variant="secondary" className="px-2 py-0">
-                                {topic.category.name}
-                              </Badge>
-                            </Link>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="pb-3">
+                      <CardDescription className="line-clamp-2 text-sm">
+                        {topic.content.replace(/<[^>]*>?/gm, '')}
+                      </CardDescription>
+                      
+                      {topic.tags && topic.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          <Tag className="h-3.5 w-3.5 text-muted-foreground/70" />
+                          {topic.tags.map((tag, index) => (
+                            <Badge key={index} variant="outline" className="bg-muted/30 border-muted/50 text-xs px-1.5 py-0 hover:bg-muted/50">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                    
+                    <CardFooter className="pt-0 pb-4 border-t border-border/50 mt-2">
+                      <div className="flex justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          {topic.author && (
+                            <div onClick={(e) => e.stopPropagation()} className="z-10">
+                              <Link 
+                                to={`/users/${topic.author.username}`} 
+                                className={cn(
+                                  "flex items-center gap-2 rounded-md px-1.5 -ml-1.5 py-1",
+                                  "hover:bg-muted/50 transition-colors"
+                                )}
+                              >
+                                <Avatar className={cn(
+                                  "h-7 w-7 border-2 border-background",
+                                  "ring-1 ring-border transition-all"
+                                )}>
+                                  <AvatarImage 
+                                    src={getAvatarUrl(topic.author.username, topic.author.avatar)} 
+                                    alt={topic.author.displayName || topic.author.username} 
+                                  />
+                                  <AvatarFallback className="text-xs font-medium bg-primary/10">
+                                    {getInitials(topic.author.displayName || topic.author.username)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium leading-tight">
+                                    {topic.author.displayName || topic.author.username}
+                                  </span>
+                                  {topic.author.role && (
+                                    <Badge
+                                      className={cn(
+                                        "px-1.5 py-0.5 text-xs font-normal w-fit mt-0.5",
+                                        getRoleBadgeColor(topic.author.role)
+                                      )}
+                                    >
+                                      {formatRoleName(topic.author.role)}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </Link>
+                            </div>
                           )}
                           
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
-                            {formatDistanceToNow(new Date(topic.createdAt), { addSuffix: true })}
-                          </div>
-                          
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Eye className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
-                            {topic.viewCount || 0} {(topic.viewCount || 0) === 1 ? 'view' : 'views'}
-                          </div>
-
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <MessageSquare className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
-                            {topic.replyCount || 0} {(topic.replyCount || 0) === 1 ? 'reply' : 'replies'}
-                          </div>
+                          {!topic.author && (
+                            <div className="flex items-center gap-2">
+                              <Avatar className={cn(
+                                "h-7 w-7 border-2 border-background",
+                                "ring-1 ring-border bg-muted"
+                              )}>
+                                <AvatarFallback className="bg-muted">
+                                  <User className="h-4 w-4 text-muted-foreground" />
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-muted-foreground">
+                                Unknown user
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="pb-3">
-                    <CardDescription className="line-clamp-2 text-sm">
-                      {topic.content.replace(/<[^>]*>?/gm, '')}
-                    </CardDescription>
-                    
-                    {topic.tags && topic.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        <Tag className="h-3.5 w-3.5 text-muted-foreground/70" />
-                        {topic.tags.map((tag, index) => (
-                          <Badge key={index} variant="outline" className="bg-muted/30 border-muted/50 text-xs px-1.5 py-0 hover:bg-muted/50">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                  
-                  <CardFooter className="pt-0 pb-4 border-t border-border/50 mt-2">
-                    <div className="flex justify-between w-full">
-                      <div className="flex items-center gap-2">
-                        {topic.author?.avatar ? (
-                          <Avatar className="h-6 w-6 border border-border">
-                            <AvatarImage src={getAvatarUrl(topic.author.username, topic.author.avatar)} alt={topic.author.displayName || topic.author.username} />
-                            <AvatarFallback className="text-xs">
-                              {getInitials(topic.author.displayName || topic.author.username)}
-                            </AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          <User className="h-5 w-5 text-muted-foreground/70 mr-0.5" />
-                        )}
-                        <span className="text-sm text-muted-foreground">
-                          {topic.author ? topic.author.displayName || topic.author.username : 'Unknown user'}
-                        </span>
-                      </div>
-                      
-                      <Link to={`/topics/${topic.slug}`}>
-                        <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary">
+                        
+                        <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 group-hover:bg-primary/10 group-hover:text-primary pointer-events-none">
                           View Topic
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Button>
-                      </Link>
-                    </div>
-                  </CardFooter>
-                </Card>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                </Link>
               </div>
             ))}
           </div>
