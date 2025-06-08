@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, MessageSquare, FolderTree } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Search, MessageSquare, FolderTree, ExternalLink, Info, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Breadcrumb,
@@ -119,6 +120,20 @@ export function Categories() {
             List View
           </TabsTrigger>
         </TabsList>
+
+        {/* Official EFZ Modules Notice */}
+        <Card className="mt-6 border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5">
+          <CardContent className="py-0">
+            <div className="flex items-center gap-3">
+              <Info className="h-6 w-6 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Need a module from the official curriculum? Visit <a href="https://www.modulbaukasten.ch/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">modulbaukasten.ch</a> and contact an admin to request it.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         
         {/* Hierarchical View */}
         <TabsContent value="hierarchical" className="mt-6">
