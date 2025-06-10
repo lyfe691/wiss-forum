@@ -1,5 +1,6 @@
 package ch.wiss.forum.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -17,4 +18,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     boolean existsByUsername(String username);
     
     boolean existsByEmail(String email);
+    
+    List<User> findTop50ByOrderByTotalScoreDesc();
 } 

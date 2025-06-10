@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AlertCircle, ChevronLeft, Calendar, Mail } from 'lucide-react';
+import { AlertCircle, Calendar, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -18,6 +18,7 @@ import {
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
 import { getAvatarUrl, getRoleBadgeColor, formatRoleName, getInitials } from '@/lib/utils';
+import { UserGamificationWidget } from '@/components/UserGamificationWidget';
 
 interface UserProfile {
   _id: string;
@@ -193,6 +194,17 @@ export function UserProfile() {
               <p className="text-muted-foreground">
                 {profile.bio || 'No bio provided.'}
               </p>
+            </div>
+            
+            {/* Collapsible Community Stats */}
+            <div className="mb-6">
+              <UserGamificationWidget 
+                showTitle={true}
+                compact={false}
+                collapsible={true}
+                defaultCollapsed={true}
+                username={profile.username}
+              />
             </div>
             
             {isOwnProfile && (

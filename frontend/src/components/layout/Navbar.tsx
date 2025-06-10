@@ -63,7 +63,7 @@ export function Navbar() {
   const userRole = roleUtils.normalizeRole(user?.role);
   const isAdmin = userRole === Role.ADMIN;
   const isTeacher = userRole === Role.TEACHER;
-  const canManageCategories = isAdmin || isTeacher;
+
 
   return (
     <header className={cn(

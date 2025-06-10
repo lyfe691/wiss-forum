@@ -69,6 +69,8 @@ public class SecurityConfig {
                     .requestMatchers("/api/users/bootstrap-admin").permitAll()
                     .requestMatchers("/api/users/bootstrap-teacher").permitAll()
                     .requestMatchers("/api/users/{username}").permitAll()
+                    .requestMatchers("/api/users/{username}/gamification").permitAll()
+                    .requestMatchers("/api/users/leaderboard").permitAll()
                     .requestMatchers("GET", "/api/categories/**").permitAll()
                     .requestMatchers("GET", "/api/topics/**").permitAll()
                     .requestMatchers("GET", "/api/posts/**").permitAll()

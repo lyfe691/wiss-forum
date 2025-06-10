@@ -81,8 +81,7 @@ export function CategoryDetail() {
   const [sortBy, setSortBy] = useState('recent'); // 'recent', 'activity', 'popular'
   const [error, setError] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [success, setSuccess] = useState<string | null>(null);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchCategoryAndTopics = async () => {
@@ -281,12 +280,7 @@ export function CategoryDetail() {
         </Alert>
       )}
       
-      {success && (
-        <Alert className="mb-4" variant="success">
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
+      
 
       {isLoading ? (
         <div className="space-y-6">

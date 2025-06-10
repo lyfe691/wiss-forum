@@ -29,6 +29,7 @@ import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.PasswordUpdateRequest;
 import ch.wiss.forum.payload.request.RoleBootstrapRequest;
 import ch.wiss.forum.payload.response.MessageResponse;
+import ch.wiss.forum.service.GamificationService;
 import ch.wiss.forum.service.PostService;
 import ch.wiss.forum.service.TopicService;
 import ch.wiss.forum.service.UserService;
@@ -43,6 +44,7 @@ public class UserController {
     private final UserService userService;
     private final TopicService topicService;
     private final PostService postService;
+    private final GamificationService gamificationService;
     
     // secret key for bootstrap process (JUST IN DEVELOPMENT, IN PRODUCTION I'LL USE ENV VARIABLES)
     private static final String BOOTSTRAP_ADMIN_KEY = "WISS_ADMIN_SETUP_2024";
@@ -290,13 +292,55 @@ public class UserController {
 
     // get user leaderboard
     @GetMapping("/leaderboard")
-    public ResponseEntity<?> getUserLeaderboard() {
+    public ResponseEntity<?> getUserLeaderboard(@RequestParam(defaultValue = "overall") String type) {
         try {
-            List<Map<String, Object>> leaderboard = userService.getUserLeaderboard();
+            List<Map<String, Object>> leaderboard;
+            
+            switch (type.toLowerCase()) {
+                case "enhanced":
+                    leaderboard = gamificationService.getEnhancedLeaderboard();
+                    break;
+                case "likes":
+                    leaderboard = userService.getUserLeaderboard();
+                    break;
+                default:
+                    leaderboard = gamificationService.getEnhancedLeaderboard();
+                    break;
+            }
+            
             return ResponseEntity.ok(leaderboard);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Failed to fetch leaderboard: " + e.getMessage());
+        }
+    }
+    
+    // get current user's gamification stats
+    @GetMapping("/profile/gamification")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getUserGamificationStats() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User currentUser = (User) authentication.getPrincipal();
+            
+            Map<String, Object> stats = gamificationService.getUserGamificationStats(currentUser);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to fetch gamification stats: " + e.getMessage());
+        }
+    }
+    
+    // get public gamification stats for any user
+    @GetMapping("/{username}/gamification")
+    public ResponseEntity<?> getPublicUserGamificationStats(@PathVariable String username) {
+        try {
+            User user = userService.getUserByUsername(username);
+            Map<String, Object> stats = gamificationService.getUserGamificationStats(user);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to fetch user gamification stats: " + e.getMessage());
         }
     }
 } 

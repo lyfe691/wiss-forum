@@ -18,10 +18,11 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class PostService {
-    
+
     private final PostRepository postRepository;
     private final TopicRepository topicRepository;
     private final TopicService topicService;
+    private final GamificationService gamificationService;
     
     public Page<Post> getPostsByTopic(String topicId, Pageable pageable) {
         Topic topic = topicService.getTopicById(topicId);
@@ -61,6 +62,9 @@ public class PostService {
         topic.setLastPost(savedPost);
         topic.setLastPostAt(LocalDateTime.now());
         topicRepository.save(topic);
+        
+        // Update gamification stats
+        gamificationService.updateUserStatsOnPostCreated(currentUser);
         
         return savedPost;
     }
@@ -131,7 +135,12 @@ public class PostService {
         
         if (!post.getLikes().contains(currentUser.getId())) {
             post.getLikes().add(currentUser.getId());
-            return postRepository.save(post);
+            Post savedPost = postRepository.save(post);
+            
+            // Update gamification stats for the post author (not the current user who liked it)
+            gamificationService.updateUserStatsOnLikeReceived(post.getAuthor());
+            
+            return savedPost;
         }
         
         return post;
@@ -141,10 +150,17 @@ public class PostService {
         Post post = getPostById(id);
         
         post.getLikes().remove(currentUser.getId());
-        return postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+        
+        // Update gamification stats for the post author (decrease their score)
+        gamificationService.updateUserStatsOnLikeRemoved(post.getAuthor());
+        
+        return savedPost;
     }
     
     public long getPostCountByTopic(Topic topic) {
         return postRepository.countByTopic(topic);
     }
+    
+
 } 

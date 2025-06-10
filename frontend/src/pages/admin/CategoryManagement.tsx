@@ -72,7 +72,7 @@ interface Category {
 
 export function CategoryManagement() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [allCategories, setAllCategories] = useState<Category[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +114,7 @@ export function CategoryManagement() {
       // Flatten the categories structure for the table view
       const flattened = flattenCategories(categoriesData);
       setCategories(flattened);
-      setAllCategories(categoriesData);
+      
     } catch (err) {
       console.error('Failed to fetch categories:', err);
       setError('Unable to load categories. Please try again later.');

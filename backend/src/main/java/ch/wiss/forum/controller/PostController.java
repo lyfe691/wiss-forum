@@ -27,6 +27,8 @@ import ch.wiss.forum.service.TopicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
+
 import java.util.List;
 import java.util.Map;
 
@@ -157,4 +159,6 @@ public class PostController {
         Post post = postService.unlikePost(id, currentUser);
         return ResponseEntity.ok(post);
     }
+    
+
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI } from '@/lib/api';
-import { useNavigate } from 'react-router-dom';
+
 import { 
   Card, 
   CardContent, 
@@ -38,8 +38,7 @@ import {
 import { Theme } from '@/lib/theme';
 
 export function Settings() {
-  const { user, refreshUser, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, refreshUser } = useAuth();
   const [selectedTab, setSelectedTab] = useState('account');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,18 +126,14 @@ export function Settings() {
       
       // Check if any field was actually changed
       if (Object.values(updateData).every(val => val === undefined)) {
-        toast.error("No changes detected", {
-          description: "Make some changes before updating your profile."
-        });
+        toast.error("No changes detected");
         setIsSubmitting(false);
         return;
       }
 
       await userAPI.updateUserProfile(updateData);
       
-      toast.success("Profile updated", {
-        description: "Your profile information has been updated."
-      });
+      toast.success("Profile updated");
       
       // Update user state in auth context
       await refreshUser();

@@ -10,21 +10,13 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+
 import { Button } from '@/components/ui/button';
 import { 
   Asterisk,
-  Cog,
   Folder,
-  MessageSquare,
   ShieldAlert,
   ShieldCheck,
-  User,
   Users,
   ArrowLeft
 } from 'lucide-react';

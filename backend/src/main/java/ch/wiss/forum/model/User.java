@@ -1,6 +1,7 @@
 package ch.wiss.forum.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -50,6 +51,38 @@ public class User implements UserDetails {
     private LocalDateTime updatedAt;
     
     private LocalDateTime lastActive;
+
+    // gamification fields
+    @Builder.Default
+    private int totalScore = 0;
+    
+    @Builder.Default
+    private int level = 1;
+    
+    @Builder.Default
+    private int topicsCreated = 0;
+    
+    @Builder.Default
+    private int postsCreated = 0;
+    
+    @Builder.Default
+    private int likesReceived = 0;
+    
+
+    
+    @Builder.Default
+    private int currentStreak = 0;
+    
+    @Builder.Default
+    private int longestStreak = 0;
+    
+    private LocalDateTime lastActivityDate;
+    
+    @Builder.Default
+    private List<String> badges = new ArrayList<>();
+    
+    @Builder.Default
+    private List<String> achievements = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -171,7 +171,7 @@ export function UserManagement() {
         // Convert role to uppercase to match Java enum format
         const roleForBackend = newRole.toUpperCase();
         console.log(`Sending role in format: ${roleForBackend}`);
-        const result = await userAPI.updateUserRole(userId, roleForBackend);
+        await userAPI.updateUserRole(userId, roleForBackend);
         toast.success(`User role updated to ${formatRoleName(newRole)}`);
         await fetchUsers();
         

@@ -622,13 +622,49 @@ export const statsAPI = {
 };
 
 export const usersAPI = {
-  getUserLeaderboard: async () => {
+  getUserLeaderboard: async (type: string = 'enhanced') => {
     try {
-      const response = await api.get('/users/leaderboard');
+      const response = await api.get(`/users/leaderboard?type=${type}`);
       return response.data || [];
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
       return [];
+    }
+  },
+  
+  getUserGamificationStats: async () => {
+    try {
+      const response = await api.get('/users/profile/gamification');
+      return response.data || {};
+    } catch (error) {
+      console.error('Error fetching gamification stats:', error);
+      return {};
+    }
+  },
+
+  getPublicUserGamificationStats: async (username: string) => {
+    try {
+      console.log(`API: Calling /users/${username}/gamification`);
+      const response = await api.get(`/users/${username}/gamification`);
+      console.log(`API: Response for ${username}:`, response.data);
+      return response.data || {};
+    } catch (error) {
+      console.error('Error fetching public gamification stats:', error);
+      console.error(`API: Failed to fetch stats for username: ${username}`);
+      // Return default stats structure if API fails
+      return {
+        totalScore: 0,
+        level: 1,
+        topicsCreated: 0,
+        postsCreated: 0,
+        likesReceived: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        badges: [],
+        achievements: [],
+        levelProgress: 0,
+        pointsToNextLevel: 50
+      };
     }
   },
 };

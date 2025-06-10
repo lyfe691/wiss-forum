@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { topicsAPI, postsAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -14,22 +14,8 @@ import {
   BreadcrumbSeparator, 
   BreadcrumbList 
 } from "@/components/ui/breadcrumb";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
+
 import { 
   AlertCircle, 
   ArrowLeft, 
@@ -37,10 +23,8 @@ import {
   ChevronDown,
   Heart,
   MessageSquare,
-  MoreVertical,
   Reply,
   Send,
-  Trash,
   CalendarDays,
   Eye,
   Loader2,
@@ -48,7 +32,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, getAvatarUrl, getInitials } from '@/lib/utils';
+import { cn, getAvatarUrl, getInitials, getRoleBadgeColor, formatRoleName } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
 
@@ -157,7 +141,7 @@ export function TopicDetail() {
   const [expandedPosts, setExpandedPosts] = useState<{[key: string]: boolean}>({});
   
   // Refs for DOM manipulation
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const replyFormRef = useRef<HTMLDivElement>(null);
@@ -388,84 +372,56 @@ export function TopicDetail() {
     }
   };
 
-  // Handle like/unlike a post
+  // Handle like toggle
   const handleToggleLike = async (postId: string) => {
-    if (!isAuthenticated) return;
-    
-    // Prevent multiple simultaneous likes
-    if (likeInProgress[postId]) return;
+    if (!isAuthenticated || likeInProgress[postId]) return;
     
     setLikeInProgress(prev => ({ ...prev, [postId]: true }));
     
-    // Helper function to recursively update nested posts
+    // Update nested post helper
     const updateNestedPost = (posts: Post[], targetId: string, updateFn: (post: Post) => Post): Post[] => {
       return posts.map(post => {
         if (post._id === targetId) {
           return updateFn(post);
-        }
-        
-        // Process children recursively if they exist
-        if (post.children && post.children.length > 0) {
+        } else if (post.children && post.children.length > 0) {
           return {
             ...post,
             children: updateNestedPost(post.children, targetId, updateFn)
           };
         }
-        
         return post;
       });
     };
     
     try {
-      // Optimistic update - works for both top-level and nested posts
+      // Optimistic update
+      const targetPost = posts.find(p => p._id === postId);
+      const newIsLiked = !targetPost?.isLiked;
+      
       setPosts(prevPosts => 
-        updateNestedPost(prevPosts, postId, (post: Post) => {
-          const newIsLiked = !post.isLiked;
-          return {
-            ...post,
-            isLiked: newIsLiked,
-            likes: post.likes + (newIsLiked ? 1 : -1)
-          };
-        })
+        updateNestedPost(prevPosts, postId, post => ({
+          ...post,
+          isLiked: newIsLiked,
+          likes: post.likes + (newIsLiked ? 1 : -1)
+        }))
       );
       
-      // Actual API call
-      const response = await postsAPI.toggleLike(postId);
-      
-      // Update with server data if available
-      if (response && response.post) {
-        setPosts(prevPosts => 
-          updateNestedPost(prevPosts, postId, (post: Post) => {
-            return {
-              ...post,
-              likes: response.post.likes,
-              isLiked: response.post.isLiked
-            };
-          })
-        );
-      }
+      await postsAPI.toggleLike(postId);
     } catch (error) {
-      console.error('Failed to toggle like:', error);
-      
-      // Revert on error - also works for nested posts
+      console.error('Error toggling like:', error);
+      // Revert optimistic update
       setPosts(prevPosts => 
-        updateNestedPost(prevPosts, postId, (post: Post) => {
-          const revertIsLiked = !post.isLiked;
-          return {
-            ...post,
-            isLiked: revertIsLiked,
-            likes: post.likes + (revertIsLiked ? 1 : -1)
-          };
-        })
+        updateNestedPost(prevPosts, postId, post => ({
+          ...post,
+          isLiked: !post.isLiked,
+          likes: post.likes + (post.isLiked ? 1 : -1)
+        }))
       );
     } finally {
-      // Re-enable like button after delay
-      setTimeout(() => {
-        setLikeInProgress(prev => ({ ...prev, [postId]: false }));
-      }, 500);
+      setLikeInProgress(prev => ({ ...prev, [postId]: false }));
     }
   };
-
+  
   // Handle reply to a post
   const handleReplyClick = (post: Post) => {
     // Validate post and post._id
@@ -644,16 +600,7 @@ export function TopicDetail() {
     }
   };
 
-  // Check if the current user can manage a post
-  const canManagePost = (postAuthorId: string = '') => {
-    if (!isAuthenticated || !user) return false;
-    
-    // Admin can manage all posts
-    if (user.role?.toString().toUpperCase() === 'ADMIN') return true;
-    
-    // A user can manage their own posts
-    return user._id === postAuthorId;
-  };
+
 
   // Toggle expanded/collapsed state for a post's replies
   const toggleReplies = (postId: string) => {
@@ -728,13 +675,10 @@ export function TopicDetail() {
                 <div className="space-y-1">
                   <div className="font-semibold">
                     {post.author?.displayName || post.author?.username || 'Unknown user'}
-                    {post.author?._id === topic?.author?._id && (
-                      <Badge className="ml-2 bg-primary/20 text-primary border-none text-[10px] py-0">Author</Badge>
-                    )}
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    <Badge variant="outline" className="px-1.5 py-0 text-xs">
-                      {post.author?.role?.charAt(0).toUpperCase() + post.author?.role?.slice(1) || 'User'}
+                    <Badge className={`px-1.5 py-0 text-xs ${getRoleBadgeColor(post.author?.role || 'student')}`}>
+                      {formatRoleName(post.author?.role || 'student')}
                     </Badge>
                     <span>{formatDate(post.createdAt)} at {formatTime(post.createdAt)}</span>
                     {post.createdAt !== post.updatedAt && (
@@ -766,7 +710,7 @@ export function TopicDetail() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleToggleLike(post._id)}
-                disabled={!isAuthenticated || likeInProgress[post._id]}
+                disabled={likeInProgress[post._id]}
                 className={cn(
                   "h-8 px-2 gap-1.5 rounded-full",
                   post.isLiked && "text-red-500 bg-red-50 dark:bg-red-950/20"
@@ -1109,8 +1053,8 @@ export function TopicDetail() {
                 <Badge className="ml-2 bg-primary/20 text-primary border-none">Topic Author</Badge>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <Badge variant="outline" className="px-1.5 py-0 text-xs">
-                  {topic.author?.role?.charAt(0).toUpperCase() + topic.author?.role?.slice(1) || 'User'}
+                <Badge className={`px-1.5 py-0 text-xs ${getRoleBadgeColor(topic.author?.role || 'student')}`}>
+                  {formatRoleName(topic.author?.role || 'student')}
                 </Badge>
                 <span>{formatDate(topic.createdAt)} at {formatTime(topic.createdAt)}</span>
               </div>

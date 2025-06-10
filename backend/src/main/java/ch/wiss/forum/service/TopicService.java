@@ -11,21 +11,24 @@ import ch.wiss.forum.model.Category;
 import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.repository.TopicRepository;
+import ch.wiss.forum.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class TopicService {
-    
+
     private final TopicRepository topicRepository;
-    private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
+    private final GamificationService gamificationService;
     
     public Page<Topic> getAllTopics(Pageable pageable) {
         return topicRepository.findAll(pageable);
     }
     
     public Page<Topic> getTopicsByCategory(String categoryId, Pageable pageable) {
-        Category category = categoryService.getCategoryById(categoryId);
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
         return topicRepository.findByCategoryOrderByCreatedAtDesc(category, pageable);
     }
     
@@ -70,7 +73,12 @@ public class TopicService {
             topic.setSlug(topic.getSlug() + "-" + System.currentTimeMillis());
         }
         
-        return topicRepository.save(topic);
+        Topic savedTopic = topicRepository.save(topic);
+        
+        // update gamification stats
+        gamificationService.updateUserStatsOnTopicCreated(currentUser);
+        
+        return savedTopic;
     }
     
     public Topic updateTopic(String id, Topic topicDetails) {

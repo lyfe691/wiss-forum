@@ -73,7 +73,7 @@ export function LatestTopics() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalTopics, setTotalTopics] = useState(0);
+
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'mostReplies'>('latest');
 
   useEffect(() => {
@@ -103,13 +103,13 @@ export function LatestTopics() {
       setTopics(topicsArray);
       
       setTotalPages(data.totalPages || 1);
-      setTotalTopics(data.totalTopics || topicsArray.length);
+      
       
     } catch (error) {
       console.error('Failed to fetch topics:', error);
       setTopics([]);
       setTotalPages(1);
-      setTotalTopics(0);
+      
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

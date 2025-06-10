@@ -40,6 +40,7 @@ import {
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAvatarUrl, getRoleBadgeColor, formatRoleName, getInitials } from '@/lib/utils';
+import { UserGamificationWidget } from '@/components/UserGamificationWidget';
 
 interface UserProfile {
   _id: string;
@@ -562,6 +563,10 @@ export function Profile() {
                   <User className="h-4 w-4" />
                   <span>Profile</span>
                 </TabsTrigger>
+                <TabsTrigger value="stats" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  <span>Stats</span>
+                </TabsTrigger>
                 <TabsTrigger value="activity" className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   <span>Activity</span>
@@ -672,6 +677,11 @@ export function Profile() {
                     </Button>
                   </CardFooter>
                 </Card>
+              </TabsContent>
+              
+              {/* Stats Tab */}
+              <TabsContent value="stats">
+                <UserGamificationWidget />
               </TabsContent>
               
               {/* Activity Tab */}

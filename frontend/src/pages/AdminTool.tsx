@@ -9,8 +9,8 @@ import { userAPI } from '@/lib/api';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Role, roleUtils } from '@/lib/types';
-import { toast } from 'sonner';
+import { Role } from '@/lib/types';
+
 
 export function AdminTool() {
   const [userId, setUserId] = useState('');

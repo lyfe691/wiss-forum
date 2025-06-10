@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Search, MessageSquare, FolderTree, ExternalLink, Info, Mail } from 'lucide-react';
+
+import { Search, MessageSquare, FolderTree, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Breadcrumb,

@@ -373,7 +373,7 @@ export function CreateTopic() {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => navigate(category ? `/categories/${category.slug}` : '/topics')}
+                onClick={() => navigate(-1)} // jst go back to the previous page
                 className="gap-2"
               >
                 <ChevronLeft className="h-4 w-4" />
