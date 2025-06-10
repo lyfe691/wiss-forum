@@ -81,6 +81,36 @@ public class UserValidator {
      * - must not exceed 500 characters
      */
     public boolean isValidBio(String bio) {
-        return bio == null || bio.length() <= MAX_BIO_LENGTH;
+        return bio != null && bio.length() <= 500;
     }
+    
+    public boolean isValidUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return true; // Optional field
+        }
+        
+        try {
+            new java.net.URL(url);
+            return url.startsWith("http://") || url.startsWith("https://");
+        } catch (java.net.MalformedURLException e) {
+            return false;
+        }
+    }
+    
+    public boolean isValidGithubUrl(String url) {
+        if (!isValidUrl(url)) return false;
+        return url == null || url.trim().isEmpty() || url.contains("github.com");
+    }
+    
+    public boolean isValidLinkedinUrl(String url) {
+        if (!isValidUrl(url)) return false;
+        return url == null || url.trim().isEmpty() || url.contains("linkedin.com");
+    }
+    
+    public boolean isValidTwitterUrl(String url) {
+        if (!isValidUrl(url)) return false;
+        return url == null || url.trim().isEmpty() || 
+               url.contains("twitter.com") || url.contains("x.com");
+    }
+    
 } 

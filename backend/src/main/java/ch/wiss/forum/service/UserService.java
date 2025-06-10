@@ -133,6 +133,35 @@ public class UserService {
             user.setAvatar(userDetails.getAvatar());
         }
         
+        // validate and update social links
+        if (userDetails.getGithubUrl() != null) {
+            if (!userValidator.isValidGithubUrl(userDetails.getGithubUrl())) {
+                throw new RuntimeException("Invalid GitHub URL");
+            }
+            user.setGithubUrl(userDetails.getGithubUrl().trim().isEmpty() ? null : userDetails.getGithubUrl());
+        }
+        
+        if (userDetails.getWebsiteUrl() != null) {
+            if (!userValidator.isValidUrl(userDetails.getWebsiteUrl())) {
+                throw new RuntimeException("Invalid website URL");
+            }
+            user.setWebsiteUrl(userDetails.getWebsiteUrl().trim().isEmpty() ? null : userDetails.getWebsiteUrl());
+        }
+        
+        if (userDetails.getLinkedinUrl() != null) {
+            if (!userValidator.isValidLinkedinUrl(userDetails.getLinkedinUrl())) {
+                throw new RuntimeException("Invalid LinkedIn URL");
+            }
+            user.setLinkedinUrl(userDetails.getLinkedinUrl().trim().isEmpty() ? null : userDetails.getLinkedinUrl());
+        }
+        
+        if (userDetails.getTwitterUrl() != null) {
+            if (!userValidator.isValidTwitterUrl(userDetails.getTwitterUrl())) {
+                throw new RuntimeException("Invalid Twitter/X URL");
+            }
+            user.setTwitterUrl(userDetails.getTwitterUrl().trim().isEmpty() ? null : userDetails.getTwitterUrl());
+        }
+        
         // only admin can update roles
         if (userDetails.getRole() != null && PermissionUtils.canModifyUserRole(currentUser, user)) {
             user.setRole(userDetails.getRole());

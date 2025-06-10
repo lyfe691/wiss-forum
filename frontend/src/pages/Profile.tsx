@@ -35,7 +35,11 @@ import {
   Lock, 
   Save, 
   Loader2, 
-  AlertCircle 
+  AlertCircle,
+  Github,
+  Globe,
+  Linkedin,
+  Twitter,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -51,6 +55,10 @@ interface UserProfile {
   role: 'STUDENT' | 'TEACHER' | 'ADMIN' | 'student' | 'teacher' | 'admin';
   avatar?: string;
   bio?: string;
+  githubUrl?: string;
+  websiteUrl?: string;
+  linkedinUrl?: string;
+  twitterUrl?: string;
   createdAt: string;
   updatedAt?: string;
   lastActive?: string;
@@ -61,6 +69,10 @@ interface ProfileFormData {
   email: string;
   displayName: string;
   bio: string;
+  githubUrl: string;
+  websiteUrl: string;
+  linkedinUrl: string;
+  twitterUrl: string;
 }
 
 interface PasswordFormData {
@@ -83,7 +95,11 @@ export function Profile() {
     username: '',
     email: '',
     displayName: '',
-    bio: ''
+    bio: '',
+    githubUrl: '',
+    websiteUrl: '',
+    linkedinUrl: '',
+    twitterUrl: '',
   });
   
   const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
@@ -122,7 +138,11 @@ export function Profile() {
             username: normalizedProfile.username || '',
             email: normalizedProfile.email || '',
             displayName: normalizedProfile.displayName || '',
-            bio: normalizedProfile.bio || ''
+            bio: normalizedProfile.bio || '',
+            githubUrl: normalizedProfile.githubUrl || '',
+            websiteUrl: normalizedProfile.websiteUrl || '',
+            linkedinUrl: normalizedProfile.linkedinUrl || '',
+            twitterUrl: normalizedProfile.twitterUrl || '',
           });
         } else {
           // Fallback to user context if API returns no data
@@ -143,7 +163,11 @@ export function Profile() {
               username: user.username || '',
               email: user.email || '',
               displayName: user.displayName || '',
-              bio: user.bio || ''
+              bio: user.bio || '',
+              githubUrl: '',
+              websiteUrl: '',
+              linkedinUrl: '',
+              twitterUrl: '',
             });
           }
         }
@@ -168,7 +192,11 @@ export function Profile() {
             username: user.username || '',
             email: user.email || '',
             displayName: user.displayName || '',
-            bio: user.bio || ''
+            bio: user.bio || '',
+            githubUrl: '',
+            websiteUrl: '',
+            linkedinUrl: '',
+            twitterUrl: '',
           });
         }
       } finally {
@@ -222,6 +250,37 @@ export function Profile() {
       newErrors.bio = 'Bio must not exceed 500 characters';
     }
     
+    // Validate social links - only if they're provided
+    const validateUrl = (url: string, fieldName: string, platform?: string) => {
+      if (url && url.trim()) {
+        try {
+          new URL(url);
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            newErrors[fieldName] = `${platform || 'URL'} must start with http:// or https://`;
+          }
+        } catch {
+          newErrors[fieldName] = `Invalid ${platform || 'URL'} format`;
+        }
+      }
+    };
+    
+    validateUrl(profileForm.githubUrl, 'githubUrl', 'GitHub URL');
+    validateUrl(profileForm.websiteUrl, 'websiteUrl', 'Website URL');
+    validateUrl(profileForm.linkedinUrl, 'linkedinUrl', 'LinkedIn URL');
+    validateUrl(profileForm.twitterUrl, 'twitterUrl', 'Twitter/X URL');
+    
+    // Platform-specific validation
+    if (profileForm.githubUrl && profileForm.githubUrl.trim() && !profileForm.githubUrl.includes('github.com')) {
+      newErrors.githubUrl = 'GitHub URL must contain github.com';
+    }
+    if (profileForm.linkedinUrl && profileForm.linkedinUrl.trim() && !profileForm.linkedinUrl.includes('linkedin.com')) {
+      newErrors.linkedinUrl = 'LinkedIn URL must contain linkedin.com';
+    }
+    if (profileForm.twitterUrl && profileForm.twitterUrl.trim() && 
+        !profileForm.twitterUrl.includes('twitter.com') && !profileForm.twitterUrl.includes('x.com')) {
+      newErrors.twitterUrl = 'Twitter/X URL must contain twitter.com or x.com';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -239,7 +298,11 @@ export function Profile() {
         username: profileForm.username,
         email: profileForm.email,
         displayName: profileForm.displayName,
-        bio: profileForm.bio
+        bio: profileForm.bio,
+        githubUrl: profileForm.githubUrl || undefined,
+        websiteUrl: profileForm.websiteUrl || undefined,
+        linkedinUrl: profileForm.linkedinUrl || undefined,
+        twitterUrl: profileForm.twitterUrl || undefined,
       });
       
       const updatedUser = response.user || {};
@@ -251,6 +314,18 @@ export function Profile() {
       };
       
       setProfile(normalizedUser);
+      
+      // Update the form with the saved data
+      setProfileForm({
+        username: normalizedUser.username || '',
+        email: normalizedUser.email || '',
+        displayName: normalizedUser.displayName || '',
+        bio: normalizedUser.bio || '',
+        githubUrl: normalizedUser.githubUrl || '',
+        websiteUrl: normalizedUser.websiteUrl || '',
+        linkedinUrl: normalizedUser.linkedinUrl || '',
+        twitterUrl: normalizedUser.twitterUrl || ''
+      });
       
       // Update auth context
       await checkAuth();
@@ -656,6 +731,88 @@ export function Profile() {
                       {errors.bio && (
                         <p className="text-sm font-medium text-destructive">{errors.bio}</p>
                       )}
+                    </div>
+                    
+                    {/* Social Links Section */}
+                    <div className="space-y-3 pt-3 border-t">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-medium">Social Links</h3>
+                        <span className="text-xs text-muted-foreground">(Optional)</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="githubUrl" className="text-sm">GitHub</Label>
+                          <div className="relative">
+                            <Github className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                            <Input
+                              id="githubUrl"
+                              name="githubUrl"
+                              value={profileForm.githubUrl}
+                              onChange={handleProfileChange}
+                              placeholder="github.com/username"
+                              className="pl-8 h-9 text-sm"
+                            />
+                          </div>
+                          {errors.githubUrl && (
+                            <p className="text-xs font-medium text-destructive">{errors.githubUrl}</p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          <Label htmlFor="websiteUrl" className="text-sm">Website</Label>
+                          <div className="relative">
+                            <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                            <Input
+                              id="websiteUrl"
+                              name="websiteUrl"
+                              value={profileForm.websiteUrl}
+                              onChange={handleProfileChange}
+                              placeholder="yourwebsite.com"
+                              className="pl-8 h-9 text-sm"
+                            />
+                          </div>
+                          {errors.websiteUrl && (
+                            <p className="text-xs font-medium text-destructive">{errors.websiteUrl}</p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          <Label htmlFor="linkedinUrl" className="text-sm">LinkedIn</Label>
+                          <div className="relative">
+                            <Linkedin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                            <Input
+                              id="linkedinUrl"
+                              name="linkedinUrl"
+                              value={profileForm.linkedinUrl}
+                              onChange={handleProfileChange}
+                              placeholder="linkedin.com/in/username"
+                              className="pl-8 h-9 text-sm"
+                            />
+                          </div>
+                          {errors.linkedinUrl && (
+                            <p className="text-xs font-medium text-destructive">{errors.linkedinUrl}</p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          <Label htmlFor="twitterUrl" className="text-sm">Twitter/X</Label>
+                          <div className="relative">
+                            <Twitter className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                            <Input
+                              id="twitterUrl"
+                              name="twitterUrl"
+                              value={profileForm.twitterUrl}
+                              onChange={handleProfileChange}
+                              placeholder="twitter.com/username"
+                              className="pl-8 h-9 text-sm"
+                            />
+                          </div>
+                          {errors.twitterUrl && (
+                            <p className="text-xs font-medium text-destructive">{errors.twitterUrl}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end">

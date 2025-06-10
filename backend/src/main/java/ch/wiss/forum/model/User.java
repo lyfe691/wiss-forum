@@ -46,6 +46,12 @@ public class User implements UserDetails {
     
     private String bio;
     
+    // Social/Professional Links
+    private String githubUrl;
+    private String websiteUrl;
+    private String linkedinUrl;
+    private String twitterUrl;
+    
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;

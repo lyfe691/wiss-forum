@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AlertCircle, Calendar, Mail } from 'lucide-react';
+import { AlertCircle, Calendar, Mail, ExternalLink, Github, Globe, Linkedin, Twitter} from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -28,6 +28,10 @@ interface UserProfile {
   avatar?: string;
   role: string;
   bio?: string;
+  githubUrl?: string;
+  websiteUrl?: string;
+  linkedinUrl?: string;
+  twitterUrl?: string;
   createdAt: string;
 }
 
@@ -195,6 +199,63 @@ export function UserProfile() {
                 {profile.bio || 'No bio provided.'}
               </p>
             </div>
+            
+            {/* Social Links */}
+            {(profile.githubUrl || profile.websiteUrl || profile.linkedinUrl || profile.twitterUrl) && (
+              <div className="mb-6">
+                <h3 className="font-medium mb-3">Links</h3>
+                <div className="flex flex-wrap gap-3">
+                  {profile.githubUrl && (
+                    <a
+                      href={profile.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50 hover:bg-muted text-sm transition-colors"
+                    >
+                      <Github className="h-4 w-4" />
+                      GitHub
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                  {profile.websiteUrl && (
+                    <a
+                      href={profile.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50 hover:bg-muted text-sm transition-colors"
+                    >
+                      <Globe className="h-4 w-4" />
+                      Website
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                  {profile.linkedinUrl && (
+                    <a
+                      href={profile.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50 hover:bg-muted text-sm transition-colors"
+                    >
+                      <Linkedin className="h-4 w-4" />
+                      LinkedIn
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                  {profile.twitterUrl && (
+                    <a
+                      href={profile.twitterUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50 hover:bg-muted text-sm transition-colors"
+                    >
+                      <Twitter className="h-4 w-4" />
+                      Twitter/X
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
             
             {/* Collapsible Community Stats */}
             <div className="mb-6">

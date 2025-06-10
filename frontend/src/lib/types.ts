@@ -22,6 +22,10 @@ export interface User {
   role: Role;
   avatar?: string;
   bio?: string;
+  githubUrl?: string;
+  websiteUrl?: string;
+  linkedinUrl?: string;
+  twitterUrl?: string;
   createdAt?: string;
 }
 

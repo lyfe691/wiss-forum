@@ -24,7 +24,11 @@ import {
   AlertCircle, 
   Lock, 
   User,
-  Brush
+  Brush,
+  Github,
+  Globe,
+  Linkedin,
+  Twitter,
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { themeUtils } from '@/lib/theme';
@@ -47,6 +51,10 @@ export function Settings() {
     email: user?.email || '',
     displayName: user?.displayName || '',
     bio: user?.bio || '',
+    githubUrl: user?.githubUrl || '',
+    websiteUrl: user?.websiteUrl || '',
+    linkedinUrl: user?.linkedinUrl || '',
+    twitterUrl: user?.twitterUrl || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -122,6 +130,10 @@ export function Settings() {
         email: formState.email !== user.email ? formState.email : undefined,
         displayName: formState.displayName !== user.displayName ? formState.displayName : undefined,
         bio: formState.bio !== user.bio ? formState.bio : undefined,
+        githubUrl: formState.githubUrl !== user.githubUrl ? formState.githubUrl || undefined : undefined,
+        websiteUrl: formState.websiteUrl !== user.websiteUrl ? formState.websiteUrl || undefined : undefined,
+        linkedinUrl: formState.linkedinUrl !== user.linkedinUrl ? formState.linkedinUrl || undefined : undefined,
+        twitterUrl: formState.twitterUrl !== user.twitterUrl ? formState.twitterUrl || undefined : undefined,
       };
       
       // Check if any field was actually changed
@@ -131,7 +143,22 @@ export function Settings() {
         return;
       }
 
-      await userAPI.updateUserProfile(updateData);
+      const response = await userAPI.updateUserProfile(updateData);
+      
+      // Update form state with saved data to maintain persistence
+      if (response) {
+        setFormState(prev => ({
+          ...prev,
+          username: response.username || prev.username,
+          email: response.email || prev.email,
+          displayName: response.displayName || prev.displayName,
+          bio: response.bio || prev.bio,
+          githubUrl: response.githubUrl || prev.githubUrl,
+          websiteUrl: response.websiteUrl || prev.websiteUrl,
+          linkedinUrl: response.linkedinUrl || prev.linkedinUrl,
+          twitterUrl: response.twitterUrl || prev.twitterUrl
+        }));
+      }
       
       toast.success("Profile updated");
       
@@ -310,6 +337,76 @@ export function Settings() {
                   {formState.bio?.length || 0}/500 characters
                 </p>
               </div>
+              
+                             {/* Social Links Section */}
+               <div className="space-y-3 pt-3 border-t">
+                 <div className="flex items-center gap-2">
+                   <h3 className="text-base font-medium">Social Links</h3>
+                   <span className="text-xs text-muted-foreground">(Optional)</span>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-3">
+                   <div className="space-y-1.5">
+                     <Label htmlFor="githubUrl" className="text-sm">GitHub</Label>
+                     <div className="relative">
+                       <Github className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                       <Input
+                         id="githubUrl"
+                         name="githubUrl"
+                         value={formState.githubUrl}
+                         onChange={handleInputChange}
+                         placeholder="github.com/username"
+                         className="pl-8 h-9 text-sm"
+                       />
+                     </div>
+                   </div>
+                   
+                   <div className="space-y-1.5">
+                     <Label htmlFor="websiteUrl" className="text-sm">Website</Label>
+                     <div className="relative">
+                       <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                       <Input
+                         id="websiteUrl"
+                         name="websiteUrl"
+                         value={formState.websiteUrl}
+                         onChange={handleInputChange}
+                         placeholder="yourwebsite.com"
+                         className="pl-8 h-9 text-sm"
+                       />
+                     </div>
+                   </div>
+                   
+                   <div className="space-y-1.5">
+                     <Label htmlFor="linkedinUrl" className="text-sm">LinkedIn</Label>
+                     <div className="relative">
+                       <Linkedin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                       <Input
+                         id="linkedinUrl"
+                         name="linkedinUrl"
+                         value={formState.linkedinUrl}
+                         onChange={handleInputChange}
+                         placeholder="linkedin.com/in/username"
+                         className="pl-8 h-9 text-sm"
+                       />
+                     </div>
+                   </div>
+                   
+                   <div className="space-y-1.5">
+                     <Label htmlFor="twitterUrl" className="text-sm">Twitter/X</Label>
+                     <div className="relative">
+                       <Twitter className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                       <Input
+                         id="twitterUrl"
+                         name="twitterUrl"
+                         value={formState.twitterUrl}
+                         onChange={handleInputChange}
+                         placeholder="twitter.com/username"
+                         className="pl-8 h-9 text-sm"
+                       />
+                     </div>
+                   </div>
+                 </div>
+               </div>
               
               <div className="flex justify-end">
                 <Button 

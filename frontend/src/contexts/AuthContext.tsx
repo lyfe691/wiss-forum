@@ -55,6 +55,10 @@ const normalizeUserData = (userData: any): User | null => {
     role,
     avatar: userData.avatar,
     bio: userData.bio,
+    githubUrl: userData.githubUrl,
+    websiteUrl: userData.websiteUrl,
+    linkedinUrl: userData.linkedinUrl,
+    twitterUrl: userData.twitterUrl,
     createdAt: userData.createdAt,
   };
 };

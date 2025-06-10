@@ -297,7 +297,16 @@ export const userAPI = {
     return response.data;
   },
   
-  updateUserProfile: async (data: { username?: string; email?: string; displayName?: string; bio?: string }) => {
+  updateUserProfile: async (data: { 
+    username?: string; 
+    email?: string; 
+    displayName?: string; 
+    bio?: string;
+    githubUrl?: string;
+    websiteUrl?: string;
+    linkedinUrl?: string;
+    twitterUrl?: string;
+  }) => {
     const response = await api.put('/users/profile', data);
     return response.data;
   },
