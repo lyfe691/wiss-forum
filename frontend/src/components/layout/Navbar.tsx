@@ -168,7 +168,7 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 {/* create post button - desktop only */}
-                <Button size="sm" asChild className="hidden sm:flex mr-2">
+                <Button size="sm" asChild className="hidden sm:flex mr-3 shadow-sm hover:shadow transition-all duration-200">
                   <Link to="/create-topic">
                     <Plus className="mr-2 h-4 w-4" />
                     Create Post
@@ -180,73 +180,114 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="relative h-10 rounded-full flex items-center gap-2 pl-1 pr-3 transition-all duration-200 hover:bg-primary/5"
+                      className="relative h-11 rounded-xl flex items-center gap-3 pl-1.5 pr-4 transition-all duration-200 hover:bg-primary/5 hover:shadow-sm border border-transparent hover:border-primary/10"
                     >
-                      <Avatar className="h-8 w-8 border border-primary/20">
-                        <AvatarImage src={getAvatarUrl(user?._id || 'user', user?.avatar)} alt={user?.displayName} />
-                        <AvatarFallback className="bg-primary text-primary-foreground font-medium">
-                          {user?.displayName ? getInitials(user.displayName) : 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium max-w-[100px] truncate hidden sm:block">
-                        {user?.displayName || user?.username}
-                      </span>
+                      <div className="relative">
+                        <Avatar className="h-8 w-8 border-2 border-primary/20 shadow-sm">
+                          <AvatarImage src={getAvatarUrl(user?._id || 'user', user?.avatar)} alt={user?.displayName} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-medium text-sm">
+                            {user?.displayName ? getInitials(user.displayName) : 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        {/* Online status indicator */}
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                      </div>
+                      <div className="hidden sm:flex flex-col items-start">
+                        <span className="text-sm font-medium max-w-[120px] truncate leading-tight">
+                          {user?.displayName || user?.username}
+                        </span>
+                      </div>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{user?.displayName || user?.username}</p>
-                        <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  <DropdownMenuContent align="end" className="w-64 p-2 shadow-lg border-primary/10">
+                    <DropdownMenuLabel className="p-0 mb-3">
+                      <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/10">
+                        <Avatar className="h-12 w-12 border-2 border-primary/20 shadow-sm">
+                          <AvatarImage src={getAvatarUrl(user?._id || 'user', user?.avatar)} alt={user?.displayName} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-medium">
+                            {user?.displayName ? getInitials(user.displayName) : 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{user?.displayName || user?.username}</p>
+                          <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${getRoleBadgeColor(user?.role || '')}`}>
+                              {user?.role ? formatRoleName(user.role) : 'User'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="my-2" />
                     
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile" className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/settings" className="cursor-pointer">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                      </Link>
-                    </DropdownMenuItem>
+                    {/* Account Section */}
+                    <div className="space-y-1">
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile" className="cursor-pointer rounded-lg hover:bg-primary/10 transition-colors">
+                          <User className="mr-3 h-4 w-4 text-primary" />
+                          <div className="flex-1">
+                            <span className="font-medium">Profile</span>
+                            <p className="text-xs text-muted-foreground">View and edit your profile</p>
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings" className="cursor-pointer rounded-lg hover:bg-primary/10 transition-colors">
+                          <Settings className="mr-3 h-4 w-4 text-primary" />
+                          <div className="flex-1">
+                            <span className="font-medium">Settings</span>
+                            <p className="text-xs text-muted-foreground">Account preferences</p>
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                    </div>
                     
-                    {user && roleUtils.hasAtLeastSamePrivilegesAs(roleUtils.normalizeRole(user.role), Role.ADMIN) && (
+                    {/* Admin Section */}
+                    {user && (roleUtils.hasAtLeastSamePrivilegesAs(roleUtils.normalizeRole(user.role), Role.ADMIN) || isTeacher) && (
                       <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin" className="cursor-pointer">
-                            <Shield className="mr-2 h-4 w-4" />
-                            <span>Admin Dashboard</span>
-                          </Link>
-                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="my-2" />
+                        <div className="px-2 py-1">
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Management</p>
+                        </div>
+                        <div className="space-y-1">
+                          {user && roleUtils.hasAtLeastSamePrivilegesAs(roleUtils.normalizeRole(user.role), Role.ADMIN) && (
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin" className="cursor-pointer rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-colors">
+                                <Shield className="mr-3 h-4 w-4 text-amber-600" />
+                                <div className="flex-1">
+                                  <span className="font-medium">Admin Dashboard</span>
+                                  <p className="text-xs text-muted-foreground">Full system control</p>
+                                </div>
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          
+                          {user && isTeacher && !isAdmin && (
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/categories" className="cursor-pointer rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors">
+                                <Book className="mr-3 h-4 w-4 text-blue-600" />
+                                <div className="flex-1">
+                                  <span className="font-medium">Manage Categories</span>
+                                  <p className="text-xs text-muted-foreground">Organize discussions</p>
+                                </div>
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                        </div>
                       </>
                     )}
                     
-                    {/* show category management option directly for teachers */}
-                    {user && isTeacher && !isAdmin && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin/categories" className="cursor-pointer">
-                            <Book className="mr-2 h-4 w-4" />
-                            <span>Manage Categories</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="my-2" />
                     <DropdownMenuItem 
-                      className="text-destructive focus:text-destructive cursor-pointer"
+                      className="text-destructive focus:text-destructive cursor-pointer rounded-lg hover:bg-destructive/10 transition-colors"
                       onClick={handleLogout}
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
+                      <LogOut className="mr-3 h-4 w-4" />
+                      <div className="flex-1">
+                        <span className="font-medium">Sign out</span>
+                        <p className="text-xs text-muted-foreground">End your session</p>
+                      </div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
