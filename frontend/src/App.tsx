@@ -109,7 +109,7 @@ function App() {
         </Routes>
         </Router>
         <Toaster
-          position="top-center"
+          position="top-center"                             
         />
       </AuthProvider>
     </ThemeProvider>

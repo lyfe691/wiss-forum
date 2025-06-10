@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 import { getAvatarUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ import { Role, roleUtils } from '@/lib/types';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -64,6 +66,16 @@ export function Navbar() {
   const isAdmin = userRole === Role.ADMIN;
   const isTeacher = userRole === Role.TEACHER;
 
+  // Get logo based on theme
+  const getLogoPath = () => {
+    if (theme === 'light') return '/logo-light.png';
+    if (theme === 'dark') return '/logo-dark.png';
+    
+    // For system theme, detect actual applied theme
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return isDarkMode ? '/logo-dark.png' : '/logo-light.png';
+  };
+
 
   return (
     <header className={cn(
@@ -77,7 +89,7 @@ export function Navbar() {
             {/* logo - fixed position on desktop */}
             <div className="hidden lg:flex items-center justify-center w-64 border-r fixed top-0 left-0 h-16 bg-muted/30 backdrop-blur-sm z-50">
               <Link to="/">
-                <img src="/logo.png" alt="WISS Forum Logo" className=" h-25 w-auto" />
+                <img src={getLogoPath()} alt="WISS Forum Logo" className=" h-25 w-auto" />
               </Link>
             </div>
 
@@ -94,7 +106,7 @@ export function Navbar() {
                 <div className="flex flex-col h-full">
                   <div className="p-4 border-b flex items-center justify-between bg-muted/30 backdrop-blur-sm">
                     <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
-                      <img src="/logo.png" alt="WISS Forum Logo" className="h-25 w-auto" />
+                      <img src={getLogoPath()} alt="WISS Forum Logo" className="h-25 w-auto" />
                     </Link>
                     <SheetClose asChild>
                       <Button variant="ghost" size="icon">
