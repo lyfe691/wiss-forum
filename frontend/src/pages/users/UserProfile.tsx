@@ -181,11 +181,11 @@ export function UserProfile() {
                     Member since {formatDistanceToNow(new Date(profile.createdAt), { addSuffix: true })}
                   </div>
                 </div>
-                
-                {isOwnProfile && currentUser?.email && (
+                {/* emails are public */}
+                {profile.email && (
                   <div className="flex items-center mt-3 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4 mr-2" />
-                    {currentUser.email}
+                    {profile.email}
                   </div>
                 )}
               </div>
