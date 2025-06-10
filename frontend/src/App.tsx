@@ -1,11 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { themeUtils } from '@/lib/theme';
-import { useEffect } from 'react';
 import { Role } from '@/lib/types';
 
 // Pages
@@ -32,14 +31,10 @@ import { Help } from '@/pages/Help';
 import { Leaderboard } from '@/pages/Leaderboard';
 
 function App() {
-  // Initialize theme only once when the app loads
-  useEffect(() => {
-    themeUtils.initialize();
-  }, []);
-
   return (
-    <AuthProvider>
-      <Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
         <Routes>
           {/* Auth Routes */}
           <Route path="/" element={<MainLayout />}>
@@ -112,12 +107,12 @@ function App() {
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Router>
-      <Toaster
-        position="top-center"
-        richColors
-      />
-    </AuthProvider>
+        </Router>
+        <Toaster
+          position="top-center"
+        />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

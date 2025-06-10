@@ -27,7 +27,6 @@ import {
   MessageSquare, 
   Users, 
   Shield,
-  Award,
   Flame,
   Heart
 } from 'lucide-react';

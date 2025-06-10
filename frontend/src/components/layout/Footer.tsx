@@ -1,133 +1,242 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Github, AlertCircle } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-
-// footer 
+import { useTheme } from '@/contexts/ThemeContext';
+import { Github, AlertCircle, ExternalLink, Sun, Moon, Monitor } from 'lucide-react';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const { isAuthenticated } = useAuth();
+  const { theme, cycleTheme } = useTheme();
+
+  const getThemeIcon = () => {
+    switch (theme) {
+      case 'light':
+        return <Sun className="h-4 w-4" />;
+      case 'dark':
+        return <Moon className="h-4 w-4" />;
+      case 'system':
+        return <Monitor className="h-4 w-4" />;
+      default:
+        return <Monitor className="h-4 w-4" />;
+    }
+  };
+
+  const getThemeLabel = () => {
+    switch (theme) {
+      case 'light':
+        return 'Light theme';
+      case 'dark':
+        return 'Dark theme';
+      case 'system':
+        return 'System theme';
+      default:
+        return 'System theme';
+    }
+  };
 
   return (
-    <footer className="bg-muted/30 border-t border-border py-6 relative">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          <div className="md:col-span-1">
+    <footer className="border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto max-w-7xl px-6 py-8 md:py-10 lg:px-8">
+        {/* Main Footer Content */}
+        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
+          {/* Brand Section */}
+          <div className="space-y-4">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-bold">WISS Forum</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                WISS Forum
+              </span>
             </Link>
-            <p className="mt-2 text-sm text-muted-foreground max-w-md">
-              A forum for WISS students and teachers to discuss topics and share knowledge.
+            <p className="text-sm leading-6 text-muted-foreground max-w-xs">
+              Academic discussions and knowledge sharing for the WISS community.
             </p>
             
-            <div className="flex items-center gap-2 mt-6">
+            {/* GitHub Links */}
+            <div className="flex space-x-3">
               <a
                 href="https://github.com/lyfe691/wiss-forum"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center font-semibold text-sm gap-1 bg-background/40 border border-primary/20 hover:border-primary/30 hover:bg-primary/5 px-2 py-1.5 rounded-md transition-colors"
+                className="group inline-flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Github className="h-4 w-4 text-primary" />
-                <span className="text-primary">Contribute</span>
+                <Github className="h-4 w-4" />
+                <span>Source</span>
+                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
               </a>
               <a
                 href="https://github.com/lyfe691/wiss-forum/issues"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center font-semibold text-sm gap-1 bg-background/40 border border-primary/20 hover:border-primary/30 hover:bg-primary/5 px-2 py-1.5 rounded-md transition-colors"
+                className="group inline-flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                <AlertCircle className="h-4 w-4 text-primary" />
-                <span className="text-primary">Issues</span>
+                <AlertCircle className="h-4 w-4" />
+                <span>Issues</span>
+                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
               </a>
             </div>
           </div>
-          
-          <div className="grid gap-8 grid-cols-3 md:col-span-3">
-            <div>
-              <h2 className="text-sm font-semibold mb-3">Resources</h2>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link to="/categories" className="text-muted-foreground hover:text-primary transition-colors">
-                    <span>Categories</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/topics/latest" className="text-muted-foreground hover:text-primary transition-colors">
-                    <span>Latest Topics</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/users" className="text-muted-foreground hover:text-primary transition-colors">
-                    <span>Community</span>
-                  </Link>
-                </li>
-              </ul>
+
+          {/* Navigation Links */}
+          <div className="mt-10 grid grid-cols-2 gap-6 xl:col-span-2 xl:mt-0">
+            <div className="md:grid md:grid-cols-2 md:gap-6">
+              {/* Community */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Community</h3>
+                <ul role="list" className="mt-4 space-y-3">
+                  <li>
+                    <Link 
+                      to="/categories" 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Categories
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/topics/latest" 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Latest Topics
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/users" 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Members
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/leaderboard" 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Leaderboard
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Account */}
+              <div className="mt-8 md:mt-0">
+                <h3 className="text-sm font-semibold text-foreground">Account</h3>
+                <ul role="list" className="mt-4 space-y-3">
+                  {isAuthenticated ? (
+                    <>
+                      <li>
+                        <Link 
+                          to="/profile" 
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Profile
+                        </Link>
+                      </li>
+                      <li>
+                        <Link 
+                          to="/settings" 
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Settings
+                        </Link>
+                      </li>
+                    </>
+                  ) : (
+                    <>
+                      <li>
+                        <Link 
+                          to="/login" 
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Sign In
+                        </Link>
+                      </li>
+                      <li>
+                        <Link 
+                          to="/register" 
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Sign Up
+                        </Link>
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
             </div>
-            
-            <div>
-              <h2 className="text-sm font-semibold mb-3">Account</h2>
-              <ul className="space-y-2 text-sm">
-                {isAuthenticated ? (
-                  <>
-                    <li>
-                      <Link to="/profile" className="text-muted-foreground hover:text-primary transition-colors">
-                        <span>Profile</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/settings" className="text-muted-foreground hover:text-primary transition-colors">
-                        <span>Settings</span>
-                      </Link>
-                    </li>
-                  </>
-                ) : (
-                  <>
-                    <li>
-                      <Link to="/login" className="text-muted-foreground hover:text-primary transition-colors">
-                        Login
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/register" className="text-muted-foreground hover:text-primary transition-colors">
-                        Register
-                      </Link>
-                    </li>
-                  </>
-                )}
-              </ul>
-            </div>
-            
-            <div>
-              <h2 className="text-sm font-semibold mb-3">Support</h2>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link to="/help" className="text-muted-foreground hover:text-primary transition-colors">
-                    <span>Help Center</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
-                    <span>Terms</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
-                    <span>Privacy</span>
-                  </Link>
-                </li>
-              </ul>
+
+            <div className="md:grid md:grid-cols-2 md:gap-6">
+              {/* Support */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Support</h3>
+                <ul role="list" className="mt-4 space-y-3">
+                  <li>
+                    <Link 
+                      to="/help" 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Help Center
+                    </Link>
+                  </li>
+                  <li>
+                    <a 
+                      href="mailto:admin@wiss-edu.ch"
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Contact Support
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Legal */}
+              <div className="mt-8 md:mt-0">
+                <h3 className="text-sm font-semibold text-foreground">Legal</h3>
+                <ul role="list" className="mt-4 space-y-3">
+                  <li>
+                    <Link 
+                      to="/terms" 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Terms of Service
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/privacy" 
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
-        
-        <Separator className="my-6" />
-        
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm">
-          <div className="mb-4 sm:mb-0">
-            <span className="text-muted-foreground">
-              © {currentYear} WISS Forum. All rights reserved.
-            </span>
+
+        {/* Bottom Section */}
+        <div className="mt-10 border-t border-border/40 pt-6 sm:mt-12 lg:mt-14">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <p className="text-xs text-muted-foreground">
+              © {currentYear} WISS Forum. Built for the WISS community.
+            </p>
+            <div className="flex items-center space-x-4">
+              {/* Vercel-style Theme Toggle */}
+              <button
+                onClick={cycleTheme}
+                className="group relative inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                aria-label={getThemeLabel()}
+                title={`Currently using ${theme} theme. Click to cycle through themes.`}
+              >
+                <span className="flex items-center space-x-2">
+                  {getThemeIcon()}
+                  <span className="text-xs capitalize hidden sm:inline">{theme}</span>
+                </span>
+              </button>
+              <div className="text-xs text-muted-foreground">
+                <span>Made with ❤️ by <a href="https://ysz.life" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Yanis Sebastian Zürcher</a></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

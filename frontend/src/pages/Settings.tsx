@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI } from '@/lib/api';
 
@@ -7,8 +7,10 @@ import {
   CardContent, 
   CardDescription, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Tabs, 
   TabsContent, 
@@ -31,7 +33,7 @@ import {
   Twitter,
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { themeUtils } from '@/lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   Select,
   SelectContent,
@@ -43,23 +45,92 @@ import { Theme } from '@/lib/theme';
 
 export function Settings() {
   const { user, refreshUser } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [selectedTab, setSelectedTab] = useState('account');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [formState, setFormState] = useState({
-    username: user?.username || '',
-    email: user?.email || '',
-    displayName: user?.displayName || '',
-    bio: user?.bio || '',
-    githubUrl: user?.githubUrl || '',
-    websiteUrl: user?.websiteUrl || '',
-    linkedinUrl: user?.linkedinUrl || '',
-    twitterUrl: user?.twitterUrl || '',
+    username: '',
+    email: '',
+    displayName: '',
+    bio: '',
+    githubUrl: '',
+    websiteUrl: '',
+    linkedinUrl: '',
+    twitterUrl: '',
     currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
-    theme: themeUtils.getTheme()
+    confirmPassword: ''
   });
+
+  // Fetch profile data like Profile page does
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
+      
+      try {
+        const profileData = await userAPI.getUserProfile();
+        
+        if (profileData) {
+          const normalizedProfile = {
+            ...profileData,
+            _id: profileData._id || profileData.id
+          };
+          
+          // Initialize form with profile data
+          setFormState(prev => ({
+            ...prev,
+            username: normalizedProfile.username || '',
+            email: normalizedProfile.email || '',
+            displayName: normalizedProfile.displayName || '',
+            bio: normalizedProfile.bio || '',
+            githubUrl: normalizedProfile.githubUrl || '',
+            websiteUrl: normalizedProfile.websiteUrl || '',
+            linkedinUrl: normalizedProfile.linkedinUrl || '',
+            twitterUrl: normalizedProfile.twitterUrl || '',
+          }));
+        } else if (user) {
+          // Fallback to user context
+          setFormState(prev => ({
+            ...prev,
+            username: user.username || '',
+            email: user.email || '',
+            displayName: user.displayName || '',
+            bio: user.bio || '',
+            githubUrl: user.githubUrl || '',
+            websiteUrl: user.websiteUrl || '',
+            linkedinUrl: user.linkedinUrl || '',
+            twitterUrl: user.twitterUrl || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        
+        // Fallback to user context
+        if (user) {
+          setFormState(prev => ({
+            ...prev,
+            username: user.username || '',
+            email: user.email || '',
+            displayName: user.displayName || '',
+            bio: user.bio || '',
+            githubUrl: user.githubUrl || '',
+            websiteUrl: user.websiteUrl || '',
+            linkedinUrl: user.linkedinUrl || '',
+            twitterUrl: user.twitterUrl || ''
+          }));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProfile();
+  }, [user]);
 
   // Form state handlers
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -68,9 +139,8 @@ export function Settings() {
   };
 
   // Handle theme change
-  const handleThemeChange = (theme: Theme) => {
-    setFormState(prev => ({ ...prev, theme }));
-    themeUtils.setTheme(theme);
+  const handleThemeChange = (newTheme: Theme) => {
+    setTheme(newTheme);
   };
 
   // Update profile info
@@ -243,6 +313,47 @@ export function Settings() {
   const handleSaveAppearance = () => {
     toast.success("Appearance settings saved");
   };
+
+  // Loading state like Profile page
+  if (isLoading) {
+    return (
+      <div className="container max-w-4xl mx-auto py-8 px-4">
+        <div className="mb-6">
+          <Skeleton className="h-8 w-32 mb-2" />
+          <Skeleton className="h-5 w-64" />
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48 mb-2" />
+            <Skeleton className="h-4 w-72" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Skeleton className="h-10 w-32" />
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
@@ -496,7 +607,7 @@ export function Settings() {
                   Choose your preferred theme for the forum.
                 </p>
                 <Select
-                  value={formState.theme}
+                  value={theme}
                   onValueChange={(value: Theme) => {
                     handleThemeChange(value);
                     handleSaveAppearance();
@@ -508,7 +619,7 @@ export function Settings() {
                   <SelectContent>
                     <SelectItem value="light">Light</SelectItem>
                     <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="steam">Steam</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

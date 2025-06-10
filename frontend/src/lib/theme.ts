@@ -3,17 +3,17 @@
 // using shadcn themeing
 // ive got it from a doc
 
-export type Theme = 'light' | 'dark' | 'steam';
+export type Theme = 'light' | 'dark' | 'system';
 
 export const themes: Record<Theme, string> = {
   light: 'light',
   dark: 'dark',
-  steam: 'steam'
+  system: 'system'
 };
 
 // Simple utility to handle theme operations
 export const themeUtils = {
-  // Get the current theme from localStorage or system preference
+  // Get the current theme from localStorage or default to system
   getTheme: (): Theme => {
     const storedTheme = localStorage.getItem('theme') as Theme;
     
@@ -21,27 +21,53 @@ export const themeUtils = {
       return storedTheme;
     }
     
-    // If no stored theme, check system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Default to system preference
+    return 'system';
+  },
+  
+  // Get the resolved theme (what should actually be applied)
+  getResolvedTheme: (): 'light' | 'dark' => {
+    const currentTheme = themeUtils.getTheme();
+    
+    if (currentTheme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    
+    return currentTheme as 'light' | 'dark';
   },
   
   // Set the theme
   setTheme: (theme: Theme): void => {
     // Remove all theme classes
-    Object.values(themes).forEach(themeClass => {
-      document.documentElement.classList.remove(themeClass);
-    });
+    document.documentElement.classList.remove('light', 'dark');
     
-    // Add the selected theme class
-    document.documentElement.classList.add(themes[theme]);
+    const resolvedTheme = theme === 'system' 
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : theme;
+    
+    // Add the resolved theme class
+    document.documentElement.classList.add(resolvedTheme);
     
     localStorage.setItem('theme', theme);
   },
   
-  // Toggle between light and dark themes
-  toggleTheme: (): Theme => {
+  // Cycle through themes: light -> dark -> system -> light...
+  cycleTheme: (): Theme => {
     const currentTheme = themeUtils.getTheme();
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    let newTheme: Theme;
+    
+    switch (currentTheme) {
+      case 'light':
+        newTheme = 'dark';
+        break;
+      case 'dark':
+        newTheme = 'system';
+        break;
+      case 'system':
+      default:
+        newTheme = 'light';
+        break;
+    }
     
     themeUtils.setTheme(newTheme);
     return newTheme;

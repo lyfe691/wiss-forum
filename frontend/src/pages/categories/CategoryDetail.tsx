@@ -43,6 +43,7 @@ interface Topic {
     username: string;
     displayName?: string;
     role?: string;
+    avatar?: string;
   };
   category: {
     _id: string;
@@ -490,7 +491,7 @@ export function CategoryDetail() {
                                     "ring-1 ring-border transition-all"
                                   )}>
                                     <AvatarImage 
-                                      src={getAvatarUrl(topic.author._id)} 
+                                      src={getAvatarUrl(topic.author._id, topic.author.avatar)} 
                                       alt={topic.author.displayName || topic.author.username} 
                                     />
                                     <AvatarFallback className="text-xs font-medium bg-primary/10">
