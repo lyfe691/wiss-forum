@@ -283,4 +283,21 @@ public class UserService {
         
         return leaderboard;
     }
+    
+    public User updateUserAvatar(String userId, String avatarDataUrl, User requestingUser) {
+        // check if user exists
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        // security check: only allow user to update their own avatar
+        if (!PermissionUtils.canModifyUser(requestingUser, userId)) {
+            throw new RuntimeException("You can only update your own profile picture");
+        }
+        
+        // update avatar
+        user.setAvatar(avatarDataUrl);
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        return userRepository.save(user);
+    }
 } 

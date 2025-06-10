@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import ch.wiss.forum.model.Post;
 import ch.wiss.forum.model.Role;
@@ -235,6 +236,54 @@ public class UserController {
             } catch (RuntimeException e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new MessageResponse("Password update failed: " + e.getMessage()));
+            }
+        }
+        
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse("User not authenticated"));
+    }
+
+    // upload profile picture
+    @PostMapping("/profile/avatar")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> uploadProfilePicture(@RequestParam("file") MultipartFile file) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication != null && authentication.getPrincipal() instanceof User) {
+            User currentUser = (User) authentication.getPrincipal();
+            
+            try {
+                // Validate file
+                if (file.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new MessageResponse("Please select a file to upload"));
+                }
+                
+                // Check file size (250KB = 256000 bytes)
+                if (file.getSize() > 256000) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new MessageResponse("File size must be less than 250KB"));
+                }
+                
+                // Check file type
+                String contentType = file.getContentType();
+                if (contentType == null || (!contentType.startsWith("image/"))) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new MessageResponse("Only image files are allowed"));
+                }
+                
+                // Convert file to base64 data URL
+                byte[] fileBytes = file.getBytes();
+                String base64Image = java.util.Base64.getEncoder().encodeToString(fileBytes);
+                String dataUrl = "data:" + contentType + ";base64," + base64Image;
+                
+                // Update user avatar
+                User updatedUser = userService.updateUserAvatar(currentUser.getId(), dataUrl, currentUser);
+                
+                return ResponseEntity.ok(new MessageResponse("Profile picture updated successfully"));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new MessageResponse("Failed to upload profile picture: " + e.getMessage()));
             }
         }
         

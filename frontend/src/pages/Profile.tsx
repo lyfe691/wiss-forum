@@ -82,7 +82,7 @@ interface PasswordFormData {
 }
 
 export function Profile() {
-  const { user, checkAuth } = useAuth();
+  const { user, checkAuth, refreshUser } = useAuth();
   const navigate = useNavigate();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -90,6 +90,8 @@ export function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [avatarUploadOpen, setAvatarUploadOpen] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
     username: '',
@@ -420,6 +422,48 @@ export function Profile() {
     }
   };
 
+  const handleAvatarUpload = async (file: File) => {
+    if (!file) return;
+    
+    // Validate file size (250KB = 256000 bytes)
+    if (file.size > 256000) {
+      toast.error('File size must be less than 250KB');
+      return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed');
+      return;
+    }
+    
+    setIsUploadingAvatar(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      await userAPI.uploadAvatar(formData);
+      
+      // Refresh profile data
+      const updatedProfile = await userAPI.getUserProfile();
+      if (updatedProfile) {
+        setProfile(prev => prev ? { ...prev, avatar: updatedProfile.avatar } : null);
+        
+        // Update the user in AuthContext so navbar and other components see the change
+        await refreshUser();
+      }
+      
+      toast.success('Profile picture updated successfully!');
+      setAvatarUploadOpen(false);
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload profile picture');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 max-w-5xl">
@@ -511,8 +555,8 @@ export function Profile() {
           <div className="w-full md:w-1/3">
             <Card className="mb-6">
               <CardContent className="p-6 flex flex-col items-center text-center">
-                <Avatar className="h-24 w-24 mb-4 border-2 border-primary/20">
-                  <AvatarImage src={getAvatarUrl(profile.username, profile.avatar)} alt={profile.displayName} />
+                <Avatar className="h-24 w-24 mb-4 border-2 border-primary/20 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setAvatarUploadOpen(true)}>
+                  <AvatarImage src={getAvatarUrl(profile._id, profile.avatar)} alt={profile.displayName} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
                     {getInitials(profile.displayName || profile.username)}
                   </AvatarFallback>
@@ -865,6 +909,59 @@ export function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Avatar Upload Modal */}
+      <Dialog open={avatarUploadOpen} onOpenChange={setAvatarUploadOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Profile Picture</DialogTitle>
+            <DialogDescription>
+              Choose a new profile picture. Maximum file size is 250KB.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col items-center gap-4">
+              <Avatar className="h-20 w-20 border">
+                <AvatarImage src={getAvatarUrl(profile._id, profile.avatar)} alt={profile.displayName} />
+                <AvatarFallback className="text-lg bg-primary/10 text-primary">
+                  {getInitials(profile.displayName || profile.username)}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="w-full">
+                <Input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleAvatarUpload(file);
+                    }
+                  }}
+                  className="cursor-pointer"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Supported formats: JPG, PNG, GIF. Max size: 250KB
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAvatarUploadOpen(false)} disabled={isUploadingAvatar}>
+              Cancel
+            </Button>
+            {isUploadingAvatar && (
+              <Button disabled>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

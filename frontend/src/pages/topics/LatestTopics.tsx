@@ -328,7 +328,7 @@ export function LatestTopics() {
                                   "ring-1 ring-border transition-all"
                                 )}>
                                   <AvatarImage 
-                                    src={getAvatarUrl(topic.author.username, topic.author.avatar)} 
+                                    src={getAvatarUrl(topic.author._id, topic.author.avatar)} 
                                     alt={topic.author.displayName || topic.author.username} 
                                   />
                                   <AvatarFallback className="text-xs font-medium bg-primary/10">

@@ -350,7 +350,7 @@ export function UserManagement() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
-                            <AvatarImage src={getAvatarUrl(userData.username, userData.avatar)} alt={userData.displayName || userData.username} />
+                            <AvatarImage src={getAvatarUrl(userData._id, userData.avatar)} alt={userData.displayName || userData.username} />
                             <AvatarFallback className="bg-primary/10 text-primary">
                               {getInitials(userData.displayName || userData.username)}
                             </AvatarFallback>

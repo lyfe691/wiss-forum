@@ -490,7 +490,7 @@ export function CategoryDetail() {
                                     "ring-1 ring-border transition-all"
                                   )}>
                                     <AvatarImage 
-                                      src={getAvatarUrl(topic.author.username)} 
+                                      src={getAvatarUrl(topic.author._id)} 
                                       alt={topic.author.displayName || topic.author.username} 
                                     />
                                     <AvatarFallback className="text-xs font-medium bg-primary/10">

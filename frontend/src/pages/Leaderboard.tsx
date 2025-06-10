@@ -120,7 +120,7 @@ export function Leaderboard() {
             <TableCell>
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={getAvatarUrl(user.username, user.avatar)} alt={user.displayName || user.username} />
+                  <AvatarImage src={getAvatarUrl(user._id, user.avatar)} alt={user.displayName || user.username} />
                   <AvatarFallback className="text-xs">{getInitials(user.displayName || user.username)}</AvatarFallback>
                 </Avatar>
                 <div>

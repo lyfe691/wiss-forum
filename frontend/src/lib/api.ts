@@ -320,6 +320,15 @@ export const userAPI = {
     const response = await api.delete(`/users/${userId}`);
     return response.data;
   },
+
+  uploadAvatar: async (formData: FormData) => {
+    const response = await api.post('/users/profile/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 
 // Categories API

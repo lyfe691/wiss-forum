@@ -142,6 +142,13 @@ public class AuthService {
         
         User savedUser = userRepository.save(user);
         
+        // Set avatar based on user ID if no custom avatar provided
+        if (savedUser.getAvatar() == null || savedUser.getAvatar().isEmpty()) {
+            String avatarUrl = "https://api.dicebear.com/9.x/thumbs/svg?seed=" + savedUser.getId();
+            savedUser.setAvatar(avatarUrl);
+            savedUser = userRepository.save(savedUser);
+        }
+        
         // generate JWT token for the new user
         String jwt = jwtUtils.generateJwtToken(savedUser.getUsername());
         

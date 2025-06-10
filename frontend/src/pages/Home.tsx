@@ -186,7 +186,7 @@ export function Home() {
                     <div className="px-3 py-2 md:px-4 md:py-3 rounded-xl bg-primary/5 border border-primary/10">
                       <div className="flex items-center gap-2 md:gap-3">
                         <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                          <AvatarImage src={user ? getAvatarUrl(user.username) : getAvatarUrl("student")} alt="User" />
+                          <AvatarImage src={user ? getAvatarUrl(user._id, user.avatar) : getAvatarUrl("student")} alt="User" />
                           <AvatarFallback>S</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">

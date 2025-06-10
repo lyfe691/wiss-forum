@@ -110,7 +110,7 @@ export function Navbar() {
                       <div className="px-4 py-3 border-b border-border">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10 border border-primary/20">
-                            <AvatarImage src={getAvatarUrl(user?.username || 'user', user?.avatar)} alt={user?.displayName} />
+                            <AvatarImage src={getAvatarUrl(user?._id || 'user', user?.avatar)} alt={user?.displayName} />
                             <AvatarFallback className="bg-primary text-primary-foreground font-medium">
                               {user?.displayName ? getInitials(user.displayName) : 'U'}
                             </AvatarFallback>
@@ -171,7 +171,7 @@ export function Navbar() {
                       className="relative h-10 rounded-full flex items-center gap-2 pl-1 pr-3 transition-all duration-200 hover:bg-primary/5"
                     >
                       <Avatar className="h-8 w-8 border border-primary/20">
-                        <AvatarImage src={getAvatarUrl(user?.username || 'user', user?.avatar)} alt={user?.displayName} />
+                        <AvatarImage src={getAvatarUrl(user?._id || 'user', user?.avatar)} alt={user?.displayName} />
                         <AvatarFallback className="bg-primary text-primary-foreground font-medium">
                           {user?.displayName ? getInitials(user.displayName) : 'U'}
                         </AvatarFallback>

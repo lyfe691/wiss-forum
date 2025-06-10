@@ -156,7 +156,7 @@ export function Users() {
                     <div className="flex items-start gap-4">
                       <Avatar className="h-14 w-14 border ring-2 ring-background group-hover:ring-primary/10 transition-all duration-200">
                         <AvatarImage 
-                          src={getAvatarUrl(user.username, user.avatar)} 
+                          src={getAvatarUrl(user._id, user.avatar)} 
                           alt={user.displayName || user.username} 
                         />
                         <AvatarFallback className="bg-primary/10 text-primary font-medium">

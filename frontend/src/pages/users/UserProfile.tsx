@@ -159,7 +159,7 @@ export function UserProfile() {
           <CardHeader className="pb-2">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
               <Avatar className="h-24 w-24 border">
-                <AvatarImage src={getAvatarUrl(profile.username, profile.avatar)} alt={profile.displayName || profile.username} />
+                <AvatarImage src={getAvatarUrl(profile._id, profile.avatar)} alt={profile.displayName || profile.username} />
                 <AvatarFallback className="text-lg bg-primary/10 text-primary">
                   {getInitials(profile.displayName || profile.username)}
                 </AvatarFallback>

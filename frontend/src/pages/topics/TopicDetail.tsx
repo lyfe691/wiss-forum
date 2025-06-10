@@ -663,7 +663,7 @@ export function TopicDetail() {
               <div className="flex items-start gap-3">
                 <Avatar className="h-10 w-10 border border-border ring-2 ring-background">
                   <AvatarImage 
-                    src={getAvatarUrl(post.author?.username || 'unknown', post.author?.avatar)}
+                    src={getAvatarUrl(post.author?._id || 'unknown', post.author?.avatar)}
                     alt={post.author?.displayName || post.author?.username || 'Unknown'} 
                     className="object-cover"
                   />
@@ -1002,7 +1002,7 @@ export function TopicDetail() {
               <div className="flex items-center gap-2">
                 <Avatar className="h-5 w-5">
                   <AvatarImage 
-                    src={getAvatarUrl(topic.author?.username || 'unknown', topic.author?.avatar)} 
+                    src={getAvatarUrl(topic.author?._id || 'unknown', topic.author?.avatar)} 
                     alt={topic.author?.displayName || topic.author?.username || 'Unknown'} 
                   />
                   <AvatarFallback className="text-xs">
@@ -1039,7 +1039,7 @@ export function TopicDetail() {
           <div className="flex items-start gap-3">
             <Avatar className="h-10 w-10 border border-border">
               <AvatarImage 
-                src={getAvatarUrl(topic.author?.username || 'unknown', topic.author?.avatar)} 
+                src={getAvatarUrl(topic.author?._id || 'unknown', topic.author?.avatar)} 
                 alt={topic.author?.displayName || topic.author?.username || 'Unknown'} 
               />
               <AvatarFallback>
