@@ -400,9 +400,9 @@ export function TopicDetail() {
       
       setPosts(prevPosts => 
         updateNestedPost(prevPosts, postId, post => ({
-          ...post,
-          isLiked: newIsLiked,
-          likes: post.likes + (newIsLiked ? 1 : -1)
+            ...post,
+            isLiked: newIsLiked,
+            likes: post.likes + (newIsLiked ? 1 : -1)
         }))
       );
       
@@ -412,16 +412,16 @@ export function TopicDetail() {
       // Revert optimistic update
       setPosts(prevPosts => 
         updateNestedPost(prevPosts, postId, post => ({
-          ...post,
+            ...post,
           isLiked: !post.isLiked,
           likes: post.likes + (post.isLiked ? 1 : -1)
         }))
       );
     } finally {
-      setLikeInProgress(prev => ({ ...prev, [postId]: false }));
+        setLikeInProgress(prev => ({ ...prev, [postId]: false }));
     }
   };
-  
+
   // Handle reply to a post
   const handleReplyClick = (post: Post) => {
     // Validate post and post._id

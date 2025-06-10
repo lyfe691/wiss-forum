@@ -160,7 +160,7 @@ export function UserGamificationWidget({
   }
 
   return (
-    <Card className="cursor-pointer transition-all duration-200 hover:bg-muted/30" onClick={() => setIsCollapsed(!isCollapsed)} >
+    <Card>
       {showTitle && (
         <CardHeader>
           <div className="flex items-center justify-between">

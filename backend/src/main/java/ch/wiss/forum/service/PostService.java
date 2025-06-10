@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class PostService {
-
+    
     private final PostRepository postRepository;
     private final TopicRepository topicRepository;
     private final TopicService topicService;
