@@ -40,6 +40,9 @@ import {
   Globe,
   Linkedin,
   Twitter,
+  Camera,
+  Upload,
+  AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -555,12 +558,26 @@ export function Profile() {
           <div className="w-full md:w-1/3">
             <Card className="mb-6">
               <CardContent className="p-6 flex flex-col items-center text-center">
-                <Avatar className="h-24 w-24 mb-4 border-2 border-primary/20 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setAvatarUploadOpen(true)}>
-                  <AvatarImage src={getAvatarUrl(profile._id, profile.avatar)} alt={profile.displayName} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                    {getInitials(profile.displayName || profile.username)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative group cursor-pointer mb-4" onClick={() => setAvatarUploadOpen(true)}>
+                  <Avatar className="h-24 w-24 border-2 border-primary/20 transition-all duration-200 group-hover:opacity-80">
+                    <AvatarImage src={getAvatarUrl(profile._id, profile.avatar)} alt={profile.displayName} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
+                      {getInitials(profile.displayName || profile.username)}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  {/* Camera overlay indicator */}
+                  <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-2 border-2 border-background shadow-lg transition-all duration-200 group-hover:scale-110">
+                    <Camera className="h-3 w-3" />
+                  </div>
+                  
+                  {/* Hover overlay - now perfectly aligned with avatar */}
+                  <div className="absolute top-0 left-0 w-24 h-24 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    <div className="bg-black/60 text-white text-xs px-2 py-1 rounded-md">
+                      Change Photo
+                    </div>
+                  </div>
+                </div>
                 <h2 className="text-2xl font-bold">{profile.displayName}</h2>
                 <p className="text-muted-foreground mb-3">@{profile.username}</p>
                 <Badge className={getRoleBadgeColor(profile.role)}>
@@ -912,49 +929,82 @@ export function Profile() {
 
       {/* Avatar Upload Modal */}
       <Dialog open={avatarUploadOpen} onOpenChange={setAvatarUploadOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Update Profile Picture</DialogTitle>
-            <DialogDescription>
-              Choose a new profile picture. Maximum file size is 250KB.
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader className="text-center pb-4">
+            <DialogTitle className="text-xl">Update Profile Picture</DialogTitle>
+            <DialogDescription className="text-left">
+              Upload a new profile picture to personalize your account
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
+          <div className="space-y-6">
+            {/* Current Avatar Preview */}
             <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-20 w-20 border">
-                <AvatarImage src={getAvatarUrl(profile._id, profile.avatar)} alt={profile.displayName} />
-                <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                  {getInitials(profile.displayName || profile.username)}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="w-full">
-                <Input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      handleAvatarUpload(file);
-                    }
-                  }}
-                  className="cursor-pointer"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Supported formats: JPG, PNG, GIF. Max size: 250KB
+              <div className="relative">
+                <Avatar className="h-24 w-24 border-2 border-primary/20 shadow-lg">
+                  <AvatarImage src={getAvatarUrl(profile._id, profile.avatar)} alt={profile.displayName} />
+                  <AvatarFallback className="text-lg bg-primary/10 text-primary">
+                    {getInitials(profile.displayName || profile.username)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1.5 border-2 border-background">
+                  <Camera className="h-3 w-3" />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">Current profile picture</p>
+            </div>
+            
+            {/* Upload Section */}
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+              <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+              <Input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleAvatarUpload(file);
+                  }
+                }}
+                className="cursor-pointer"
+                disabled={isUploadingAvatar}
+              />
+              <div className="mt-3 space-y-1">
+                <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                <p className="text-xs text-muted-foreground">
+                  Supported: JPG, PNG, GIF • Maximum size: 250KB
                 </p>
+              </div>
+            </div>
+            
+            {/* Rules Warning */}
+            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                    Community Guidelines
+                  </h4>
+                  <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                    Ensure your profile picture follows community guidelines. Inappropriate content may even result in a school suspension. Don't risk it -- it's not worth it.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAvatarUploadOpen(false)} disabled={isUploadingAvatar}>
+          <DialogFooter className="gap-2 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setAvatarUploadOpen(false)} 
+              disabled={isUploadingAvatar}
+              className="flex-1"
+            >
               Cancel
             </Button>
             {isUploadingAvatar && (
-              <Button disabled>
+              <Button disabled className="flex-1">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Uploading...
               </Button>
