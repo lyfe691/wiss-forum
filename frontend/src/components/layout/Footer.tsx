@@ -6,33 +6,7 @@ import { Github, AlertCircle, ExternalLink, Sun, Moon, Monitor } from 'lucide-re
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const { isAuthenticated } = useAuth();
-  const { theme, cycleTheme } = useTheme();
-
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'light':
-        return <Sun className="h-4 w-4" />;
-      case 'dark':
-        return <Moon className="h-4 w-4" />;
-      case 'system':
-        return <Monitor className="h-4 w-4" />;
-      default:
-        return <Monitor className="h-4 w-4" />;
-    }
-  };
-
-  const getThemeLabel = () => {
-    switch (theme) {
-      case 'light':
-        return 'Light theme';
-      case 'dark':
-        return 'Dark theme';
-      case 'system':
-        return 'System theme';
-      default:
-        return 'System theme';
-    }
-  };
+  const { theme, setTheme } = useTheme();
 
   return (
     <footer className="border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -221,20 +195,58 @@ export function Footer() {
               © {currentYear} WISS Forum. Built for the WISS community.
             </p>
             <div className="flex items-center space-x-4">
-              {/* Vercel-style Theme Toggle */}
-              <button
-                onClick={cycleTheme}
-                className="group relative inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-                aria-label={getThemeLabel()}
-                title={`Currently using ${theme} theme. Click to cycle through themes.`}
-              >
-                <span className="flex items-center space-x-2">
-                  {getThemeIcon()}
-                  <span className="text-xs capitalize hidden sm:inline">{theme}</span>
-                </span>
-              </button>
+              {/* Theme Toggle */}
+              <div className="inline-flex items-center rounded-full border bg-background p-1">
+                <button
+                  onClick={() => setTheme('light')}
+                  className={`relative inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium transition-all duration-200 ${
+                    theme === 'light'
+                      ? 'bg-muted text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  aria-label="Switch to light theme"
+                  title="Switch to light theme"
+                >
+                  <Sun size={14} strokeWidth={2} />
+                </button>
+                <button
+                  onClick={() => setTheme('dark')}
+                  className={`relative inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'bg-muted text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  aria-label="Switch to dark theme"
+                  title="Switch to dark theme"
+                >
+                  <Moon size={14} strokeWidth={2} />
+                </button>
+                <button
+                  onClick={() => setTheme('system')}
+                  className={`relative inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium transition-all duration-200 ${
+                    theme === 'system'
+                      ? 'bg-muted text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  aria-label="Switch to system theme"
+                  title="Switch to system theme"
+                >
+                  <Monitor size={14} strokeWidth={2} />
+                </button>
+              </div>
+
               <div className="text-xs text-muted-foreground">
-                <span>Made with ❤️ by <a href="https://ysz.life" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Yanis Sebastian Zürcher</a></span>
+                <span>
+                  Made with ❤️ by{' '}
+                  <a
+                    href="https://ysz.life"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Yanis Sebastian Zürcher
+                  </a>
+                </span>
               </div>
             </div>
           </div>

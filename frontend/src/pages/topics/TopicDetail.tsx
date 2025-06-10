@@ -35,6 +35,12 @@ import { format } from 'date-fns';
 import { cn, getAvatarUrl, getInitials, getRoleBadgeColor, formatRoleName } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 
 // Types for users and content
 interface Author {
@@ -706,23 +712,46 @@ export function TopicDetail() {
           
           <CardFooter className="py-2 px-4 border-t flex justify-between items-center gap-2 flex-wrap">
             <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleToggleLike(post._id)}
-                disabled={likeInProgress[post._id]}
-                className={cn(
-                  "h-8 px-2 gap-1.5 rounded-full",
-                  post.isLiked && "text-red-500 bg-red-50 dark:bg-red-950/20"
-                )}
-              >
-                {likeInProgress[post._id] ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Heart className={cn("h-4 w-4", post.isLiked && "fill-red-500")} />
-                )}
-                <span>{post.likes || 0}</span>
-              </Button>
+              {!isAuthenticated ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex"> {/* Wrapper for disabled button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled
+                          className="h-8 px-2 gap-1.5 rounded-full"
+                        >
+                          <Heart className="h-4 w-4" />
+                          <span>{post.likes || 0}</span>
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>You must be logged in to like posts.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleToggleLike(post._id)}
+                  disabled={likeInProgress[post._id]}
+                  className={cn(
+                    "h-8 px-2 gap-1.5 rounded-full",
+                    post.isLiked && "text-red-500 bg-red-50 dark:bg-red-950/20"
+                  )}
+                >
+                  {likeInProgress[post._id] ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Heart className={cn("h-4 w-4", post.isLiked && "fill-red-500")} />
+                  )}
+                  <span>{post.likes || 0}</span>
+                </Button>
+              )}
 
               {isAuthenticated && (
                 <Button
