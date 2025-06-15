@@ -135,8 +135,8 @@ graph TB
 
 > [!WARNING]
 > **Manuelle Tests erforderlich:**
-> - **Barrierefreiheit** (Screenreader, Keyboard‑Only) → Manuell
-> - **Mobile Swipe‑Gesten** → Appium oder manuell
+> - **Barrierefreiheit** (Screenreader, Keyboard‑Only) -> Manuell
+> - **Mobile Swipe‑Gesten** -> Appium oder manuell
 
 ### Mittel & Verfahren
 
@@ -164,7 +164,7 @@ flowchart LR
 
 ### Auswirkung auf Testdaten & Unterlagen
 
-- **Testcontainers** liefern frische DB‑Instanzen → keine persistenten Dummies nötig
+- **Testcontainers** liefern frische DB‑Instanzen -> keine persistenten Dummies nötig
 - **Fixtures** liegen in `/tests/fixtures/*.json`
 
 ### Testverantwortlichkeiten & Zeitpunkte
@@ -214,9 +214,9 @@ flowchart TD
     H -->|Ja| I[Merge freigegeben]
 ```
 
-1. **CI Pipeline schlägt fehl** → Merge blockiert
+1. **CI Pipeline schlägt fehl** -> Merge blockiert
 2. **Automatisches Jira‑Ticket** inkl. Allure‑Link
-3. **Entwickler fixt** → neuer Pull‑Request → Pipeline wiederholt sich
+3. **Entwickler fixt** -> neuer Pull‑Request -> Pipeline wiederholt sich
 
 
 
