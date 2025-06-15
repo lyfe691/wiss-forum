@@ -212,10 +212,6 @@ flowchart TD
     G --> H{Erfolgreich?}
     H -->|Nein| A
     H -->|Ja| I[Merge freigegeben]
-    
-    style A fill:#ffebee
-    style B fill:#ffebee
-    style I fill:#e8f5e8
 ```
 
 1. **CI Pipeline schlägt fehl** → Merge blockiert
