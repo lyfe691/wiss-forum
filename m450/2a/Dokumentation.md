@@ -149,15 +149,6 @@ flowchart LR
     E --> F[Selenium Headless]
     F --> G[k6 Smoke]
     G --> H[Allure Report & ZAP]
-    
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-    style C fill:#fff3e0
-    style D fill:#ffebee
-    style E fill:#e8f5e8
-    style F fill:#e3f2fd
-    style G fill:#fce4ec
-    style H fill:#f1f8e9
 ```
 
 **Entwicklungsumgebungen:**
