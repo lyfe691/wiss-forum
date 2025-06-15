@@ -224,7 +224,7 @@ flowchart TD
 
 ## Fazit
 
-> [!SUCCESS]
+> [!NOTE]
 > Die ausgewählte Testumgebung deckt sämtliche kritischen **NFAs** ab, erlaubt einen hohen Grad an **Automatisierung** und integriert sich nahtlos in die bestehende **GitHub‑Workflow‑Landschaft**. 
 > 
 > Nicht automatisierbare Tests (A11y, Mobile Gesten) sind sauber ausgewiesen und werden **manuell durchgeführt**.
