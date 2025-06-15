@@ -134,16 +134,16 @@ flowchart LR
 
 | Phase        | Verantwortlich | Zeitpunkt     |
 | ------------ | -------------- | ------------- |
-| Pre‑Commit   | Entwickler     | lokal │       |
-| Pull‑Request | CI Runner      | automatisch │ |
-| Nightly      | QA             | 02:00 UTC │   |
+| Pre‑Commit   | Entwickler     | lokal         |
+| Pull‑Request | CI Runner      | automatisch   |
+| Nightly      | QA             | 02:00 UTC    |
 
 ### 3.7. Reporting‑Anpassungen
 
 * **Allure HTML** wird pro CI‑Run publiziert.
 * Fehlertickets werden via GitHub‑Action in Jira angelegt.
 
-   ### 3.8. Wiederholbarkeit & Nachvollziehbarkeit
+### 3.8. Wiederholbarkeit & Nachvollziehbarkeit
 
 * `docker‑compose test‑stack.yml` erzeugt identische Umgebung.
 * Test‑Artefakte & Berichte werden 90 Tage archiviert.
