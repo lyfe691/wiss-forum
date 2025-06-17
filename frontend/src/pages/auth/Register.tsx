@@ -26,7 +26,7 @@ const registerSchema = z.object({
     }, "Username contains inappropriate terms"),
   email: z.string()
     .email("Invalid email address")
-    .regex(/^[\w.-]+@wiss-edu\.ch$/, "Email must end with @wiss-edu.ch"),
+    .regex(/^[\w.-]+@wiss-edu\.ch$|^[\w.-]+@wiss\.ch$/, "Email must end with @wiss-edu.ch or @wiss.ch"),
   password: z.string()
     .min(6, "Password must be at least 6 characters")
     .regex(/^[^\s]+$/, "Password must not contain spaces"),
@@ -131,7 +131,7 @@ export function Register() {
                   <FormControl>
                     <Input 
                       type="email" 
-                      placeholder="Enter your @wiss-edu.ch email address" 
+                      placeholder="Enter your @wiss-edu.ch or @wiss.ch email address" 
                       {...field} 
                     />
                   </FormControl>

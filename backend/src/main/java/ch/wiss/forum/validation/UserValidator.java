@@ -15,8 +15,8 @@ public class UserValidator {
     // username pattern: no spaces allowed, 3-20 characters
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^\\S{3,20}$");
     
-    // email pattern: must end with @wiss-edu.ch
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.-]+@wiss-edu\\.ch$");
+    // email pattern: must end with @wiss-edu.ch or @wiss.ch
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.-]+@wiss-edu\\.ch$|^[\\w.-]+@wiss\\.ch$");
     
     // maximum length for bio
     private static final int MAX_BIO_LENGTH = 500;

@@ -92,7 +92,7 @@ public class AuthService {
         
         // validate email format
         if (!userValidator.isValidEmail(registerRequest.getEmail())) {
-            throw new RuntimeException("Email must end with @wiss-edu.ch.");
+            throw new RuntimeException("Email must end with @wiss-edu.ch or @wiss.ch.");
         }
         
         // validate password format

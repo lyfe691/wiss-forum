@@ -241,8 +241,8 @@ export function Profile() {
     
     if (!profileForm.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!profileForm.email.match(/^[\w.-]+@wiss-edu\.ch$/)) {
-      newErrors.email = 'Email must end with @wiss-edu.ch';
+    } else if (!profileForm.email.match(/^[\w.-]+@wiss-edu\.ch$/) && !profileForm.email.match(/^[\w.-]+@wiss\.ch$/)) {
+      newErrors.email = 'Email must end with @wiss-edu.ch or @wiss.ch';
     }
     
     if (!profileForm.displayName.trim()) {
@@ -740,7 +740,7 @@ export function Profile() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email (@wiss-edu.ch)</Label>
+                      <Label htmlFor="email">Email (@wiss-edu.ch or @wiss.ch)</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input

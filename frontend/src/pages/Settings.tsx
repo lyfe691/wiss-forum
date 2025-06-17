@@ -169,8 +169,8 @@ export function Settings() {
       return;
     }
     
-    if (!formState.email.match(/^[\w.-]+@wiss-edu\.ch$/)) {
-      setError('Email must end with @wiss-edu.ch');
+    if (!formState.email.match(/^[\w.-]+@wiss-edu\.ch$/) && !formState.email.match(/^[\w.-]+@wiss\.ch$/)) {
+      setError('Email must end with @wiss-edu.ch or @wiss.ch');
       setIsSubmitting(false);
       return;
     }
@@ -416,7 +416,7 @@ export function Settings() {
                     type="email"
                     value={formState.email}
                     onChange={handleInputChange}
-                    placeholder="@wiss-edu.ch email address"
+                    placeholder="@wiss-edu.ch or @wiss.ch email address"
                   />
                 </div>
               </div>

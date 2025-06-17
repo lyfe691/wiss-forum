@@ -88,7 +88,7 @@ export function Help() {
               <div>
                 <h4 className="font-medium mb-2">📧 Requirements:</h4>
                 <ul className="text-sm space-y-1">
-                  <li>• Valid @wiss-edu.ch email</li>
+                  <li>• Valid @wiss-edu.ch or @wiss.ch email</li>
                   <li>• Account registration</li>
                   <li>• Community guidelines compliance</li>
                 </ul>
@@ -113,7 +113,7 @@ export function Help() {
                 <AccordionContent>
                   <ol className="list-decimal pl-6 space-y-1">
                     <li>Click "Sign up" in the top navigation</li>
-                    <li>Enter your <strong>@wiss-edu.ch</strong> email address</li>
+                    <li>Enter your <strong>@wiss-edu.ch</strong> or <strong>@wiss.ch</strong> email address</li>
                     <li>Choose a unique username (3-20 characters, no spaces)</li>
                     <li>Create a secure password (minimum 6 characters)</li>
                     <li>Set your display name</li>

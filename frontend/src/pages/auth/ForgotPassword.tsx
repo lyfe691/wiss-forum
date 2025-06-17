@@ -15,7 +15,7 @@ import { authAPI } from '@/lib/api';
 const forgotPasswordSchema = z.object({
   email: z.string()
     .email("Invalid email address")
-    .regex(/^[\w.-]+@wiss-edu\.ch$/, "Email must end with @wiss-edu.ch")
+    .regex(/^[\w.-]+@wiss-edu\.ch$|^[\w.-]+@wiss\.ch$/, "Email must end with @wiss-edu.ch or @wiss.ch")
 });
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
@@ -91,7 +91,7 @@ export function ForgotPassword() {
                   <FormControl>
                     <Input 
                       type="email" 
-                      placeholder="Enter your @wiss-edu.ch email address" 
+                      placeholder="Enter your @wiss-edu.ch or @wiss.ch email address" 
                       disabled={isSubmitting || success}
                       {...field} 
                     />

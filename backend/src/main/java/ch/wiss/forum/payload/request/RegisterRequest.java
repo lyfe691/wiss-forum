@@ -14,7 +14,7 @@ public class RegisterRequest {
     private String username;
     
     @NotBlank
-    @Pattern(regexp = "^[\\w.-]+@wiss-edu\\.ch$", message = "Email must end with @wiss-edu.ch")
+    @Pattern(regexp = "^[\\w.-]+@wiss-edu\\.ch$|^[\\w.-]+@wiss\\.ch$", message = "Email must end with @wiss-edu.ch or @wiss.ch")
     private String email;
     
     @NotBlank
