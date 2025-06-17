@@ -220,8 +220,13 @@ public class TopicController {
         
         // check if the user is the author or an admin/teacher
         Topic existingTopic = topicService.getTopicById(id);
-        if (!existingTopic.getAuthor().getId().equals(currentUser.getId()) && 
-                !("admin".equals(currentUser.getRole()) || "teacher".equals(currentUser.getRole()))) {
+        
+        // handle case where topic has no author (orphaned topic)
+        String authorId = existingTopic.getAuthor() != null ? existingTopic.getAuthor().getId() : null;
+        boolean isAuthor = authorId != null && authorId.equals(currentUser.getId());
+        boolean isAdminOrTeacher = currentUser.getRole().hasAtLeastSamePrivilegesAs(ch.wiss.forum.model.Role.TEACHER);
+        
+        if (!isAuthor && !isAdminOrTeacher) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         
@@ -239,9 +244,20 @@ public class TopicController {
         // get the topic
         Topic existingTopic = topicService.getTopicById(id);
         
-        // check permissions using centralized utility
-        if (!PermissionUtils.canModifyContent(currentUser, existingTopic.getAuthor().getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        // handle case where topic has no author (orphaned topic)
+        String authorId = existingTopic.getAuthor() != null ? existingTopic.getAuthor().getId() : null;
+        
+        // check permissions - allow admins/teachers to delete orphaned topics
+        if (authorId != null) {
+            // topic has an author, use centralized utility
+            if (!PermissionUtils.canModifyContent(currentUser, authorId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        } else {
+            // orphaned topic, only allow admins/teachers to delete
+            if (!currentUser.getRole().hasAtLeastSamePrivilegesAs(ch.wiss.forum.model.Role.TEACHER)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
         }
         
         topicService.deleteTopic(id);

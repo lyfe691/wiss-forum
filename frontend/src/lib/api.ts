@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Role, roleUtils } from './types';
 
 
 // API
@@ -76,17 +77,212 @@ api.interceptors.response.use(
   }
 );
 
-// helper to normalize data with consistent id fields
+// =============================================================================
+// STANDARDIZED RESPONSE NORMALIZATION FUNCTIONS
+// =============================================================================
+
+/**
+ * Normalizes ID fields to ensure both _id and id exist
+ */
 const normalizeId = (item: any) => {
   if (!item) return item;
+  const id = item._id || item.id;
   return {
     ...item,
-    _id: item._id || item.id,
-    id: item.id || item._id
+    _id: id,
+    id: id
   };
 };
 
-// Auth API
+/**
+ * Normalizes role field from various backend formats to consistent frontend format
+ */
+const normalizeRole = (role: any): Role => {
+  if (!role) return Role.STUDENT;
+  
+  // Handle string roles
+  if (typeof role === 'string') {
+    return roleUtils.normalizeRole(role);
+  }
+  
+  // Handle Java enum objects
+  if (typeof role === 'object' && role !== null) {
+    // Try .name property first (Java enum)
+    if ('name' in role && typeof role.name === 'string') {
+      return roleUtils.normalizeRole(role.name);
+    }
+    
+    // Try converting object to string
+    const roleStr = String(role);
+    if (roleStr.includes('_')) {
+      // Handle "ROLE_ADMIN" format
+      const rolePart = roleStr.split('_')[1];
+      return roleUtils.normalizeRole(rolePart);
+    }
+    
+    return roleUtils.normalizeRole(roleStr);
+  }
+  
+  return Role.STUDENT;
+};
+
+/**
+ * Normalizes user object with consistent fields
+ */
+const normalizeUser = (user: any) => {
+  if (!user) return null;
+  
+  const normalized = normalizeId(user);
+  return {
+    ...normalized,
+    role: normalizeRole(user.role),
+    displayName: user.displayName || user.username || '',
+    avatar: user.avatar || undefined,
+    bio: user.bio || undefined,
+    githubUrl: user.githubUrl || undefined,
+    websiteUrl: user.websiteUrl || undefined,
+    linkedinUrl: user.linkedinUrl || undefined,
+    twitterUrl: user.twitterUrl || undefined,
+  };
+};
+
+/**
+ * Normalizes auth response (login/register)
+ */
+const normalizeAuthResponse = (response: any, fallbackData?: any) => {
+  if (!response) return null;
+  
+  // Handle message-only responses (like successful registration)
+  if (response.message && !response.token) {
+    return {
+      message: response.message,
+      success: true
+    };
+  }
+  
+  const role = normalizeRole(response.role);
+  
+  return {
+    token: response.token || '',
+    id: response.id || '',
+    username: response.username || fallbackData?.username || '',
+    email: response.email || fallbackData?.email || '',
+    displayName: response.displayName || response.username || fallbackData?.displayName || fallbackData?.username || '',
+    role: role,
+    avatar: response.avatar || '',
+    message: response.message || undefined
+  };
+};
+
+/**
+ * Normalizes topic object
+ */
+const normalizeTopic = (topic: any) => {
+  if (!topic) return null;
+  
+  const normalized = normalizeId(topic);
+  return {
+    ...normalized,
+    author: topic.author ? normalizeUser(topic.author) : null,
+    category: topic.category ? normalizeId(topic.category) : null,
+    tags: Array.isArray(topic.tags) ? topic.tags : [],
+    views: topic.views || 0,
+    replies: topic.replies || 0,
+    isLocked: !!topic.isLocked,
+    isPinned: !!topic.isPinned
+  };
+};
+
+/**
+ * Normalizes post object
+ */
+const normalizePost = (post: any) => {
+  if (!post) return null;
+  
+  const normalized = normalizeId(post);
+  
+  // Get current user ID for like status
+  const userString = localStorage.getItem('user');
+  const currentUserId = userString ? JSON.parse(userString)._id : null;
+  
+  // Handle likes field (can be array of IDs or number)
+  let likes = 0;
+  let isLiked = false;
+  
+  if (Array.isArray(post.likes)) {
+    likes = post.likes.length;
+    isLiked = currentUserId ? post.likes.includes(currentUserId) : false;
+  } else {
+    likes = typeof post.likes === 'number' ? post.likes : 0;
+    isLiked = !!post.isLiked;
+  }
+  
+  return {
+    ...normalized,
+    author: post.author ? normalizeUser(post.author) : null,
+    likes,
+    isLiked,
+    replyTo: post.replyTo || null,
+    replies: Array.isArray(post.replies) ? post.replies.map(normalizePost) : []
+  };
+};
+
+/**
+ * Normalizes paginated response
+ */
+const normalizePaginatedResponse = (response: any, itemNormalizer?: (item: any) => any) => {
+  if (!response) return { items: [], pagination: null };
+  
+  // Handle direct array response
+  if (Array.isArray(response)) {
+    const items = itemNormalizer ? response.map(itemNormalizer) : response;
+    return {
+      items,
+      pagination: {
+        currentPage: 0,
+        totalPages: 1,
+        totalItems: items.length,
+        hasNext: false,
+        hasPrevious: false
+      }
+    };
+  }
+  
+  // Handle Spring Boot Page response
+  if (response.content && Array.isArray(response.content)) {
+    const items = itemNormalizer ? response.content.map(itemNormalizer) : response.content;
+    return {
+      items,
+      pagination: {
+        currentPage: response.number || 0,
+        totalPages: response.totalPages || 1,
+        totalItems: response.totalElements || items.length,
+        hasNext: !(response.last === true),
+        hasPrevious: !(response.first === true)
+      }
+    };
+  }
+  
+  // Handle other paginated formats
+  const items = response.items || response.data || response.topics || response.posts || [];
+  const normalizedItems = itemNormalizer ? items.map(itemNormalizer) : items;
+  
+  return {
+    items: normalizedItems,
+    pagination: {
+      currentPage: response.currentPage || response.page || 0,
+      totalPages: response.totalPages || 1,
+      totalItems: response.totalItems || response.totalElements || response.total || normalizedItems.length,
+      hasNext: response.hasNext || false,
+      hasPrevious: response.hasPrevious || false
+    }
+  };
+};
+
+// =============================================================================
+// AUTH API
+// =============================================================================
+
 export const authAPI = {
   register: async (data: { username: string; email: string; password: string; displayName: string }) => {
     try {
@@ -203,12 +399,12 @@ export const authAPI = {
   
   getCurrentUser: async () => {
     const response = await api.get('/auth/me');
-    return response.data;
+    return normalizeUser(response.data);
   },
   
   refreshToken: async () => {
     const response = await api.post('/auth/refresh-token');
-    return response.data;
+    return normalizeAuthResponse(response.data);
   },
   
   forgotPassword: async (email: string) => {
@@ -400,57 +596,29 @@ export const categoriesAPI = {
 
 // Topics API
 export const topicsAPI = {
-  getTopicsByCategory: async (categoryId: string, page = 1, limit = 10) => {
-    // Note: Spring pagination is 0-based, but our frontend uses 1-based pagination
-    const response = await api.get(`/topics/category/${categoryId}?page=${page-1}&size=${limit}`);
-    
-    // Process the response data to ensure consistent ID fields
-    const processTopics = (topics: any[]) => {
-      return topics.map(topic => ({
-        ...topic,
-        _id: topic._id || topic.id,
-        id: topic.id || topic._id
-      }));
-    };
-    
-    // Log raw data for debugging
-    console.log('Raw topics by category response:', response.data);
-    
-    let topicsData: any[] = [];
-    
-    if (Array.isArray(response.data)) {
-      topicsData = processTopics(response.data);
-    } else if (response.data && Array.isArray(response.data.content)) {
-      topicsData = processTopics(response.data.content);
-    } else if (response.data && Array.isArray(response.data.topics)) {
-      topicsData = processTopics(response.data.topics);
-    }
-    
-    console.log('Processed topics data:', topicsData);
-    return topicsData;
+  getTopicsByCategory: async (categoryId: string, page = 0, limit = 10) => {
+    const response = await api.get(`/topics/category/${categoryId}?page=${page}&size=${limit}`);
+    const normalized = normalizePaginatedResponse(response.data, normalizeTopic);
+    return normalized.items; // Return just items for backward compatibility
   },
   
   getLatestTopics: async (page = 0, limit = 10) => {
     const response = await api.get(`/topics?page=${page}&size=${limit}&sort=createdAt&order=desc`);
-    
-    const totalCount = response.data?.totalElements || 
-                      response.data?.totalItems || 
-                      response.data?.total || 
-                      (Array.isArray(response.data?.content) ? response.data.content.length : 0);
+    const normalized = normalizePaginatedResponse(response.data, normalizeTopic);
     
     return {
-      topics: response.data?.content || [],
-      totalTopics: totalCount,
-      totalItems: totalCount,
-      currentPage: response.data?.number || page,
-      totalPages: response.data?.totalPages || 1
+      topics: normalized.items,
+      totalTopics: normalized.pagination?.totalItems || 0,
+      totalItems: normalized.pagination?.totalItems || 0,
+      currentPage: normalized.pagination?.currentPage || 0,
+      totalPages: normalized.pagination?.totalPages || 1
     };
   },
   
   getTopicByIdOrSlug: async (idOrSlug: string) => {
     try {
       const response = await api.get(`/topics/${idOrSlug}`);
-      return normalizeId(response.data);
+      return normalizeTopic(response.data);
     } catch (error) {
       console.error(`Error fetching topic ${idOrSlug}:`, error);
       throw error;
@@ -459,13 +627,7 @@ export const topicsAPI = {
   
   createTopic: async (data: { title: string; content: string; categoryId: string; tags?: string[] }) => {
     const response = await api.post('/topics', data);
-    
-    let topicData = response.data;
-    return {
-      ...topicData,
-      _id: topicData._id || topicData.id,
-      id: topicData.id || topicData._id
-    };
+    return normalizeTopic(response.data);
   },
   
   deleteTopic: async (id: string) => {
@@ -512,47 +674,13 @@ export const postsAPI = {
     }
     
     const response = await api.get(`/posts/topic/${topicId}?page=${page-1}&limit=${limit}`);
-    
-    // Get current user ID to check if posts are liked by current user
-    const userString = localStorage.getItem('user');
-    const currentUserId = userString ? JSON.parse(userString)._id : null;
-    
-    // Process the response to transform the likes array
-    const processPost = (post: any) => {
-      // Ensure post has _id (use id as fallback)
-      const processedPost = { 
-        ...post,
-        _id: post._id || post.id || ''  // Ensure _id exists
-      };
-      
-      if (Array.isArray(processedPost.likes)) {
-        processedPost.isLiked = currentUserId ? processedPost.likes.includes(currentUserId) : false;
-        processedPost.likes = processedPost.likes.length;
-      } else {
-        processedPost.likes = typeof processedPost.likes === 'number' ? processedPost.likes : 0;
-        processedPost.isLiked = !!processedPost.isLiked;
-      }
-      
-      return processedPost;
-    };
-    
-    // Log the raw response to help with debugging
-    console.log('Raw posts response:', response.data);
-    
-    if (Array.isArray(response.data)) {
-      return response.data.map(processPost);
-    } else if (response.data && response.data.content && Array.isArray(response.data.content)) {
-      return response.data.content.map(processPost);
-    } else if (response.data && Array.isArray(response.data.posts)) {
-      return response.data.posts.map(processPost);
-    }
-    
-    return [];
+    const normalized = normalizePaginatedResponse(response.data, normalizePost);
+    return normalized.items; // Return just items for backward compatibility
   },
   
   createPost: async (data: { content: string; topicId: string; replyTo?: string }) => {
     const response = await api.post('/posts', data);
-    return response.data;
+    return normalizePost(response.data);
   },
   
   deletePost: async (id: string) => {
@@ -592,7 +720,7 @@ export const postsAPI = {
   getPostById: async (id: string) => {
     try {
       const response = await api.get(`/posts/${id}`);
-      return normalizeId(response.data);
+      return normalizePost(response.data);
     } catch (error) {
       console.error(`Error fetching post ${id}:`, error);
       throw error;

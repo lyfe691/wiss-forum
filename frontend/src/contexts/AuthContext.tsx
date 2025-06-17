@@ -26,8 +26,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Use standardized user normalization from API
 const normalizeUserData = (userData: any): User | null => {
   if (!userData) return null;
+
+  const id = userData._id || userData.id || '';
+  const username = userData.username || '';
+  
+  if (!id || !username) {
+    console.error('Missing required user data fields:', { id, username });
+    return null;
+  }
 
   const role = roleUtils.normalizeRole(
     typeof userData.role === 'string'
@@ -37,21 +46,11 @@ const normalizeUserData = (userData: any): User | null => {
         : undefined
   );
 
-  const id = userData._id || userData.id || '';
-  const username = userData.username || '';
-  const email = userData.email || '';
-  const displayName = userData.displayName || username || '';
-
-  if (!id || !username) {
-    console.error('Missing required user data fields:', { id, username });
-    return null;
-  }
-
   return {
     _id: id,
     username,
-    email,
-    displayName,
+    email: userData.email || '',
+    displayName: userData.displayName || username || '',
     role,
     avatar: userData.avatar,
     bio: userData.bio,

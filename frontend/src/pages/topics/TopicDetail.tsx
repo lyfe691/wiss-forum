@@ -384,6 +384,20 @@ export function TopicDetail() {
     
     setLikeInProgress(prev => ({ ...prev, [postId]: true }));
     
+    // Helper to find post recursively in nested structure
+    const findPostRecursively = (posts: Post[], targetId: string): Post | null => {
+      for (const post of posts) {
+        if (post._id === targetId) {
+          return post;
+        }
+        if (post.children && post.children.length > 0) {
+          const found = findPostRecursively(post.children, targetId);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    
     // Update nested post helper
     const updateNestedPost = (posts: Post[], targetId: string, updateFn: (post: Post) => Post): Post[] => {
       return posts.map(post => {
@@ -400,10 +414,16 @@ export function TopicDetail() {
     };
     
     try {
-      // Optimistic update
-      const targetPost = posts.find(p => p._id === postId);
-      const newIsLiked = !targetPost?.isLiked;
+      // Find the target post recursively (handles nested replies)
+      const targetPost = findPostRecursively(posts, postId);
+      if (!targetPost) {
+        console.error('Post not found for like toggle:', postId);
+        return;
+      }
       
+      const newIsLiked = !targetPost.isLiked;
+      
+      // Optimistic update
       setPosts(prevPosts => 
         updateNestedPost(prevPosts, postId, post => ({
             ...post,
@@ -415,14 +435,17 @@ export function TopicDetail() {
       await postsAPI.toggleLike(postId);
     } catch (error) {
       console.error('Error toggling like:', error);
-      // Revert optimistic update
-      setPosts(prevPosts => 
-        updateNestedPost(prevPosts, postId, post => ({
-            ...post,
-          isLiked: !post.isLiked,
-          likes: post.likes + (post.isLiked ? 1 : -1)
-        }))
-      );
+      // Revert optimistic update - find current state again
+      const targetPost = findPostRecursively(posts, postId);
+      if (targetPost) {
+        setPosts(prevPosts => 
+          updateNestedPost(prevPosts, postId, post => ({
+              ...post,
+            isLiked: !post.isLiked,
+            likes: post.likes + (post.isLiked ? 1 : -1)
+          }))
+        );
+      }
     } finally {
         setLikeInProgress(prev => ({ ...prev, [postId]: false }));
     }

@@ -82,22 +82,7 @@ export function UserManagement() {
     fetchUsers();
   }, []);
 
-  // Add a function to normalize user objects when fetched
-  const normalizeUsers = (users: UserData[]): UserData[] => {
-    return users.map(user => {
-      // Check for empty or undefined IDs
-      const userId = user._id || user.id || '';
-      
-      return {
-        ...user,
-        // Ensure both _id and id fields exist and have the same value
-        _id: userId,
-        id: userId,
-        // Ensure role is normalized using our utility
-        role: roleUtils.normalizeRole(user.role)
-      };
-    });
-  };
+  // Users are now automatically normalized by the API layer
 
   const fetchUsers = async () => {
     try {
@@ -107,17 +92,17 @@ export function UserManagement() {
       if (user?.role === 'admin') {
         try {
           const adminUsers = await userAPI.getAllUsers();
-          setUsers(normalizeUsers(adminUsers));
+          setUsers(adminUsers);
         } catch (err) {
           console.error('Failed to get extended user data:', err);
           // Fallback to public user list
           const publicUsers = await userAPI.getPublicUsersList();
-          setUsers(normalizeUsers(publicUsers));
+          setUsers(publicUsers);
         }
       } else {
         // For non-admins, use the public endpoint
         const publicUsers = await userAPI.getPublicUsersList();
-        setUsers(normalizeUsers(publicUsers));
+        setUsers(publicUsers);
       }
     } catch (err) {
       console.error('Failed to fetch users:', err);
@@ -132,12 +117,14 @@ export function UserManagement() {
       setError(null);
       
       // Make sure we have a valid userId
-      if (!userId || userId === 'undefined') {
-        toast.error("Invalid user ID");
+      if (!userId || userId === 'undefined' || userId === '') {
+        console.error('Invalid user ID provided:', userId);
+        toast.error("Invalid user ID - unable to update role");
         return;
       }
       
       console.log(`Updating role for user ID: ${userId} to ${newRole}`);
+      console.log('Full userId received:', { userId, type: typeof userId, length: userId.length });
       
       // Try using the bootstrap endpoint first based on the role
       if (newRole === Role.ADMIN || newRole === Role.TEACHER) {
@@ -383,21 +370,21 @@ export function UserManagement() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
-                              onClick={() => updateUserRole(userData._id, Role.STUDENT)}
+                              onClick={() => updateUserRole(userData._id || userData.id || '', Role.STUDENT)}
                               disabled={userData.role === Role.STUDENT || (userData.role === Role.ADMIN && user?._id !== userData._id)}
                             >
                               <UserCog className="mr-2 h-4 w-4" />
                               Set as Student
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => updateUserRole(userData._id, Role.TEACHER)}
+                              onClick={() => updateUserRole(userData._id || userData.id || '', Role.TEACHER)}
                               disabled={userData.role === Role.TEACHER || (userData.role === Role.ADMIN && user?._id !== userData._id)}
                             >
                               <Shield className="mr-2 h-4 w-4" />
                               Set as Teacher
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => updateUserRole(userData._id, Role.ADMIN)}
+                              onClick={() => updateUserRole(userData._id || userData.id || '', Role.ADMIN)}
                               disabled={userData.role === Role.ADMIN}
                             >
                               <ShieldCheck className="mr-2 h-4 w-4" />
@@ -409,7 +396,7 @@ export function UserManagement() {
                                 setUserToDelete(userData);
                                 setDeleteDialogOpen(true);
                               }}
-                              disabled={userData._id === user?._id || (userData.role === Role.ADMIN && user?._id !== userData._id)}
+                              disabled={(userData._id || userData.id) === user?._id || (userData.role === Role.ADMIN && user?._id !== userData._id)}
                               className="text-destructive focus:text-destructive"
                             >
                               <Trash className="mr-2 h-4 w-4" />
