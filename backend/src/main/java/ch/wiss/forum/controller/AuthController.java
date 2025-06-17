@@ -3,6 +3,8 @@ package ch.wiss.forum.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
+import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.ForgotPasswordRequest;
 import ch.wiss.forum.payload.request.LoginRequest;
 import ch.wiss.forum.payload.request.RegisterRequest;
@@ -19,10 +22,12 @@ import ch.wiss.forum.payload.response.MessageResponse;
 import ch.wiss.forum.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
     
     private final AuthService authService;
@@ -81,5 +86,36 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok(new MessageResponse("Password has been reset."));
+    }
+    
+    // refresh token
+    @PostMapping("/refresh-token")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> refreshToken() {
+        try {
+            // get current authenticated user from security context
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Authentication required"));
+            }
+            
+            if (!(authentication.getPrincipal() instanceof User)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Invalid authentication type"));
+            }
+            
+            User currentUser = (User) authentication.getPrincipal();
+            
+            // generate new token using existing service method
+            JwtResponse response = authService.refreshToken(currentUser);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Token refresh failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse("Token refresh failed: " + e.getMessage()));
+        }
     }
 } 

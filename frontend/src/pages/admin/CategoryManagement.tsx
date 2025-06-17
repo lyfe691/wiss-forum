@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { categoriesAPI, topicsAPI } from '@/lib/api';
+import { categoriesAPI, topicsAPI, authAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -52,7 +52,6 @@ import {
   MessageSquare, 
   CheckCircle2
 } from 'lucide-react';
-import { authAPI } from '@/lib/api';
 import axios from 'axios';
 import { Role, roleUtils } from '@/lib/types';
 
@@ -193,18 +192,7 @@ export function CategoryManagement() {
           console.log('CategoryManagement: Token successfully refreshed:', newToken.substring(0, 10) + '...');
           
           // Update user data if available in the response
-          if (refreshResponse.id || refreshResponse._id) {
-            const userData = {
-              _id: refreshResponse.id || refreshResponse._id,
-              username: refreshResponse.username,
-              email: refreshResponse.email,
-              displayName: refreshResponse.displayName,
-              role: (refreshResponse.role || '').toLowerCase(),
-              avatar: refreshResponse.avatar
-            };
-            localStorage.setItem('user', JSON.stringify(userData));
-            console.log('CategoryManagement: Updated user data for', userData.username, 'with role', userData.role);
-          }
+          console.log('CategoryManagement: Token refresh successful');
           tokenRefreshed = true;
         }
       } catch (refreshError: any) {
@@ -214,25 +202,16 @@ export function CategoryManagement() {
         );
       }
       
-      // If token refresh failed, try second approach with axios directly
+      // If token refresh failed, try alternative approach using the centralized API
       if (!tokenRefreshed) {
         try {
           console.log('CategoryManagement: Trying alternative token refresh...');
-          const response = await axios.post(
-            'http://localhost:8080/api/auth/refresh-token',
-            {},
-            {
-              withCredentials: true,
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            }
-          );
+          const response = await authAPI.refreshToken();
           
-          if (response.data && response.data.token) {
-            const newToken = response.data.token.replace(/^Bearer\s+/i, '').trim();
+          if (response && response.token) {
+            const newToken = response.token.replace(/^Bearer\s+/i, '').trim();
             localStorage.setItem('token', newToken);
-            console.log('CategoryManagement: Direct token refresh successful:', newToken.substring(0, 10) + '...');
+            console.log('CategoryManagement: Alternative token refresh successful:', newToken.substring(0, 10) + '...');
             tokenRefreshed = true;
           }
         } catch (directRefreshError) {

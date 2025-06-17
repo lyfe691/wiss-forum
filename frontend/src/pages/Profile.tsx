@@ -333,7 +333,7 @@ export function Profile() {
       });
       
       // Update auth context
-      await checkAuth();
+      await refreshUser();
       
       toast.success(response.message || "Profile updated successfully");
     } catch (error: any) {

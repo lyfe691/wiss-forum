@@ -95,6 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const normalizedUser = normalizeUserData(data);
       if (normalizedUser) {
         setUser(normalizedUser);
+        // Update localStorage so the fresh data persists across page refreshes
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
         return normalizedUser;
       }
       throw new Error('Failed to refresh user data');
