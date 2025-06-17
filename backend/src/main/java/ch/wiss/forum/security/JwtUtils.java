@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKey;
 import jakarta.annotation.PostConstruct;
+import java.util.Base64;
 
 // jwt utils
 
@@ -26,7 +27,6 @@ import jakarta.annotation.PostConstruct;
 @Slf4j
 public class JwtUtils {
     
-    // currently im using them hardcoded in application.properties, in production i will use env as said before.
     @Value("${app.jwt.secret}")
     private String jwtSecret;
     
@@ -37,8 +37,19 @@ public class JwtUtils {
     
     @PostConstruct
     public void init() {
-        // use a secure key for HS512
-        key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+        if (jwtSecret == null || jwtSecret.trim().isEmpty()) {
+            throw new IllegalStateException("JWT_SECRET environment variable is required");
+        }
+        
+        try {
+            // decode the base64 JWT secret
+            byte[] decodedKey = Base64.getDecoder().decode(jwtSecret);
+            key = Keys.hmacShaKeyFor(decodedKey);
+            log.info("JWT key initialized successfully");
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid JWT_SECRET: must be a valid base64 encoded key");
+            throw new IllegalStateException("JWT_SECRET must be a valid base64 encoded key", e);
+        }
     }
     
     public String generateJwtToken(Authentication authentication) {
