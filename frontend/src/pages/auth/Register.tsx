@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -182,6 +182,19 @@ export function Register() {
             </Button>
           </form>
         </Form>
+        
+        {/* terms & privacy */}
+        <p className="text-xs text-muted-foreground text-center mt-4">
+          By signing up, you agree to our{" "}
+          <Link to="/terms" className="text-primary hover:underline">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link to="/privacy" className="text-primary hover:underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </CardContent>
       <CardFooter className="flex justify-center">
         <Button 
