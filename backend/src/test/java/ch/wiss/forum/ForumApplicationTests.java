@@ -12,6 +12,7 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -196,13 +198,17 @@ class ForumApplicationTests {
 		// act
 		realGamificationService.updateUserStatsOnTopicCreated(user);
 		
-		// assert
+		// assert - 4b) enhanced verification with proper interaction checking
 		verify(userRepository).save(argThat(savedUser -> {
 			assertEquals(1, savedUser.getTopicsCreated(), "topics created should be incremented");
 			assertEquals(50, savedUser.getTotalScore(), "score should increase by 13 points (10 + 3 streak bonus)");
 			assertEquals(2, savedUser.getLevel(), "user should level up to level 2");
 			return true;
 		}));
+		
+		// 4b) verify the method was called exactly once with correct user
+		verify(userRepository, times(1)).save(any(User.class));
+		verifyNoMoreInteractions(userRepository);
 	}
 
 	@Test
@@ -226,7 +232,7 @@ class ForumApplicationTests {
 		// act
 		realGamificationService.updateUserStatsOnPostCreated(newUser);
 		
-		// assert
+		// assert - 4b) enhanced verification with interaction checking
 		verify(userRepository).save(argThat(savedUser -> {
 			assertEquals(1, savedUser.getPostsCreated(), "posts created should be incremented");
 			assertEquals(8, savedUser.getTotalScore(), "score should increase by 8 points (5 + 3 streak bonus)");
@@ -234,6 +240,10 @@ class ForumApplicationTests {
 				"should award first_post achievement");
 			return true;
 		}));
+		
+		// 4b) verify exactly one save operation occurred
+		verify(userRepository, times(1)).save(any(User.class));
+		verifyNoMoreInteractions(userRepository);
 	}
 
 	@Test
@@ -392,5 +402,107 @@ class ForumApplicationTests {
 		// verify token contains correct user id
 		String extractedUserId = realJwtUtils.getUserIdFromJwtToken(token);
 		assertEquals("user123", extractedUserId, "token should contain correct user id");
+	}
+
+	// 4b) new advanced mockito tests using both @Mock and @Spy annotations
+
+	@Test
+	@DisplayName("Should verify complex service interaction with spy and mock combination")
+	void testComplexServiceInteraction_WithSpyAndMock_ShouldVerifyAllCalls() {
+		// arrange - 4b) using spy for real gamification service behavior with mocked dependencies
+		User user = User.builder()
+				.id("testuser123")
+				.username("testuser")
+				.totalScore(45)
+				.level(1)
+				.topicsCreated(1)
+				.postsCreated(3)
+				.achievements(new ArrayList<>())
+				.lastActivityDate(LocalDateTime.now().minusDays(2)) // 2 days ago for streak testing
+				.build();
+		
+		// 4b) create a spy on the user repository to track interactions while keeping mock behavior
+		UserRepository spyUserRepository = spy(UserRepository.class);
+		when(spyUserRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		
+		// create gamification service with spied repository
+		GamificationService gamificationServiceWithSpy = new GamificationService(spyUserRepository);
+		
+		// act - call real method on service which will use spied repository
+		gamificationServiceWithSpy.updateUserStatsOnTopicCreated(user);
+		
+		// assert - 4b) verify spy repository interactions occurred correctly
+		verify(spyUserRepository, times(1)).save(argThat(savedUser -> {
+			// verify gamification logic worked correctly
+			assertEquals(2, savedUser.getTopicsCreated(), "topics should be incremented");
+			assertEquals(58, savedUser.getTotalScore(), "score should increase by 13 points (10 + 3 streak bonus)");
+			assertEquals(2, savedUser.getLevel(), "user should level up to level 2");
+			return true;
+		}));
+		
+		// 4b) verify that only expected interactions occurred (gamification service may call findById and save)
+		verify(spyUserRepository, atLeastOnce()).save(any(User.class));
+		
+		// additional verification - ensure the service processed the user correctly
+		assertEquals(2, user.getTopicsCreated(), "original user object should be modified");
+		assertEquals(58, user.getTotalScore(), "original user total score should be updated");
+	}
+
+	@Test
+	@DisplayName("Should handle service dependency chain with spy and mock verification")
+	void testServiceDependencyChain_WithSpyAndMock_ShouldTrackInteractions() {
+		// arrange - 4b) testing topic service that depends on both gamification and repository
+		Topic newTopic = Topic.builder()
+				.title("Advanced Java Programming")
+				.content("Let's discuss advanced Java concepts")
+				.category(testCategory)
+				.build();
+		
+		User author = User.builder()
+				.id("author123")
+				.username("javaexpert")
+				.totalScore(200)
+				.level(5)
+				.topicsCreated(10)
+				.achievements(new ArrayList<>(Arrays.asList("FIRST_TOPIC", "TOPIC_MASTER"))) // 4b) mutable list for achievements
+				.build();
+		
+		// mock repository behavior
+		when(topicRepository.existsBySlug(anyString())).thenReturn(false); // no slug conflicts
+		when(topicRepository.save(any(Topic.class))).thenAnswer(invocation -> {
+			Topic topic = invocation.getArgument(0);
+			topic.setId("newtopic123"); // simulate database id assignment
+			return topic;
+		});
+		
+		// 4b) spy on gamification service to track method calls while keeping real behavior
+		GamificationService spyGamificationService = spy(new GamificationService(userRepository));
+		
+		// create topic service with spy gamification service
+		TopicService topicServiceWithSpy = new TopicService(topicRepository, categoryRepository, spyGamificationService);
+		
+		// act
+		Topic createdTopic = topicServiceWithSpy.createTopic(newTopic, author);
+		
+		// assert - 4b) verify topic creation with spy and mock interactions
+		assertNotNull(createdTopic, "created topic should not be null");
+		assertTrue(createdTopic.getSlug().startsWith("advanced-java-programming"), "slug should start with formatted title");
+		assertEquals(author, createdTopic.getAuthor(), "author should be set");
+		assertEquals("newtopic123", createdTopic.getId(), "id should be assigned by repository");
+		
+		// verify mock repository interactions
+		verify(topicRepository, atLeastOnce()).existsBySlug(anyString());
+		verify(topicRepository).save(argThat(topic -> 
+			topic.getSlug().startsWith("advanced-java-programming") &&
+			author.equals(topic.getAuthor()) &&
+			topic.getCreatedAt() != null
+		));
+		
+		// 4b) verify spy gamification service was called - this demonstrates spy usage
+		verify(spyGamificationService, times(1)).updateUserStatsOnTopicCreated(author);
+		
+		// verify no unexpected interactions
+		verifyNoMoreInteractions(topicRepository);
+		verifyNoMoreInteractions(spyGamificationService);
 	}
 }
