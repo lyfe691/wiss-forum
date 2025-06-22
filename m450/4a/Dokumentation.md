@@ -111,6 +111,13 @@ Die folgende Datei wurde erstellt und enthält **8 eigenständige, fachlich rele
 
 **Befehl:**
 
+Man sollte sich bereits im backend Ordner befinden.
+
+```bash
+cd backend
+```
+Danach kann man den Testlauf starten.
+
 ```bash
 mvn test
 ```
