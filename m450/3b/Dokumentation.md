@@ -4,9 +4,9 @@
 
 > **Teammitglieder & Beiträge:**
 >
-> - Yanis Sebastian Zürcher - Dokumentation
-> - Jason Bichsel - Recherche
-> - Dominik Könitzer - Recherche
+> * Yanis Sebastian Zürcher - Dokumentation
+> * Jason Bichsel - Recherche
+> * Dominik Könitzer - Recherche
 
 
 
