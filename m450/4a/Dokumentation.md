@@ -87,7 +87,7 @@ Diese Methoden helfen, wiederholte Initialisierung oder Aufräumarbeiten sauber 
 Die folgende Datei wurde erstellt und enthält **8 eigenständige, fachlich relevante Unit Tests**:
 
 > [!important]
-> siehe [ForumApplicationTests.java](../backend/src/test/java/ch/wiss/forum/ForumApplicationTests.java)
+> siehe [ForumApplicationTests.java](https://github.com/lyfe691/wiss-forum/blob/main/backend/src/test/java/ch/wiss/forum/ForumApplicationTests.java)
 
 **Getestete Komponenten:**
 
