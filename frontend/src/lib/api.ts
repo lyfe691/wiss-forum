@@ -629,6 +629,16 @@ export const topicsAPI = {
     const response = await api.post('/topics', data);
     return normalizeTopic(response.data);
   },
+
+  updateTopic: async (id: string, data: { title: string; content: string; tags?: string[] }) => {
+    try {
+      const response = await api.put(`/topics/${id}`, data);
+      return normalizeTopic(response.data);
+    } catch (error) {
+      console.error(`Error updating topic ${id}:`, error);
+      throw error;
+    }
+  },
   
   deleteTopic: async (id: string) => {
     if (!id) {
@@ -723,6 +733,16 @@ export const postsAPI = {
       return normalizePost(response.data);
     } catch (error) {
       console.error(`Error fetching post ${id}:`, error);
+      throw error;
+    }
+  },
+
+  updatePost: async (id: string, data: { content: string }) => {
+    try {
+      const response = await api.put(`/posts/${id}`, data);
+      return normalizePost(response.data);
+    } catch (error) {
+      console.error(`Error updating post ${id}:`, error);
       throw error;
     }
   },

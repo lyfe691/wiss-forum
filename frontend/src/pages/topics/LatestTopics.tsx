@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { topicsAPI } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
+import { ContentActions } from '@/components/content/ContentActions';
 
 interface Author {
   _id: string;
@@ -68,6 +69,7 @@ interface Topic {
 }
 
 export function LatestTopics() {
+  const navigate = useNavigate();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -124,6 +126,41 @@ export function LatestTopics() {
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle topic edit
+  const handleEditTopic = async (topic: any, newData: any) => {
+    try {
+      await topicsAPI.updateTopic(topic._id, {
+        title: newData.title,
+        content: newData.content,
+        tags: newData.tags
+      });
+      
+      // Refresh the topics list
+      await fetchTopics();
+    } catch (error) {
+      console.error('Failed to update topic:', error);
+      throw error;
+    }
+  };
+
+  // Handle topic delete
+  const handleDeleteTopic = async (topic: any) => {
+    try {
+      await topicsAPI.deleteTopic(topic._id);
+      
+      // Remove the topic from local state immediately for better UX
+      setTopics(prevTopics => prevTopics.filter(t => t._id !== topic._id));
+      
+      // Optionally refresh the list to ensure consistency
+      setTimeout(() => {
+        fetchTopics();
+      }, 500);
+    } catch (error) {
+      console.error('Failed to delete topic:', error);
+      throw error;
+    }
   };
 
   return (
@@ -291,6 +328,22 @@ export function LatestTopics() {
                             </div>
                           </div>
                         </div>
+                        
+                        {/* Content Actions */}
+                        {topic.author && (
+                          <ContentActions
+                            content={{
+                              _id: topic._id,
+                              author: topic.author,
+                              createdAt: topic.createdAt,
+                              updatedAt: topic.updatedAt
+                            }}
+                            contentType="topic"
+                            onEdit={handleEditTopic}
+                            onDelete={handleDeleteTopic}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          />
+                        )}
                       </div>
                     </CardHeader>
                     

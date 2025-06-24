@@ -19,6 +19,7 @@ import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, Eye, ArrowRi
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getAvatarUrl, getInitials, formatRoleName, getRoleBadgeColor } from '@/lib/utils';
+import { ContentActions } from '@/components/content/ContentActions';
 
 interface Category {
   _id: string;
@@ -200,6 +201,46 @@ export function CategoryDetail() {
     }
     return 0;
   });
+
+  // Handle topic edit
+  const handleEditTopic = async (topic: any, newData: any) => {
+    try {
+      await topicsAPI.updateTopic(topic._id, {
+        title: newData.title,
+        content: newData.content,
+        tags: newData.tags
+      });
+      
+      // Refresh topics
+      if (category) {
+        const topicsData = await topicsAPI.getTopicsByCategory(category._id) as TopicsResponse | Topic[];
+        
+        if (Array.isArray(topicsData)) {
+          setTopics(topicsData);
+        } else if (topicsData && Array.isArray(topicsData.topics)) {
+          setTopics(topicsData.topics);
+        } else {
+          setTopics([]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update topic:', error);
+      throw error;
+    }
+  };
+
+  // Handle topic delete
+  const handleDeleteTopic = async (topic: any) => {
+    try {
+      await topicsAPI.deleteTopic(topic._id);
+      
+      // Remove topic from local state
+      setTopics(prevTopics => prevTopics.filter(t => t._id !== topic._id));
+    } catch (error) {
+      console.error('Failed to delete topic:', error);
+      throw error;
+    }
+  };
 
   // Format date to relative time (like "2 days ago")
   const formatRelativeTime = (dateString: string) => {
@@ -468,6 +509,23 @@ export function CategoryDetail() {
                             <CardTitle className="text-xl group-hover:text-primary transition-colors">
                               {topic.title}
                             </CardTitle>
+                            
+                            {/* Content Actions */}
+                            {topic.author && (
+                              <ContentActions
+                                content={{
+                                  _id: topic._id,
+                                  author: topic.author,
+                                  createdAt: topic.createdAt,
+                                  updatedAt: topic.updatedAt
+                                }}
+                                contentType="topic"
+                                onEdit={handleEditTopic}
+                                onDelete={handleDeleteTopic}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                size="sm"
+                              />
+                            )}
                           </div>
                         </CardHeader>
                         <CardContent className="pb-2">

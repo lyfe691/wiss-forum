@@ -41,6 +41,7 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import { ContentActions } from '@/components/content/ContentActions';
 
 // Types for users and content
 interface Author {
@@ -629,6 +630,38 @@ export function TopicDetail() {
     }
   };
 
+  // Handle post edit
+  const handleEditPost = async (post: any, newData: any) => {
+    try {
+      await postsAPI.updatePost(post._id, { content: newData.content });
+      
+      // Refresh posts
+      const refreshedPosts = await postsAPI.getPostsByTopic(topic!._id);
+      const processedPosts = processPosts(refreshedPosts);
+      const sortedPosts = sortPosts(processedPosts);
+      setPosts(sortedPosts);
+    } catch (error) {
+      console.error('Failed to update post:', error);
+      throw error;
+    }
+  };
+
+  // Handle post delete
+  const handleDeletePost = async (post: any) => {
+    try {
+      await postsAPI.deletePost(post._id);
+      
+      // Refresh posts
+      const refreshedPosts = await postsAPI.getPostsByTopic(topic!._id);
+      const processedPosts = processPosts(refreshedPosts);
+      const sortedPosts = sortPosts(processedPosts);
+      setPosts(sortedPosts);
+    } catch (error) {
+      console.error('Failed to delete post:', error);
+      throw error;
+    }
+  };
+
 
 
   // Toggle expanded/collapsed state for a post's replies
@@ -716,6 +749,21 @@ export function TopicDetail() {
                   </div>
                 </div>
               </div>
+              
+              {/* Content Actions */}
+              <ContentActions
+                content={{
+                  _id: post._id,
+                  author: post.author,
+                  createdAt: post.createdAt,
+                  updatedAt: post.updatedAt
+                }}
+                contentType="post"
+                onEdit={handleEditPost}
+                onDelete={handleDeletePost}
+                variant="inline"
+                size="sm"
+              />
             </div>
           </CardHeader>
           

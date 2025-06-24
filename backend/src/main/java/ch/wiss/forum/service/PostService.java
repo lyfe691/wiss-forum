@@ -9,10 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.wiss.forum.model.Post;
+import ch.wiss.forum.model.Role;
 import ch.wiss.forum.model.Topic;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.repository.PostRepository;
 import ch.wiss.forum.repository.TopicRepository;
+import ch.wiss.forum.security.PermissionUtils;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -74,8 +76,7 @@ public class PostService {
         Post post = getPostById(id);
         
         // check if the user is authorized to update the post
-        if (!post.getAuthor().getId().equals(currentUser.getId()) && 
-                !("admin".equals(currentUser.getRole()) || "teacher".equals(currentUser.getRole()))) {
+        if (!PermissionUtils.canModifyContent(currentUser, post.getAuthor().getId())) {
             throw new RuntimeException("Not authorized to update this post");
         }
         
@@ -92,8 +93,7 @@ public class PostService {
         Post post = getPostById(id);
         
         // check if the user is authorized to delete the post
-        if (!post.getAuthor().getId().equals(currentUser.getId()) && 
-                !("admin".equals(currentUser.getRole()) || "teacher".equals(currentUser.getRole()))) {
+        if (!PermissionUtils.canModifyContent(currentUser, post.getAuthor().getId())) {
             throw new RuntimeException("Not authorized to delete this post");
         }
         
