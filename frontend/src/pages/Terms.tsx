@@ -26,8 +26,8 @@ import {
 } from 'lucide-react';
 
 export function Terms() {
-  const lastUpdated = "January 20, 2025";
-  const effectiveDate = "January 20, 2025";
+  const lastUpdated = "January 24, 2025";
+  const effectiveDate = "January 24, 2025";
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
@@ -156,8 +156,7 @@ export function Terms() {
               <p className="mb-2">You agree not to:</p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>Post content that is offensive, discriminatory, or harassing</li>
-                <li>Share academic answers or solutions in violation of academic integrity policies</li>
-                <li>Upload malicious software, viruses, or harmful code</li>
+                <li>Upload malicious software, viruses, or harmful code (also via links.)</li>
                 <li>Impersonate other users or provide false information</li>
                 <li>Spam, advertise commercial products, or engage in promotional activities</li>
                 <li>Violate intellectual property rights or copyright laws</li>
@@ -176,13 +175,12 @@ export function Terms() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h4 className="font-semibold mb-2">4.1 Content Storage and Structure</h4>
+              <h4 className="font-semibold mb-2">4.1 Content Management</h4>
               <ul className="list-disc pl-6 space-y-1">
-                <li>Topics are stored with title, content, category association, and author reference</li>
-                <li>Posts contain content text, topic reference, author reference, and optional reply-to references</li>
-                <li>Content is stored in MongoDB with database references (DBRef) linking to your user account</li>
-                <li>Edit history is tracked with boolean flags and timestamps</li>
-                <li>Like data is stored as arrays of user IDs on each post</li>
+                <li>User content is stored and linked to your account</li>
+                <li>Content includes topics, posts, and associated metadata</li>
+                <li>We track interactions such as likes and replies</li>
+                <li>Content may be analyzed for moderation purposes</li>
               </ul>
             </div>
             
@@ -191,20 +189,13 @@ export function Terms() {
               <ul className="list-disc pl-6 space-y-1">
                 <li>You retain ownership of content you create and post</li>
                 <li>Content remains linked to your user account via database references</li>
-                <li>You can edit or delete your own posts and topics</li>
                 <li>Teachers and Admins can moderate any content based on role permissions</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2">4.3 Gamification and Activity Tracking</h4>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Creating topics awards 10 points and increments your topics created counter</li>
-                <li>Creating posts awards 5 points and increments your posts created counter</li>
-                <li>Receiving likes awards 2 points each and increments your likes received counter</li>
-                <li>Daily activity contributes to streak bonuses (3 points per day)</li>
-                <li>Achievements are automatically awarded based on activity thresholds</li>
-              </ul>
+              <h4 className="font-semibold mb-2">4.3 Activity and Engagement</h4>
+              <p>We track user activity and may award points or achievements to encourage participation and engagement within the platform. Details about the point system and achievements can be found in the platform's documentation.</p>
             </div>
           </CardContent>
         </Card>
@@ -250,22 +241,16 @@ export function Terms() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h4 className="font-semibold mb-2">6.1 Development Environment Notice</h4>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>This is a development/educational project running locally</li>
-                <li>Server runs on localhost:8080 with MongoDB on localhost:27017</li>
-                <li>Service availability depends on local development setup</li>
-                <li>No production-level uptime guarantees are provided</li>
-              </ul>
+              <h4 className="font-semibold mb-2">6.1 Service Availability</h4>
+              <p>This platform is provided for educational purposes. As a development project, service availability and performance may vary. No guarantees are made regarding uptime or continuous accessibility.</p>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-2">6.2 Technical Limitations</h4>
+              <h4 className="font-semibold mb-2">6.2 Platform Limitations</h4>
               <ul className="list-disc pl-6 space-y-1">
-                <li>CORS is configured for localhost development origins only</li>
-                <li>Email service requires Gmail SMTP configuration</li>
-                <li>JWT secret must be provided via environment variables</li>
-                <li>Database is not backed up or replicated (development only)</li>
+                <li>Service is intended for internal WISS community use only, however, viewing is public.</li>
+                <li>Features and functionality may change without notice</li>
+                <li>Data persistence is not guaranteed during development phases</li>
               </ul>
             </div>
           </CardContent>
@@ -356,7 +341,7 @@ export function Terms() {
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="space-y-2">
                 <p><strong>WISS Forum Administration</strong></p>
-                <p>Email: <a href="mailto:admin@wiss-edu.ch" className="text-primary hover:underline">admin@wiss-edu.ch</a></p>
+                <p>Email: <a href="" className="text-primary hover:underline"></a></p>
                 <p>Subject Line: "Terms of Service - [Your Username]"</p>
               </div>
             </div>
@@ -374,4 +359,4 @@ export function Terms() {
       </div>
     </div>
   );
-} 
+}
