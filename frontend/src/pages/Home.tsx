@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { categoriesAPI, statsAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -71,24 +69,17 @@ export function Home() {
   }, []);
 
   return (
-    <div className="space-y-12 mx-auto px-0 sm:px-2 py-4">
-      {/* Hero Section with smoother fade effects */}
+    <div className="space-y-16 mx-auto px-0 sm:px-2 py-4">
+      {/* Hero Section */}
       <section className="relative pt-10 pb-16 overflow-hidden rounded-2xl">
-        {/* Create a container with mask image for smooth fade on all sides */}
         <div className="absolute inset-0 overflow-hidden">
-          {/* Main colored background */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/8 to-violet-500/5" />
-          
-          {/* Decorative blobs */}
           <div className="absolute top-0 right-0 -mt-20 -mr-20 lg:-mt-40 lg:-mr-40 w-64 h-64 lg:w-96 lg:h-96 rounded-full bg-primary/20 blur-3xl opacity-60" />
           <div className="absolute bottom-0 left-0 -mb-20 -ml-20 lg:-mb-40 lg:-ml-40 w-64 h-64 lg:w-96 lg:h-96 rounded-full bg-violet-500/20 blur-3xl opacity-60" />
-          
-          {/* Additional blobs for more vibrant look */}
           <div className="absolute top-1/3 left-1/4 w-32 h-32 rounded-full bg-blue-500/10 blur-3xl opacity-50" />
           <div className="absolute bottom-1/3 right-1/4 w-40 h-40 rounded-full bg-pink-500/10 blur-3xl opacity-50" />
         </div>
         
-        {/* Mask overlay for smooth fade on all sides - critical for smooth edges */}
         <div className="absolute inset-0" style={{
           background: `
             linear-gradient(to right, 
@@ -112,13 +103,11 @@ export function Home() {
           zIndex: 5
         }} />
         
-        {/* Hide decorative elements on small screens */}
         <div className="absolute right-10 top-20 animate-float-slow hidden md:block z-10">
           <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 rotate-12 flex items-center justify-center text-primary">
             <BookOpen className="w-8 h-8 lg:w-10 lg:h-10" />
           </div>
         </div>
-        
         
         <div className="container max-w-6xl mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -218,82 +207,77 @@ export function Home() {
         </div>
       </section>
 
-      {/* Stats Cards */}
+      {/* Clean Stats Cards */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background/80">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Categories</CardTitle>
-              <MessageSquare className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {isLoading ? (
-                  <Skeleton className="h-9 w-16 rounded-md" />
-                ) : (
-                  stats.categoryCount
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Discuss various topics organized by categories
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="border-border/50 hover:border-primary/30 transition-colors duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Categories</CardTitle>
+            <MessageSquare className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Skeleton className="h-8 w-12 rounded" />
+              ) : (
+                stats.categoryCount
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Organized discussion topics
+            </p>
+          </CardContent>
+        </Card>
         
-        <div>
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background/80">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Community Members</CardTitle>
-              <Users className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                {isLoading ? (
-                  <Skeleton className="h-9 w-16 rounded-md" />
-                ) : (
-                  stats.userCount !== undefined ? stats.userCount : 'N/A'
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Students and teachers engaged in discussions
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="border-border/50 hover:border-primary/30 transition-colors duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Community Members</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Skeleton className="h-8 w-12 rounded" />
+              ) : (
+                stats.userCount
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Students and teachers
+            </p>
+          </CardContent>
+        </Card>
         
-        <div>
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background/80">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Topics Created</CardTitle>
-              <BookOpen className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-                {isLoading ? (
-                  <Skeleton className="h-9 w-16 rounded-md" />
-                ) : (
-                  stats.topicCount !== undefined ? stats.topicCount : 'N/A'
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Educational topics to enhance your learning
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="border-border/50 hover:border-primary/30 transition-colors duration-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Topics Created</CardTitle>
+            <BookOpen className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Skeleton className="h-8 w-12 rounded" />
+              ) : (
+                stats.topicCount
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Educational discussions
+            </p>
+          </CardContent>
+        </Card>
       </section>
 
-      {/* Featured Categories */}
+      {/* Clean Featured Categories */}
       <section>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Featured Categories</h2>
             <p className="text-muted-foreground">Explore popular discussion categories</p>
           </div>
           <Link to="/categories">
-            <Button variant="outline" effect={'expandIcon'} icon={ChevronRight} iconPlacement='right' className="group">
+            <Button variant="outline" className="group">
               View All
+              <ChevronRight className="ml-1 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </Button>
           </Link>
         </div>
@@ -301,65 +285,44 @@ export function Home() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
-              <Card key={index} className="border shadow-sm overflow-hidden">
+              <Card key={index} className="h-40">
                 <CardHeader>
-                  <Skeleton className="h-4 w-32 mb-2" />
+                  <Skeleton className="h-5 w-32 mb-2" />
                   <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
                 </CardHeader>
                 <CardContent>
-                  <Skeleton className="h-16 w-full" />
-                </CardContent>
-                <CardFooter>
                   <Skeleton className="h-9 w-full" />
-                </CardFooter>
+                </CardContent>
               </Card>
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.slice(0, 6).map((category) => (
-              <div key={category._id}>
-                <Card className="h-full flex flex-col border hover:border-primary/50 hover:shadow-md transition-all duration-300 overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center">
-                      <span className="mr-2 w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Link key={category._id} to={`/categories/${category.slug}`}>
+                <Card className="h-full group border-border/50 hover:border-primary/30 hover:shadow-md transition-all duration-200 cursor-pointer">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-semibold">
                         {category.name.charAt(0).toUpperCase()}
-                      </span>
-                      {category.name}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2">{category.description}</CardDescription>
+                      </div>
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                        {category.name}
+                      </CardTitle>
+                    </div>
+                    <CardDescription className="line-clamp-2 text-sm leading-relaxed">
+                      {category.description}
+                    </CardDescription>
                   </CardHeader>
-                  {category.subcategories && category.subcategories.length > 0 && (
-                    <CardContent className="pb-2 flex-grow">
-                      <ScrollArea className="h-28">
-                        <div className="space-y-3">
-                          <h3 className="text-sm font-medium text-muted-foreground">Subcategories</h3>
-                          {category.subcategories.map((sub) => (
-                            <div key={sub._id}>
-                              <Link 
-                                to={`/categories/${sub.slug}`}
-                                className="text-sm hover:text-primary transition-colors flex items-center"
-                              >
-                                <ArrowRight className="h-3 w-3 mr-1.5 text-muted-foreground" />
-                                {sub.name}
-                              </Link>
-                              <Separator className="my-2" />
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </CardContent>
-                  )}
-                  <CardFooter className="mt-auto pt-4">
-                    <Link to={`/categories/${category.slug}`} className="w-full">
-                      <Button variant="secondary" className="w-full group">
-                        Browse Topics
-                        <ArrowRight className="ml-1.5 h-4 w-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                      </Button>
-                    </Link>
-                  </CardFooter>
+                  <CardContent className="pt-0">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>Browse topics</span>
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </CardContent>
                 </Card>
-              </div>
+              </Link>
             ))}
           </div>
         )}
@@ -367,22 +330,26 @@ export function Home() {
 
       {/* Call to Action */}
       {!isAuthenticated && (
-        <section className="relative bg-gradient-to-r from-muted/80 via-muted to-muted/90 p-8 md:p-12 text-center rounded-xl overflow-hidden shadow-sm">
-          <div className="absolute inset-0 bg-grid-black/[0.2] bg-grid-8" />
+        <section className="relative bg-muted/50 p-8 md:p-12 text-center rounded-xl border border-border/50">
           <div className="relative">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Join our Academic Community Today</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Join our Academic Community</h2>
             <p className="mb-8 max-w-2xl mx-auto text-muted-foreground">
-              Connect with {stats.userCount > 0 ? 
-                stats.userCount : 
-                (isLoading ? '...' : 'other')
-              } students and teachers, 
+              Connect with {stats.userCount > 0 ? stats.userCount : '...'} students and teachers, 
               participate in discussions, and enhance your learning experience.
             </p>
-            <Link to="/register">
-              <Button size="lg" effect={'expandIcon'} icon={ArrowRight} iconPlacement='right' className="group">
-                Sign Up Now
-              </Button>
-            </Link>
+            <div className="flex gap-4 justify-center">
+              <Link to="/register">
+                <Button size="lg" className="group">
+                  Sign Up Now
+                  <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button size="lg" variant="outline">
+                  Sign In
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
       )}

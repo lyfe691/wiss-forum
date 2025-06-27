@@ -263,7 +263,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
   );
 
   const sidebarContent = (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-card">
       <ScrollArea className="flex-1 py-4">
         <NavSection title="Main" items={navItems} />
         
@@ -305,7 +305,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     <>
       {/* Desktop Sidebar */}
       {!isMobile && (
-        <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border fixed top-16 bottom-0 z-30 bg-background">
+        <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border fixed top-16 bottom-0 z-30 bg-card">
           {sidebarContent}
         </aside>
       )}
