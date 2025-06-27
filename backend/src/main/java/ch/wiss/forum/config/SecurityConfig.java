@@ -74,6 +74,7 @@ public class SecurityConfig {
                     .requestMatchers("GET", "/api/categories/**").permitAll()
                     .requestMatchers("GET", "/api/topics/**").permitAll()
                     .requestMatchers("GET", "/api/posts/**").permitAll()
+                    .requestMatchers("GET", "/api/files/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated();
             });

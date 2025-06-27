@@ -122,7 +122,7 @@ export function FileUpload({
         name: file.name,
         size: file.size,
         type: file.type,
-        url: result.url || URL.createObjectURL(file),
+        url: result.url, // Use the actual file URL from server
         isUploading: false,
         uploadProgress: 100
       };
