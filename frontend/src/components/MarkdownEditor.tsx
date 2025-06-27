@@ -16,6 +16,7 @@ import {
   Minimize2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useTheme } from '../contexts/ThemeContext';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 
@@ -68,6 +69,7 @@ export function MarkdownEditor({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(existingFiles);
   const editorRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
   const handleFilesUploaded = useCallback((files: UploadedFile[]) => {
     setUploadedFiles(prev => [...prev, ...files]);
@@ -216,22 +218,24 @@ export function MarkdownEditor({
                   isFullscreen && "h-[calc(100vh-200px)]"
                 )}
               >
-                <MDEditor
-                  value={value}
-                  onChange={(val) => onChange(val || '')}
-                  height={isFullscreen ? undefined : height}
-                  preview="edit"
-                  hideToolbar={false}
-                  textareaProps={{
-                    placeholder,
-                    disabled,
-                    style: {
-                      fontSize: 14,
-                      lineHeight: 1.6,
-                      fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
-                    }
-                  }}
-                />
+                <div data-color-mode={theme}>
+                  <MDEditor
+                    value={value}
+                    onChange={(val) => onChange(val || '')}
+                    height={isFullscreen ? undefined : height}
+                    preview="edit"
+                    hideToolbar={false}
+                    textareaProps={{
+                      placeholder,
+                      disabled,
+                      style: {
+                        fontSize: 14,
+                        lineHeight: 1.6,
+                        fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
+                      }
+                    }}
+                  />
+                </div>
               </div>
             </TabsContent>
             

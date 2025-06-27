@@ -3,6 +3,7 @@ import MarkdownPreview from '@uiw/react-markdown-preview';
 import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
 import { cn } from '../lib/utils';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface MarkdownRendererProps {
   content: string;
@@ -11,8 +12,10 @@ interface MarkdownRendererProps {
 }
 
 export const MarkdownRenderer = memo(({ content, variant = 'default', className }: MarkdownRendererProps) => {
+  const { theme } = useTheme();
+  
   return (
-    <div className={cn('markdown-renderer', `markdown-${variant}`, className)}>
+    <div className={cn('markdown-renderer', `markdown-${variant}`, className)} data-color-mode={theme}>
       <MarkdownPreview
         source={content}
         rehypePlugins={[rehypeSanitize]}
