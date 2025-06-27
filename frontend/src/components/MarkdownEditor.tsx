@@ -165,6 +165,7 @@ export function MarkdownEditor({
                 {quickInsertButtons.map((button, index) => (
                   <Button
                     key={index}
+                    type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => insertMarkdown(button.markdown)}
@@ -178,6 +179,7 @@ export function MarkdownEditor({
               
               {/* Fullscreen Toggle */}
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 onClick={toggleFullscreen}

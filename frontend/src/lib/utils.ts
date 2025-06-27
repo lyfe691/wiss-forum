@@ -77,9 +77,15 @@ export function formatRoleName(role: Role | string): string {
  * @param name - The name to get initials from
  * @returns One or two character string of initials
  */
-export function getInitials(name: string): string {
+export function getInitials(name: string | undefined): string {
+  if (!name || typeof name !== 'string' || name.trim() === '') {
+    return 'U'; // Default to 'U' for User if name is invalid
+  }
+  
   return name
+    .trim()
     .split(' ')
+    .filter(word => word.length > 0) // Filter out empty strings
     .map(word => word[0])
     .join('')
     .toUpperCase()

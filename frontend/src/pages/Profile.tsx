@@ -562,7 +562,7 @@ export function Profile() {
                   <Avatar className="h-24 w-24 border-2 border-primary/20 transition-all duration-200 group-hover:opacity-80">
                     <AvatarImage src={getAvatarUrl(profile._id, profile.avatar)} alt={profile.displayName} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                      {getInitials(profile.displayName || profile.username)}
+                      {getInitials(profile.displayName || profile.username || 'User')}
                     </AvatarFallback>
                   </Avatar>
                   

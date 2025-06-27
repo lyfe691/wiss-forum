@@ -2,8 +2,8 @@ package ch.wiss.forum.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import ch.wiss.forum.model.FileEntity;
 import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.response.MessageResponse;
 import ch.wiss.forum.service.FileStorageService;
@@ -76,22 +77,21 @@ public class FileController {
                         .body(new MessageResponse("File type not supported. Allowed types: images, PDFs, and documents"));
             }
             
-            // Store file and get relative path
-            String filePath = fileStorageService.storeFile(file, currentUser.getId());
-            String fileUrl = fileStorageService.generateFileUrl(filePath);
+            // Store file in database and get file ID
+            String fileId = fileStorageService.storeFile(file, currentUser.getId());
+            String fileUrl = fileStorageService.generateFileUrl(fileId);
             
             // Create response with file information
             Map<String, Object> response = new HashMap<>();
-            response.put("id", "file_" + System.currentTimeMillis() + "_" + currentUser.getId());
+            response.put("id", fileId);
             response.put("name", file.getOriginalFilename());
             response.put("size", file.getSize());
             response.put("type", contentType);
             response.put("url", fileUrl);
-            response.put("path", filePath); // Store relative path for database reference
             response.put("uploadedBy", currentUser.getId());
             response.put("uploadedAt", java.time.LocalDateTime.now());
             
-            log.info("File uploaded successfully: {} by user {}", file.getOriginalFilename(), currentUser.getUsername());
+            log.info("File uploaded successfully to database: {} by user {}", file.getOriginalFilename(), currentUser.getUsername());
             
             return ResponseEntity.ok(response);
             
@@ -102,78 +102,29 @@ public class FileController {
         }
     }
     
-    @GetMapping("/files/**")
-    public ResponseEntity<Resource> serveFile(@RequestParam String path) {
+    @GetMapping("/files/{fileId}")
+    public ResponseEntity<byte[]> serveFile(@PathVariable String fileId) {
         try {
-            Resource resource = fileStorageService.loadFileAsResource(path);
+            Optional<FileEntity> fileOptional = fileStorageService.getFile(fileId);
+            
+            if (fileOptional.isEmpty()) {
+                log.warn("File not found: {}", fileId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            
+            FileEntity file = fileOptional.get();
             
             // Determine content type
-            String contentType = "application/octet-stream";
-            String filename = resource.getFilename();
-            if (filename != null) {
-                if (filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")) {
-                    contentType = "image/jpeg";
-                } else if (filename.toLowerCase().endsWith(".png")) {
-                    contentType = "image/png";
-                } else if (filename.toLowerCase().endsWith(".gif")) {
-                    contentType = "image/gif";
-                } else if (filename.toLowerCase().endsWith(".webp")) {
-                    contentType = "image/webp";
-                } else if (filename.toLowerCase().endsWith(".pdf")) {
-                    contentType = "application/pdf";
-                }
+            String contentType = file.getContentType();
+            if (contentType == null) {
+                contentType = "application/octet-stream";
             }
             
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CACHE_CONTROL, "public, max-age=3600") // Cache for 1 hour
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                    .body(resource);
-                    
-        } catch (Exception e) {
-            log.error("Error serving file: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
-    
-    // Alternative endpoint with path variable for cleaner URLs
-    @GetMapping("/files/{year}/{month}/{day}/{filename:.+}")
-    public ResponseEntity<Resource> serveFileByPath(
-            @PathVariable String year,
-            @PathVariable String month, 
-            @PathVariable String day,
-            @PathVariable String filename) {
-        
-        String filePath = String.format("%s/%s/%s/%s", year, month, day, filename);
-        return serveFileWithPath(filePath);
-    }
-    
-    private ResponseEntity<Resource> serveFileWithPath(String filePath) {
-        try {
-            Resource resource = fileStorageService.loadFileAsResource(filePath);
-            
-            // Determine content type
-            String contentType = "application/octet-stream";
-            String filename = resource.getFilename();
-            if (filename != null) {
-                if (filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")) {
-                    contentType = "image/jpeg";
-                } else if (filename.toLowerCase().endsWith(".png")) {
-                    contentType = "image/png";
-                } else if (filename.toLowerCase().endsWith(".gif")) {
-                    contentType = "image/gif";
-                } else if (filename.toLowerCase().endsWith(".webp")) {
-                    contentType = "image/webp";
-                } else if (filename.toLowerCase().endsWith(".pdf")) {
-                    contentType = "application/pdf";
-                }
-            }
-            
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CACHE_CONTROL, "public, max-age=3600") // Cache for 1 hour
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                    .body(resource);
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getOriginalName() + "\"")
+                    .body(file.getData());
                     
         } catch (Exception e) {
             log.error("Error serving file: {}", e.getMessage());
