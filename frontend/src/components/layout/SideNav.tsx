@@ -17,7 +17,7 @@ import {
   LayoutDashboard,
   Medal
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Role, roleUtils } from '@/lib/types';
 
 // App version from package
@@ -32,9 +32,10 @@ interface NavItemProps {
   isMobile?: boolean;
   onClick?: () => void;
   badge?: number | string;
+  itemRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavItemProps) => {
+const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge, itemRef }: NavItemProps) => {
   if (isMobile) {
     return (
       <Link to={href} onClick={onClick} className="w-full">
@@ -64,7 +65,7 @@ const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavI
 
   // Desktop NavItem - Clean and minimal
   return (
-    <div className="relative w-full px-2">
+    <div ref={itemRef} className="relative w-full px-2" data-nav-item={href}>
       <Link to={href} onClick={onClick} className="w-full block">
         <Button
           variant="ghost"
@@ -91,11 +92,6 @@ const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavI
           )}
         </Button>
       </Link>
-      
-      {/* Simple active indicator */}
-      {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r-sm" />
-      )}
     </div>
   );
 };
@@ -109,6 +105,14 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(false);
+  const [activeIndicatorStyle, setActiveIndicatorStyle] = useState<{
+    top: number;
+    height: number;
+    opacity: number;
+  }>({ top: 0, height: 0, opacity: 0 });
+  
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const navItemRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement | null> }>({});
 
   useEffect(() => {
     if (isMobileSidebar) return; 
@@ -121,11 +125,65 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     window.addEventListener('resize', checkIsMobile);
     return () => window.removeEventListener('resize', checkIsMobile);
   }, [isMobileSidebar]);
+
+  // Update active indicator position
+  useEffect(() => {
+    if (isMobile || isMobileSidebar) return;
+
+    const updateIndicatorPosition = () => {
+      const activeNavItem = Object.entries(navItemRefs.current).find(([href]) => {
+        const isExactMatch = location.pathname === href;
+        const isParentPath = href !== '/' && location.pathname.startsWith(href);
+        const excludeFromParentHighlight = 
+          (href === '/admin' && (
+            location.pathname === '/admin/users' || 
+            location.pathname === '/admin/categories'
+          ));
+        
+        return isExactMatch || (isParentPath && !excludeFromParentHighlight);
+      });
+
+      if (activeNavItem && activeNavItem[1].current && sidebarRef.current) {
+        const activeElement = activeNavItem[1].current;
+        const sidebarRect = sidebarRef.current.getBoundingClientRect();
+        const activeRect = activeElement.getBoundingClientRect();
+        
+        const relativeTop = activeRect.top - sidebarRect.top;
+        
+        setActiveIndicatorStyle({
+          top: relativeTop,
+          height: activeRect.height,
+          opacity: 1
+        });
+      } else {
+        setActiveIndicatorStyle(prev => ({ ...prev, opacity: 0 }));
+      }
+    };
+
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(updateIndicatorPosition, 50);
+    
+    // Update on window resize
+    window.addEventListener('resize', updateIndicatorPosition);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateIndicatorPosition);
+    };
+  }, [location.pathname, isMobile, isMobileSidebar]);
   
   // Get user role and permissions
   const userRole = roleUtils.normalizeRole(user?.role);
   const isAdmin = userRole === Role.ADMIN;
   const isTeacher = userRole === Role.TEACHER;
+
+  // Helper function to create refs for nav items
+  const createNavItemRef = (href: string) => {
+    if (!navItemRefs.current[href]) {
+      navItemRefs.current[href] = React.createRef<HTMLDivElement>();
+    }
+    return navItemRefs.current[href];
+  };
 
   // Main navigation items
   const navItems = [
@@ -245,6 +303,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
           isMobile={isMobileSidebar}
           onClick={handleItemClick}
           badge={item.badge}
+          itemRef={!isMobileSidebar ? createNavItemRef(item.href) : undefined}
         />
       );
     });
@@ -263,7 +322,19 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
   );
 
   const sidebarContent = (
-    <div className="h-full flex flex-col bg-card">
+    <div ref={sidebarRef} className="h-full flex flex-col bg-card relative">
+      {/* Active Indicator Tracer - clean and subtle */}
+      {!isMobile && !isMobileSidebar && (
+        <div
+          className="absolute left-2 w-0.5 bg-primary/80 rounded-full transition-all duration-300 ease-out z-10"
+          style={{
+            top: `${activeIndicatorStyle.top + 8}px`,
+            height: `${activeIndicatorStyle.height - 16}px`,
+            opacity: activeIndicatorStyle.opacity,
+          }}
+        />
+      )}
+      
       <ScrollArea className="flex-1 py-4">
         <NavSection title="Main" items={navItems} />
         
