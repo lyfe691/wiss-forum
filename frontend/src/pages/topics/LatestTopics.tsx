@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { topicsAPI } from '@/lib/api';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getAvatarUrl, getInitials, formatRoleName, getRoleBadgeColor } from '@/lib/utils';
+import { TextPreview } from '@/components/TextPreview';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -128,22 +129,7 @@ export function LatestTopics() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handle topic edit
-  const handleEditTopic = async (topic: any, newData: any) => {
-    try {
-      await topicsAPI.updateTopic(topic._id, {
-        title: newData.title,
-        content: newData.content,
-        tags: newData.tags
-      });
-      
-      // Refresh the topics list
-      await fetchTopics();
-    } catch (error) {
-      console.error('Failed to update topic:', error);
-      throw error;
-    }
-  };
+
 
   // Handle topic delete
   const handleDeleteTopic = async (topic: any) => {
@@ -288,18 +274,20 @@ export function LatestTopics() {
           <div className="space-y-4">
             {topics.map((topic) => (
               <div key={topic._id}>
-                <Link to={`/topics/${topic.slug}`} className="block group">
-                  <Card 
-                    className="border group-hover:border-primary/30 group-hover:shadow-md transition-all duration-200 overflow-hidden relative"
-                  >
-                    <CardHeader className="pb-3 pt-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start gap-2">
-                            <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                <Card 
+                  className="border hover:border-primary/30 hover:shadow-md transition-all duration-200 overflow-hidden relative group cursor-pointer"
+                  onClick={() => navigate(`/topics/${topic.slug}`)}
+                >
+                  <CardHeader className="pb-3 pt-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2">
+                          <Link to={`/topics/${topic.slug}`} className="hover:text-primary transition-colors">
+                            <CardTitle className="text-lg">
                               {topic.title}
                             </CardTitle>
-                          </div>
+                          </Link>
+                        </div>
                           
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
                             {topic.category && (
@@ -339,7 +327,6 @@ export function LatestTopics() {
                               updatedAt: topic.updatedAt
                             }}
                             contentType="topic"
-                            onEdit={handleEditTopic}
                             onDelete={handleDeleteTopic}
                             className="opacity-0 group-hover:opacity-100 transition-opacity"
                           />
@@ -348,9 +335,9 @@ export function LatestTopics() {
                     </CardHeader>
                     
                     <CardContent className="pb-3">
-                      <CardDescription className="line-clamp-2 text-sm">
-                        {topic.content.replace(/<[^>]*>?/gm, '')}
-                      </CardDescription>
+                      <div className="line-clamp-2">
+                        <TextPreview content={topic.content} maxLength={150} className="text-sm" />
+                      </div>
                       
                       {topic.tags && topic.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
@@ -424,15 +411,16 @@ export function LatestTopics() {
                           )}
                         </div>
                         
-                        <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 group-hover:bg-primary/10 group-hover:text-primary pointer-events-none">
-                          View Topic
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Button>
+                        <Link to={`/topics/${topic.slug}`}>
+                          <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary">
+                            View Topic
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Button>
+                        </Link>
                       </div>
                     </CardFooter>
                   </Card>
-                </Link>
-              </div>
+                </div>
             ))}
           </div>
           

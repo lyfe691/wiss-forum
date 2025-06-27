@@ -18,13 +18,11 @@ import {
   Medal
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Role, roleUtils } from '@/lib/types';
 
-// ------------------------------------------------------------
-// side nav component, its bugged rn but looks good.
-// bug: when i scroll down and then navigate, it lifts the whole nav items. weird
-// ------------------------------------------------------------
+// App version from package
+import pkg from "../../../package.json" with { type: "json" };
+const APP_VERSION: string = (pkg as { version: string }).version;
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -36,10 +34,6 @@ interface NavItemProps {
   badge?: number | string;
 }
 
-// app version from package
-import pkg from "../../../package.json" with { type: "json" };
-const APP_VERSION: string = (pkg as { version: string }).version;
-
 const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavItemProps) => {
   if (isMobile) {
     return (
@@ -47,60 +41,62 @@ const NavItem = ({ icon, label, href, isActive, isMobile, onClick, badge }: NavI
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start",
-            isActive ? "text-primary font-medium" : ""
+            "w-full justify-start h-11 rounded-lg transition-colors duration-200",
+            isActive 
+              ? "text-primary font-medium bg-primary/10" 
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
           )}
         >
-          <span className="flex items-center justify-center mr-3">{icon}</span>
-          <span>{label}</span>
+          <span className="flex items-center justify-center mr-3">
+            {icon}
+          </span>
+          <span className="flex-1 text-left">{label}</span>
           {badge && (
-            <span className="ml-auto bg-primary/15 text-primary text-xs font-medium rounded-full px-2 py-0.5 min-w-5 text-center">
+            <span className="bg-primary text-primary-foreground text-xs font-medium rounded-full px-2 py-0.5 min-w-5 text-center">
               {badge}
             </span>
           )}
-          <ChevronRight className="ml-auto h-4 w-4 opacity-60" />
+          <ChevronRight className="h-4 w-4 opacity-50" />
         </Button>
       </Link>
     );
   }
 
-  // Desktop NavItem
+  // Desktop NavItem - Clean and minimal
   return (
-    <motion.div 
-      layout 
-      className="relative w-full px-3"
-      style={{ borderRadius: 'var(--radius)' }}
-    >
+    <div className="relative w-full px-2">
       <Link to={href} onClick={onClick} className="w-full block">
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 font-normal relative rounded-md py-2",
+            "w-full justify-start gap-3 font-normal relative rounded-lg py-2.5 h-10 transition-colors duration-200",
             isActive 
-              ? "text-primary font-medium"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted",
-            isActive && "hover:bg-transparent"
+              ? "text-primary font-medium bg-primary/10 hover:bg-primary/15"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
           )}
         >
-          <span className={cn("flex items-center justify-center", isActive ? "text-primary" : "text-muted-foreground")}>{icon}</span>
-          <span className={isActive ? "text-primary" : ""}>{label}</span>
+          <span className={cn(
+            "flex items-center justify-center w-5 h-5",
+            isActive ? "text-primary" : "text-muted-foreground"
+          )}>
+            {icon}
+          </span>
+          <span className={isActive ? "text-primary" : ""}>
+            {label}
+          </span>
           {badge && (
-            <span className="ml-auto bg-primary/15 text-primary text-xs font-medium rounded-full px-2 py-0.5 min-w-5 text-center">
+            <span className="ml-auto bg-primary text-primary-foreground text-xs font-medium rounded-full px-2 py-0.5 min-w-5 text-center">
               {badge}
             </span>
           )}
         </Button>
       </Link>
+      
+      {/* Simple active indicator */}
       {isActive && (
-        <motion.div
-          layoutId="activeIndicator" 
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-2/3 bg-primary rounded-r-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.25 } }}
-          exit={{ opacity: 0, transition: { duration: 0.1 } }}
-        />
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r-sm" />
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -112,103 +108,109 @@ interface SideNavProps {
 export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (isMobileSidebar) return; 
 
-    const handleResize = () => {
+    const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
   }, [isMobileSidebar]);
   
-  // get user role and check permissions
+  // Get user role and permissions
   const userRole = roleUtils.normalizeRole(user?.role);
   const isAdmin = userRole === Role.ADMIN;
   const isTeacher = userRole === Role.TEACHER;
 
+  // Main navigation items
   const navItems = [
     {
-      icon: <Home className="h-5 w-5" />,
+      icon: <Home className="h-4 w-4" />,
       label: "Home",
       href: "/"
     },
     {
-      icon: <Bookmark className="h-5 w-5" />,
+      icon: <Bookmark className="h-4 w-4" />,
       label: "Categories",
       href: "/categories"
     },
     {
-      icon: <FileText className="h-5 w-5" />,
+      icon: <FileText className="h-4 w-4" />,
       label: "Latest Topics",
       href: "/topics/latest"
     },
     {
-      icon: <Users className="h-5 w-5" />,
+      icon: <Users className="h-4 w-4" />,
       label: "Community",
       href: "/users"
     },
     {
-      icon: <Medal className="h-5 w-5" />,
+      icon: <Medal className="h-4 w-4" />,
       label: "Leaderboard",
       href: "/leaderboard"
     }
   ];
   
+  // User navigation items
   const userNavItems = isAuthenticated ? [
     {
-      icon: <User className="h-5 w-5" />,
+      icon: <User className="h-4 w-4" />,
       label: "Profile",
       href: "/profile"
     },
     {
-      icon: <Settings className="h-5 w-5" />,
+      icon: <Settings className="h-4 w-4" />,
       label: "Settings",
       href: "/settings"
     }
   ] : [];
   
-  // define admin nav items based on role permissions
-  let adminNavItems: any[] = [];
-  
-  if (isAuthenticated) {
+  // Admin navigation items
+  const adminNavItems = (() => {
+    if (!isAuthenticated) return [];
+    
     if (isAdmin) {
-      // full admin navigation for admins
-      adminNavItems = [
+      return [
         {
-          icon: <LayoutDashboard className="h-5 w-5" />,
+          icon: <LayoutDashboard className="h-4 w-4" />,
           label: "Dashboard",
           href: "/admin"
         },
         {
-          icon: <Book className="h-5 w-5" />,
+          icon: <Book className="h-4 w-4" />,
           label: "Categories",
           href: "/admin/categories"
         },
         {
-          icon: <Users className="h-5 w-5" />,
+          icon: <Users className="h-4 w-4" />,
           label: "Users",
           href: "/admin/users"
         }
       ];
-    } else if (isTeacher) {
-      // limited admin navigation for teachers - only categories
-      adminNavItems = [
+    }
+    
+    if (isTeacher) {
+      return [
         {
-          icon: <Book className="h-5 w-5" />,
+          icon: <Book className="h-4 w-4" />,
           label: "Categories",
           href: "/admin/categories"
         }
       ];
     }
-  }
+    
+    return [];
+  })();
 
+  // Help navigation items
   const helpNavItems = [
     {
-      icon: <HelpCircle className="h-5 w-5" />,
+      icon: <HelpCircle className="h-4 w-4" />,
       label: "Help & FAQ",
       href: "/help"
     }
@@ -222,11 +224,9 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
 
   const renderNavItems = (items: any[]) => {
     return items.map((item, index) => {
-      // special case for admin dashboard - don't highlight when on admin/users or admin/categories
       const isExactMatch = location.pathname === item.href;
       const isParentPath = item.href !== '/' && location.pathname.startsWith(item.href);
       
-      // exclude specific cases where we don't want parent highlighting
       const excludeFromParentHighlight = 
         (item.href === '/admin' && (
           location.pathname === '/admin/users' || 
@@ -237,7 +237,7 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
       
       return (
         <NavItem
-          key={index}
+          key={`${item.href}-${index}`}
           icon={item.icon}
           label={item.label}
           href={item.href}
@@ -250,83 +250,53 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     });
   };
 
+  const NavSection = ({ title, items }: { title: string; items: any[] }) => (
+    <div className="px-3 space-y-1">
+      <div className={cn(
+        "px-3 py-1 text-xs font-medium uppercase tracking-wide text-muted-foreground/80 mb-2",
+        isMobileSidebar && "text-sm font-medium normal-case"
+      )}>
+        {title}
+      </div>
+      {renderNavItems(items)}
+    </div>
+  );
+
   const sidebarContent = (
-    <div className="h-full flex flex-col bg-muted/30">
+    <div className="h-full flex flex-col bg-card">
       <ScrollArea className="flex-1 py-4">
-        <div className="px-3 space-y-1">
-          {isMobileSidebar ? (
-            <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
-              Navigation
-            </h3>
-          ) : (
-            <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-              Main
-            </div>
-          )}
-          {renderNavItems(navItems)}
-        </div>
+        <NavSection title="Main" items={navItems} />
         
         {(userNavItems.length > 0 || adminNavItems.length > 0) && (
           <>
-            <Separator className="my-4 opacity-50" />
+            <Separator className="my-4 mx-6" />
             
             {userNavItems.length > 0 && (
-              <div className="px-3 space-y-1">
-                {isMobileSidebar ? (
-                  <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
-                    Account
-                  </h3>
-                ) : (
-                  <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                    Account
-                  </div>
-                )}
-                {renderNavItems(userNavItems)}
-              </div>
+              <NavSection title="Account" items={userNavItems} />
             )}
             
             {adminNavItems.length > 0 && (
-              <div className="px-3 space-y-1 mt-4">
-                {isMobileSidebar ? (
-                  <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
-                    Administration
-                  </h3>
-                ) : (
-                  <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                    Administration
-                  </div>
-                )}
-                {renderNavItems(adminNavItems)}
+              <div className="mt-4">
+                <NavSection title="Admin" items={adminNavItems} />
               </div>
             )}
           </>
         )}
         
-        <Separator className="my-4 opacity-50" />
-        
-        <div className="px-3 space-y-1">
-          {isMobileSidebar ? (
-            <h3 className="px-4 text-sm font-semibold text-muted-foreground mb-2">
-              Support
-            </h3>
-          ) : (
-            <div className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-              Support
-            </div>
-          )}
-          {renderNavItems(helpNavItems)}
-        </div>
+        <Separator className="my-4 mx-6" />
+        <NavSection title="Support" items={helpNavItems} />
       </ScrollArea>
-      {/* Version Indicator */}
-      <div className="px-6 py-3 border-t border-border mt-auto">
+      
+      {/* Clean version footer */}
+      <div className="px-6 py-3 border-t border-border/50 bg-muted/20">
         <span className="text-xs text-muted-foreground">
-          v{APP_VERSION}
+          WISS Forum v{APP_VERSION}
         </span>
       </div>
     </div>
   );
 
-  // If explicitly used as mobile sidebar, just return the content
+  // Mobile sidebar
   if (isMobileSidebar) {
     return sidebarContent;
   }
@@ -335,17 +305,12 @@ export function SideNav({ isMobileSidebar = false, onItemClick }: SideNavProps) 
     <>
       {/* Desktop Sidebar */}
       {!isMobile && (
-        <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r fixed top-16 bottom-0 z-30">
-          {/* Logo Area - Removed from here, now part of Navbar logic */}
-          
-          {/* Navigation Area */}
-          <div className="flex-1 overflow-y-auto bg-background/95 backdrop-blur-sm">
-            {sidebarContent}
-          </div>
+        <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border fixed top-16 bottom-0 z-30 bg-card">
+          {sidebarContent}
         </aside>
       )}
       
-      {/* Empty space to compensate for the fixed sidebar */}
+      {/* Spacer for fixed sidebar */}
       {!isMobile && <div className="hidden lg:block w-64 shrink-0" />}
     </>
   );

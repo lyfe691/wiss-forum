@@ -1,0 +1,275 @@
+/* Clean markdown styles that integrate with the forum design */
+
+/* Reset and base styles */
+.wmde-markdown {
+  font-family: inherit;
+  line-height: 1.6;
+  color: hsl(var(--foreground));
+}
+
+/* Typography */
+.wmde-markdown h1,
+.wmde-markdown h2,
+.wmde-markdown h3,
+.wmde-markdown h4,
+.wmde-markdown h5,
+.wmde-markdown h6 {
+  margin: 1rem 0 0.5rem 0;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.wmde-markdown h1 { font-size: 1.5rem; }
+.wmde-markdown h2 { font-size: 1.3rem; }
+.wmde-markdown h3 { font-size: 1.1rem; }
+.wmde-markdown h4 { font-size: 1rem; }
+
+.wmde-markdown p {
+  margin: 0.5rem 0;
+}
+
+/* Lists */
+.wmde-markdown ul,
+.wmde-markdown ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.wmde-markdown ul {
+  list-style-type: disc;
+}
+
+.wmde-markdown ol {
+  list-style-type: decimal;
+}
+
+.wmde-markdown li {
+  margin: 0.25rem 0;
+}
+
+/* Code */
+.wmde-markdown code {
+  background: hsl(var(--muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: 'Courier New', monospace;
+}
+
+.wmde-markdown pre {
+  background: hsl(var(--muted));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.wmde-markdown pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Blockquotes */
+.wmde-markdown blockquote {
+  border-left: 4px solid hsl(var(--border));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Tables */
+.wmde-markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.wmde-markdown th,
+.wmde-markdown td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.wmde-markdown th {
+  background: hsl(var(--muted));
+  font-weight: 600;
+}
+
+/* Links */
+.wmde-markdown a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
+
+.wmde-markdown a:hover {
+  text-decoration: none;
+}
+
+/* Images */
+.wmde-markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+/* Horizontal rules */
+.wmde-markdown hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1.5rem 0;
+}
+
+/* Editor specific styles */
+.w-md-editor {
+  background: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem;
+}
+
+.w-md-editor-text-container,
+.w-md-editor-text-input,
+.w-md-editor-text-textarea {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-family: inherit !important;
+}
+
+.w-md-editor-toolbar {
+  background: hsl(var(--muted)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+.w-md-editor-toolbar button {
+  color: hsl(var(--foreground)) !important;
+  background: transparent !important;
+}
+
+.w-md-editor-toolbar button:hover {
+  background: hsl(var(--accent)) !important;
+}
+
+/* Theme-specific overrides */
+[data-color-mode="light"] .w-md-editor {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-color-mode="light"] .w-md-editor-text-container,
+[data-color-mode="light"] .w-md-editor-text-input, 
+[data-color-mode="light"] .w-md-editor-text-textarea {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-color-mode="light"] .w-md-editor-toolbar {
+  background: hsl(var(--muted)) !important;
+}
+
+[data-color-mode="light"] .w-md-editor-toolbar button {
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-color-mode="dark"] .w-md-editor {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-color-mode="dark"] .w-md-editor-text-container,
+[data-color-mode="dark"] .w-md-editor-text-input,
+[data-color-mode="dark"] .w-md-editor-text-textarea {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-color-mode="dark"] .w-md-editor-toolbar {
+  background: hsl(var(--muted)) !important;
+}
+
+[data-color-mode="dark"] .w-md-editor-toolbar button {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Compact variant */
+.markdown-compact .wmde-markdown {
+  font-size: 0.875rem;
+}
+
+.markdown-compact .wmde-markdown h1,
+.markdown-compact .wmde-markdown h2,
+.markdown-compact .wmde-markdown h3,
+.markdown-compact .wmde-markdown h4,
+.markdown-compact .wmde-markdown h5,
+.markdown-compact .wmde-markdown h6 {
+  margin: 0.5rem 0 0.25rem 0;
+}
+
+.markdown-compact .wmde-markdown p {
+  margin: 0.25rem 0;
+}
+
+.markdown-compact .wmde-markdown ul,
+.markdown-compact .wmde-markdown ol {
+  margin: 0.25rem 0;
+}
+
+/* Preview variant */
+.markdown-preview .wmde-markdown {
+  font-size: 0.875rem;
+}
+
+.markdown-preview .wmde-markdown p {
+  margin: 0.25rem 0;
+}
+
+/* Markdown Renderer specific styles */
+.markdown-renderer {
+  color: hsl(var(--foreground));
+}
+
+.markdown-renderer .wmde-markdown,
+.markdown-renderer .wmde-markdown-var {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Theme-specific markdown renderer overrides */
+[data-color-mode="light"] .markdown-renderer {
+  color: hsl(var(--foreground));
+}
+
+[data-color-mode="light"] .markdown-renderer .wmde-markdown,
+[data-color-mode="light"] .markdown-renderer .wmde-markdown-var,
+[data-color-mode="light"] .markdown-renderer p,
+[data-color-mode="light"] .markdown-renderer div,
+[data-color-mode="light"] .markdown-renderer span,
+[data-color-mode="light"] .markdown-renderer h1,
+[data-color-mode="light"] .markdown-renderer h2,
+[data-color-mode="light"] .markdown-renderer h3,
+[data-color-mode="light"] .markdown-renderer h4,
+[data-color-mode="light"] .markdown-renderer h5,
+[data-color-mode="light"] .markdown-renderer h6,
+[data-color-mode="light"] .markdown-renderer li,
+[data-color-mode="light"] .markdown-renderer td {
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-color-mode="dark"] .markdown-renderer {
+  color: hsl(var(--foreground));
+}
+
+[data-color-mode="dark"] .markdown-renderer .wmde-markdown,
+[data-color-mode="dark"] .markdown-renderer .wmde-markdown-var,
+[data-color-mode="dark"] .markdown-renderer p,
+[data-color-mode="dark"] .markdown-renderer div, 
+[data-color-mode="dark"] .markdown-renderer span,
+[data-color-mode="dark"] .markdown-renderer h1,
+[data-color-mode="dark"] .markdown-renderer h2,
+[data-color-mode="dark"] .markdown-renderer h3,
+[data-color-mode="dark"] .markdown-renderer h4,
+[data-color-mode="dark"] .markdown-renderer h5,
+[data-color-mode="dark"] .markdown-renderer h6,
+[data-color-mode="dark"] .markdown-renderer li,
+[data-color-mode="dark"] .markdown-renderer td {
+  color: hsl(var(--foreground)) !important;
+} 

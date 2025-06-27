@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
 import { Send, FileText, Loader2, ChevronLeft, AlertCircle, Info, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { toast } from 'sonner';
 interface Category {
   _id: string;
@@ -352,20 +352,17 @@ export function CreateTopic() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="content" className="text-base">
-                  Content <span className="text-destructive">*</span>
-                </Label>
-                <Textarea
-                  id="content"
-                  placeholder="Write your topic content here..."
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="min-h-64 resize-y"
+                <MarkdownEditor
+                  label="Content"
                   required
+                  value={content}
+                  onChange={setContent}
+                  placeholder="Write your topic content here..."
+                  height={300}
+                  showFileUpload={true}
+                  maxFiles={5}
+                  maxFileSize={5 * 1024 * 1024} // 5MB
                 />
-                <p className="text-xs text-muted-foreground mb-3">
-                  Be descriptive and provide all relevant information. You can use basic formatting.
-                </p>
               </div>
             </CardContent>
             

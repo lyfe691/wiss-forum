@@ -17,20 +17,19 @@ export function formatDate(date: Date) {
   });
 }
 
+
+
 /**
  * Generates a consistent avatar URL from userId using Dicebear
  * @param userId - The user ID to generate avatar for 
- * @param fallback - Optional fallback avatar URL
+ * @param avatar - Optional avatar URL
  * @returns URL to the avatar image
  */
-export function getAvatarUrl(userId: string, fallback?: string): string {
-  // Only use fallback if it's a valid URL string and not empty
-  if (fallback && fallback.trim().length > 0 && (fallback.startsWith('http') || fallback.startsWith('data:'))) {
-    return fallback;
+export function getAvatarUrl(userId: string, avatar?: string): string {
+  if (avatar) {
+    return avatar;
   }
-  
-  // Use Dicebear with consistent seed for deterministic avatars based on user ID
-  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(userId)}`;
+  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`;
 }
 
 /**
@@ -76,20 +75,20 @@ export function formatRoleName(role: Role | string): string {
 /**
  * Returns initials from a name string
  * @param name - The name to get initials from
- * @param fallback - Optional fallback character if name is invalid
  * @returns One or two character string of initials
  */
-export function getInitials(name?: string | null, fallback: string = 'U'): string {
+export function getInitials(name: string | undefined): string {
   if (!name || typeof name !== 'string' || name.trim() === '') {
-    return fallback;
+    return 'U'; // Default to 'U' for User if name is invalid
   }
   
   return name
     .trim()
     .split(' ')
-    .map(part => part.charAt(0))
+    .filter(word => word.length > 0) // Filter out empty strings
+    .map(word => word[0])
     .join('')
-    .substring(0, 2)
-    .toUpperCase();
+    .toUpperCase()
+    .slice(0, 2);
 }
 

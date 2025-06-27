@@ -150,3 +150,6 @@
   }
 }
 
+/* Import custom markdown styles */
+@import './styles/markdown.css';
+

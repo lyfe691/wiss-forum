@@ -30,6 +30,7 @@ import ch.wiss.forum.model.User;
 import ch.wiss.forum.payload.request.PasswordUpdateRequest;
 import ch.wiss.forum.payload.request.RoleBootstrapRequest;
 import ch.wiss.forum.payload.response.MessageResponse;
+import ch.wiss.forum.service.FileStorageService;
 import ch.wiss.forum.service.GamificationService;
 import ch.wiss.forum.service.PostService;
 import ch.wiss.forum.service.TopicService;
@@ -46,6 +47,7 @@ public class UserController {
     private final TopicService topicService;
     private final PostService postService;
     private final GamificationService gamificationService;
+    private final FileStorageService fileStorageService;
     
     // secret key for bootstrap process (JUST IN DEVELOPMENT, IN PRODUCTION I'LL USE ENV VARIABLES)
     private static final String BOOTSTRAP_ADMIN_KEY = "WISS_ADMIN_SETUP_2024";
@@ -259,10 +261,10 @@ public class UserController {
                             .body(new MessageResponse("Please select a file to upload"));
                 }
                 
-                // Check file size (250KB = 256000 bytes)
-                if (file.getSize() > 256000) {
+                // Check file size (2MB for profile pictures)
+                if (file.getSize() > 2 * 1024 * 1024) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body(new MessageResponse("File size must be less than 250KB"));
+                            .body(new MessageResponse("File size must be less than 2MB"));
                 }
                 
                 // Check file type
@@ -272,13 +274,12 @@ public class UserController {
                             .body(new MessageResponse("Only image files are allowed"));
                 }
                 
-                // Convert file to base64 data URL
-                byte[] fileBytes = file.getBytes();
-                String base64Image = java.util.Base64.getEncoder().encodeToString(fileBytes);
-                String dataUrl = "data:" + contentType + ";base64," + base64Image;
+                // Store file and get URL
+                String filePath = fileStorageService.storeFile(file, currentUser.getId());
+                String avatarUrl = fileStorageService.generateFileUrl(filePath);
                 
                 // Update user avatar
-                User updatedUser = userService.updateUserAvatar(currentUser.getId(), dataUrl, currentUser);
+                User updatedUser = userService.updateUserAvatar(currentUser.getId(), avatarUrl, currentUser);
                 
                 return ResponseEntity.ok(new MessageResponse("Profile picture updated successfully"));
             } catch (Exception e) {

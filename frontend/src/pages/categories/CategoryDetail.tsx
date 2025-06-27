@@ -19,6 +19,7 @@ import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, Eye, ArrowRi
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getAvatarUrl, getInitials, formatRoleName, getRoleBadgeColor } from '@/lib/utils';
+import { TextPreview } from '@/components/TextPreview';
 import { ContentActions } from '@/components/content/ContentActions';
 
 interface Category {
@@ -202,32 +203,7 @@ export function CategoryDetail() {
     return 0;
   });
 
-  // Handle topic edit
-  const handleEditTopic = async (topic: any, newData: any) => {
-    try {
-      await topicsAPI.updateTopic(topic._id, {
-        title: newData.title,
-        content: newData.content,
-        tags: newData.tags
-      });
-      
-      // Refresh topics
-      if (category) {
-        const topicsData = await topicsAPI.getTopicsByCategory(category._id) as TopicsResponse | Topic[];
-        
-        if (Array.isArray(topicsData)) {
-          setTopics(topicsData);
-        } else if (topicsData && Array.isArray(topicsData.topics)) {
-          setTopics(topicsData.topics);
-        } else {
-          setTopics([]);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to update topic:', error);
-      throw error;
-    }
-  };
+
 
   // Handle topic delete
   const handleDeleteTopic = async (topic: any) => {
@@ -502,13 +478,17 @@ export function CategoryDetail() {
               <div className="space-y-4">
                 {sortedTopics.map((topic) => (
                   <div key={topic._id}>
-                    <Link to={`/topics/${topic.slug}`} className="block group">
-                      <Card className="border group-hover:border-primary/30 group-hover:shadow-md transition-all duration-200 overflow-hidden relative">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                    <Card 
+                      className="border hover:border-primary/30 hover:shadow-md transition-all duration-200 overflow-hidden relative group cursor-pointer"
+                      onClick={() => navigate(`/topics/${topic.slug}`)}
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <Link to={`/topics/${topic.slug}`} className="hover:text-primary transition-colors">
+                            <CardTitle className="text-xl">
                               {topic.title}
                             </CardTitle>
+                          </Link>
                             
                             {/* Content Actions */}
                             {topic.author && (
@@ -520,7 +500,6 @@ export function CategoryDetail() {
                                   updatedAt: topic.updatedAt
                                 }}
                                 contentType="topic"
-                                onEdit={handleEditTopic}
                                 onDelete={handleDeleteTopic}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity"
                                 size="sm"
@@ -529,9 +508,9 @@ export function CategoryDetail() {
                           </div>
                         </CardHeader>
                         <CardContent className="pb-2">
-                          <p className="line-clamp-2 text-muted-foreground">
-                            {topic.content.replace(/<[^>]*>/g, '')}
-                          </p>
+                          <div className="line-clamp-2">
+                            <TextPreview content={topic.content} maxLength={150} className="text-sm" />
+                          </div>
                         </CardContent>
                         <CardFooter className="pt-2 text-sm text-muted-foreground flex flex-wrap justify-between items-center">
                           <div className="flex items-center space-x-4">
@@ -607,15 +586,16 @@ export function CategoryDetail() {
                                 {topic.viewCount} {topic.viewCount === 1 ? 'view' : 'views'}
                               </Badge>
                             )}
-                            <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 group-hover:bg-primary/10 group-hover:text-primary pointer-events-none">
-                              View Topic
-                              <ArrowRight className="h-3.5 w-3.5" />
-                            </Button>
+                            <Link to={`/topics/${topic.slug}`}>
+                              <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary">
+                                View Topic
+                                <ArrowRight className="h-3.5 w-3.5" />
+                              </Button>
+                            </Link>
                           </div>
                         </CardFooter>
                       </Card>
-                    </Link>
-                  </div>
+                    </div>
                 ))}
               </div>
             )}

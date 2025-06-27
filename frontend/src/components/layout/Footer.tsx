@@ -234,20 +234,6 @@ export function Footer() {
                   <Monitor size={14} strokeWidth={2} />
                 </button>
               </div>
-
-              <div className="text-xs text-muted-foreground">
-                <span>
-                  Made with ❤️ by{' '}
-                  <a
-                    href="https://ysz.life"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-foreground transition-colors"
-                  >
-                    Yanis Sebastian Zürcher
-                  </a>
-                </span>
-              </div>
             </div>
           </div>
         </div>

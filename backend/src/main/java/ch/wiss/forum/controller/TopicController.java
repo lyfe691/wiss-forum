@@ -211,28 +211,7 @@ public class TopicController {
         }
     }
 
-    // update topic
-    @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Topic> updateTopic(@PathVariable String id, @Valid @RequestBody Topic topic) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
-        
-        // check if the user is the author or an admin/teacher
-        Topic existingTopic = topicService.getTopicById(id);
-        
-        // handle case where topic has no author (orphaned topic)
-        String authorId = existingTopic.getAuthor() != null ? existingTopic.getAuthor().getId() : null;
-        boolean isAuthor = authorId != null && authorId.equals(currentUser.getId());
-        boolean isAdminOrTeacher = currentUser.getRole().hasAtLeastSamePrivilegesAs(ch.wiss.forum.model.Role.TEACHER);
-        
-        if (!isAuthor && !isAdminOrTeacher) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        
-        Topic updatedTopic = topicService.updateTopic(id, topic);
-        return ResponseEntity.ok(updatedTopic);
-    }
+
 
     // delete topic
     @DeleteMapping("/{id}")
