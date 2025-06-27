@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,7 +60,7 @@ export function ContentActions({
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>({});
 
-  const canEdit = canEditContent(user, content);
+  const canEdit = contentType === 'post' ? canEditContent(user, content) : false; // Disable topic editing
   const canDelete = canDeleteContent(user, content);
   const editRestriction = getEditRestrictionMessage(user, content, editTimeLimit);
 
@@ -74,18 +75,10 @@ export function ContentActions({
       return;
     }
 
-    // Initialize edit data based on content type
-    if (contentType === 'topic') {
-      setEditData({
-        title: (content as any).title || '',
-        content: (content as any).content || '',
-        tags: (content as any).tags || []
-      });
-    } else {
-      setEditData({
-        content: (content as any).content || ''
-      });
-    }
+    // Only posts can be edited now
+    setEditData({
+      content: (content as any).content || ''
+    });
     
     setShowEditDialog(true);
   };
@@ -148,34 +141,21 @@ export function ContentActions({
 
         {/* Edit Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="sm:max-w-[625px]">
+          <DialogContent className="sm:max-w-[625px]" onClick={(e) => e.stopPropagation()}>
             <DialogHeader>
-              <DialogTitle>Edit {contentType === 'topic' ? 'Topic' : 'Post'}</DialogTitle>
+              <DialogTitle>Edit Post</DialogTitle>
               <DialogDescription>
-                Make changes to your {contentType}. You can edit within {editTimeLimit} minutes of creation.
+                Make changes to your post. You can edit within {editTimeLimit} minutes of creation.
               </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-4">
-              {contentType === 'topic' && (
-                <div>
-                  <label className="text-sm font-medium">Title</label>
-                  <input
-                    type="text"
-                    value={editData.title || ''}
-                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                    className="w-full mt-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Enter topic title"
-                  />
-                </div>
-              )}
-              
               <div>
                 <MarkdownEditor
                   label="Content"
                   value={editData.content || ''}
                   onChange={(value) => setEditData({ ...editData, content: value })}
-                  placeholder={`Enter ${contentType} content`}
+                  placeholder="Enter post content"
                   height={200}
                   showFileUpload={false}
                 />
@@ -199,7 +179,7 @@ export function ContentActions({
 
         {/* Delete Dialog */}
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <AlertDialogContent>
+          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete {contentType === 'topic' ? 'Topic' : 'Post'}</AlertDialogTitle>
               <AlertDialogDescription>
@@ -234,7 +214,7 @@ export function ContentActions({
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
           {canEdit && (
             <DropdownMenuItem onClick={handleEdit}>
               <Edit className="mr-2 h-4 w-4" />
@@ -257,34 +237,21 @@ export function ContentActions({
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[625px]">
+        <DialogContent className="sm:max-w-[625px]" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Edit {contentType === 'topic' ? 'Topic' : 'Post'}</DialogTitle>
+            <DialogTitle>Edit Post</DialogTitle>
             <DialogDescription>
-              Make changes to your {contentType}. You can edit within {editTimeLimit} minutes of creation.
+              Make changes to your post. You can edit within {editTimeLimit} minutes of creation.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            {contentType === 'topic' && (
-              <div>
-                <label className="text-sm font-medium">Title</label>
-                <input
-                  type="text"
-                  value={editData.title || ''}
-                  onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Enter topic title"
-                />
-              </div>
-            )}
-            
             <div>
               <MarkdownEditor
                 label="Content"
                 value={editData.content || ''}
                 onChange={(value) => setEditData({ ...editData, content: value })}
-                placeholder={`Enter ${contentType} content`}
+                placeholder="Enter post content"
                 height={200}
                 showFileUpload={false}
               />
@@ -308,7 +275,7 @@ export function ContentActions({
 
       {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {contentType === 'topic' ? 'Topic' : 'Post'}</AlertDialogTitle>
             <AlertDialogDescription>

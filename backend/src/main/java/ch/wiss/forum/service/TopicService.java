@@ -81,23 +81,7 @@ public class TopicService {
         return savedTopic;
     }
     
-    public Topic updateTopic(String id, Topic topicDetails) {
-        Topic topic = getTopicById(id);
-        
-        topic.setTitle(topicDetails.getTitle());
-        topic.setContent(topicDetails.getContent());
-        topic.setSlug(topicDetails.getSlug());
-        topic.setTags(topicDetails.getTags());
-        topic.setUpdatedAt(LocalDateTime.now());
-        
-        // ensure slug is unique (unless it's the same slug as before)
-        if (!topic.getSlug().equals(topicDetails.getSlug()) && 
-                topicRepository.existsBySlug(topicDetails.getSlug())) {
-            throw new IllegalArgumentException("Topic with slug '" + topicDetails.getSlug() + "' already exists");
-        }
-        
-        return topicRepository.save(topic);
-    }
+
     
     public void deleteTopic(String id) {
         Topic topic = getTopicById(id);

@@ -630,15 +630,7 @@ export const topicsAPI = {
     return normalizeTopic(response.data);
   },
 
-  updateTopic: async (id: string, data: { title: string; content: string; tags?: string[] }) => {
-    try {
-      const response = await api.put(`/topics/${id}`, data);
-      return normalizeTopic(response.data);
-    } catch (error) {
-      console.error(`Error updating topic ${id}:`, error);
-      throw error;
-    }
-  },
+
   
   deleteTopic: async (id: string) => {
     if (!id) {
