@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { MoreHorizontal, Edit, Trash2, Loader2 } from 'lucide-react';
 import { canEditContent, canDeleteContent, getEditRestrictionMessage, ContentItem } from '@/lib/permissions';
 import { toast } from 'sonner';
@@ -171,12 +171,13 @@ export function ContentActions({
               )}
               
               <div>
-                <label className="text-sm font-medium">Content</label>
-                <Textarea
+                <MarkdownEditor
+                  label="Content"
                   value={editData.content || ''}
-                  onChange={(e) => setEditData({ ...editData, content: e.target.value })}
-                  className="mt-1 min-h-[120px]"
+                  onChange={(value) => setEditData({ ...editData, content: value })}
                   placeholder={`Enter ${contentType} content`}
+                  height={200}
+                  showFileUpload={false}
                 />
               </div>
             </div>
@@ -279,12 +280,13 @@ export function ContentActions({
             )}
             
             <div>
-              <label className="text-sm font-medium">Content</label>
-              <Textarea
+              <MarkdownEditor
+                label="Content"
                 value={editData.content || ''}
-                onChange={(e) => setEditData({ ...editData, content: e.target.value })}
-                className="mt-1 min-h-[120px]"
+                onChange={(value) => setEditData({ ...editData, content: value })}
                 placeholder={`Enter ${contentType} content`}
+                height={200}
+                showFileUpload={false}
               />
             </div>
           </div>

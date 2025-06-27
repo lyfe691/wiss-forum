@@ -19,6 +19,7 @@ import { Search, MessageSquare, PlusCircle, ArrowLeft, Clock, User, Eye, ArrowRi
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getAvatarUrl, getInitials, formatRoleName, getRoleBadgeColor } from '@/lib/utils';
+import { TextPreview } from '@/components/TextPreview';
 import { ContentActions } from '@/components/content/ContentActions';
 
 interface Category {
@@ -529,9 +530,9 @@ export function CategoryDetail() {
                           </div>
                         </CardHeader>
                         <CardContent className="pb-2">
-                          <p className="line-clamp-2 text-muted-foreground">
-                            {topic.content.replace(/<[^>]*>/g, '')}
-                          </p>
+                          <div className="line-clamp-2">
+                            <TextPreview content={topic.content} maxLength={150} className="text-sm" />
+                          </div>
                         </CardContent>
                         <CardFooter className="pt-2 text-sm text-muted-foreground flex flex-wrap justify-between items-center">
                           <div className="flex items-center space-x-4">

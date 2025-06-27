@@ -42,6 +42,8 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { ContentActions } from '@/components/content/ContentActions';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 // Types for users and content
 interface Author {
@@ -778,7 +780,7 @@ export function TopicDetail() {
               </div>
             )}
             
-            <div dangerouslySetInnerHTML={{ __html: post.content }} />
+            <MarkdownRenderer content={post.content} variant="default" />
           </CardContent>
           
           <CardFooter className="py-2 px-4 border-t flex justify-between items-center gap-2 flex-wrap">
@@ -920,16 +922,19 @@ export function TopicDetail() {
                   </span>
                 </div>
                 
-                <TextareaWithFocus
-                  key={`reply-textarea-${post._id}`}
-                  autoFocus
-                  placeholder={`Write your reply to ${post.author?.displayName || post.author?.username}...`}
+                <MarkdownEditor
+                  key={`reply-editor-${post._id}`}
                   value={replyContents[post._id] || ''}
-                  onChange={(e) => setReplyContents(prev => ({
+                  onChange={(value) => setReplyContents(prev => ({
                     ...prev,
-                    [post._id]: e.target.value
+                    [post._id]: value
                   }))}
-                  className="min-h-[100px] resize-y mb-3 focus:border-primary/30"
+                  placeholder={`Write your reply to ${post.author?.displayName || post.author?.username}...`}
+                  height={150}
+                  showFileUpload={true}
+                  maxFiles={3}
+                  maxFileSize={2 * 1024 * 1024} // 2MB for replies
+                  className="mb-3"
                 />
                 
                 <div className="flex justify-end gap-2">
@@ -1162,8 +1167,8 @@ export function TopicDetail() {
           </div>
         </CardHeader>
         
-        <CardContent className="prose prose-sm max-w-none pb-3">
-          <div dangerouslySetInnerHTML={{ __html: topic.content }} />
+        <CardContent className="pb-3">
+          <MarkdownRenderer content={topic.content} variant="default" />
         </CardContent>
         
         <CardFooter className="pt-3 border-t flex items-center justify-between">
@@ -1265,12 +1270,15 @@ export function TopicDetail() {
             </h3>
           </div>
           
-          <Textarea
-            ref={textareaRef}
-            placeholder="Write your reply to this topic..."
+          <MarkdownEditor
             value={newPostContent}
-            onChange={(e) => setNewPostContent(e.target.value)}
-            className="min-h-[120px] resize-y mb-4 focus:border-primary/30"
+            onChange={setNewPostContent}
+            placeholder="Write your reply to this topic..."
+            height={200}
+            showFileUpload={true}
+            maxFiles={5}
+            maxFileSize={5 * 1024 * 1024} // 5MB for main posts
+            className="mb-4"
           />
           
           <div className="flex justify-end">

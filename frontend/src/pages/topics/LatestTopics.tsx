@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { topicsAPI } from '@/lib/api';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getAvatarUrl, getInitials, formatRoleName, getRoleBadgeColor } from '@/lib/utils';
+import { TextPreview } from '@/components/TextPreview';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -348,9 +349,9 @@ export function LatestTopics() {
                     </CardHeader>
                     
                     <CardContent className="pb-3">
-                      <CardDescription className="line-clamp-2 text-sm">
-                        {topic.content.replace(/<[^>]*>?/gm, '')}
-                      </CardDescription>
+                      <div className="line-clamp-2">
+                        <TextPreview content={topic.content} maxLength={150} className="text-sm" />
+                      </div>
                       
                       {topic.tags && topic.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
