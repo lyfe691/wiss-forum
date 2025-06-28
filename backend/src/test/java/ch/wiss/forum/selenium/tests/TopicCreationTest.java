@@ -177,25 +177,6 @@ public class TopicCreationTest extends BaseSeleniumTest {
      */
     private String createLainTopicContent() {
         return "# Welcome to the Wired\n\n" +
-            "In this digital realm, the boundaries between **reality** and **virtuality** become increasingly blurred.\n\n" +
-            "## Key Observations\n\n" +
-            "- The *Wired* is not merely a communication tool\n" +
-            "- Identity can exist independently of physical form\n" +
-            "- **\\\"God is here\\\"** - divinity manifests in digital spaces\n\n" +
-            "### Digital Identity Formation\n\n" +
-            "```javascript\n" +
-            "if (consciousness.exists(digital_space)) {\n" +
-            "    identity = malleable;\n" +
-            "    reality = perception;\n" +
-            "}\n" +
-            "```\n\n" +
-            "> \\\"I am not the Lain of the real world. I am the Lain of the Wired.\\\"\n\n" +
-            "## Discussion Points\n\n" +
-            "1. **Consciousness Transfer**: Can awareness truly exist in digital form?\n" +
-            "2. **Memory and Identity**: How do digital memories shape our sense of self?\n" +
-            "3. **The Protocol**: Understanding the deeper layers of digital existence\n\n" +
-            "---\n\n" +
-            "*Present day, present time... and you don't seem to exist.*\n\n" +
-            "---";
+            "In this digital realm, the boundaries between **reality** and **virtuality** become increasingly blurred.\n\n";
         }
 } 
