@@ -63,7 +63,7 @@ Diese Konfigurationen sind mir bekannt und werden beim Übergang in die produkti
 
 **Empfehlungen:**
 
-* **Unit- und Integrationstests mit JaCoCo hinzufügen**
+* **Unit und Integrationstests mit JaCoCo hinzufügen**
 * **Security Hotspots gezielt evaluieren und beheben**
 * **SonarQube in den Entwicklungsprozess integrieren**
 
