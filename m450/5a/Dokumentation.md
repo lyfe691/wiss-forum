@@ -56,7 +56,7 @@ Alle Tests wurden mit `mvn test` erfolgreich ausgeführt. Der gesamte Ablauf ist
 
 Einige Herausforderungen:
 
-* Die Kombination aus TailwindCSS und shadcn/ui erzeugt komplexe HTML-Strukturen → viele DOM-Elemente sind nicht trivial klickbar.
+* Die Kombination aus TailwindCSS und shadcn/ui erzeugt komplexe HTML-Strukturen -> viele DOM-Elemente sind nicht trivial klickbar.
 * Einige Dropdowns mussten über JavaScript selektiert werden.
 * Warten auf dynamische Inhalte (z. B. Toasts, automatische Weiterleitungen) erforderte präzise `ExpectedConditions`.
 
@@ -76,9 +76,11 @@ Fazit: Die IDE ist hilfreich zum schnellen Prototyping, ersetzt aber keine saube
 
 ## Anhang: Workflow-Video
 
-Das folgende Video zeigt einen vollständigen Durchlauf des komplexesten Tests:
+Das folgende Video zeigt einen vollständigen Durchlauf der Tests:
 
-<img src="./assets/videos/s.mp4" alt="Workflow Video" />
+
+▶️ [Workflow Video ansehen](https://github.com/user-attachments/assets/c86b0d76-172c-4462-8bbb-d21d48d09796)
+
 
 Download: 🎥 [`Workflow Video`](./assets/videos/s.mp4)
 
