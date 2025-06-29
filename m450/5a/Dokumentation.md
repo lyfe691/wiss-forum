@@ -60,6 +60,11 @@ Einige Herausforderungen:
 * Einige Dropdowns mussten über JavaScript selektiert werden.
 * Warten auf dynamische Inhalte (z. B. Toasts, automatische Weiterleitungen) erforderte präzise `ExpectedConditions`.
 
+
+Das folgende Video zeigt einen vollständigen Durchlauf der Tests:
+
+Download: 🎥 [`Workflow Video`](./assets/videos/s.mp4)
+
 ---
 
 ## Teil 4 – Selenium IDE Vergleich
@@ -71,18 +76,6 @@ Ein Test wurde zusätzlich mit der Selenium IDE aufgezeichnet und als Java JUnit
 * schwieriger zu erweitern
 
 Fazit: Die IDE ist hilfreich zum schnellen Prototyping, ersetzt aber keine saubere Testarchitektur.
-
----
-
-## Anhang: Workflow-Video
-
-Das folgende Video zeigt einen vollständigen Durchlauf der Tests:
-
-
-▶️ [Workflow Video ansehen](https://github.com/user-attachments/assets/c86b0d76-172c-4462-8bbb-d21d48d09796)
-
-
-Download: 🎥 [`Workflow Video`](./assets/videos/s.mp4)
 
 ---
 
