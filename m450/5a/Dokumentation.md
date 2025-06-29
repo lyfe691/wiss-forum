@@ -1,7 +1,7 @@
 # SideQuest 5a – Selenium Implementation im WISS Forum
 
 > **Datum:** 29.06.2025
-> **Projekt:** WISS Forum – Selenium UI Testing
+>
 > **Teammitglieder & Beiträge:**
 >
 > * Yanis Sebastian Zürcher – Dokumentation & Umsetzung
