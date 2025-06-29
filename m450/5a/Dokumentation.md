@@ -78,7 +78,9 @@ Fazit: Die IDE ist hilfreich zum schnellen Prototyping, ersetzt aber keine saube
 
 Das folgende Video zeigt einen vollständigen Durchlauf des komplexesten Tests:
 
-🎥 [`Workflow Video`](./assets/videos/s.mp4)
+<img src="./assets/videos/s.mp4" alt="Workflow Video" />
+
+Download: 🎥 [`Workflow Video`](./assets/videos/s.mp4)
 
 ---
 
