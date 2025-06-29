@@ -1,7 +1,3 @@
-You're right — here's the updated `Dokumentation.md` with the image for the backend section **embedded cleanly**, and following the requested structure:
-
----
-
 # SideQuest 6C – SonarQube Analyse
 
 > **Datum:** 29.06.2025
@@ -75,6 +71,60 @@ Diese Konfigurationen sind mir bekannt und werden beim Übergang in die produkti
 
 ## Frontend: wiss-forum/frontend
 
-*offen*
+### Ziel
+
+Auch für das Frontend wurde eine statische Codeanalyse mit SonarQube durchgeführt. Ziel war es, potenzielle Schwachstellen im React/TypeScript-Code frühzeitig zu identifizieren und die allgemeine Codequalität objektiv zu bewerten.
 
 ---
+
+### Durchführung
+
+Da es sich beim Frontend um ein reines Node.js-/Vite-/React-Projekt handelt, wurde die Analyse mit dem offiziellen SonarScanner CLI durchgeführt. Die Installation und der Befehl erfolgten wie folgt:
+
+#### Installation
+
+```bash
+sudo npm install -g @sonar/scan
+```
+
+#### Ausführung
+```bash
+sonar \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.token=<TOKEN> \ # e.g. sqp_ff7e5ed...
+  -Dsonar.projectKey=wiss-forum-frontend
+```
+
+### Ergebnisse
+
+![SonarQube Analyseergebnis – Frontend](./images/frontend.png)
+
+| Kategorie             | Ergebnis              | Bewertung              |
+| --------------------- | --------------------- | ---------------------- |
+| **Quality Gate**      | ✅ Passed              | Anforderungen erfüllt  |
+| **Sicherheit**        | 0 offene Issues       | 🟢 Unkritisch          |
+| **Security Hotspots** | 15 erkannt            | 🔴 Kritisch            |
+| **Zuverlässigkeit**   | 31 offene Issues      | 🟡 Beobachten          |
+| **Wartbarkeit**       | 475 offene Issues     | 🟡 Verbesserung nötig  |
+| **Testabdeckung**     | 0.0 % auf 2.9k Zeilen | 🔴 Keine Coverage      |
+| **Duplikate**         | 1.5 % auf 20k Zeilen  | 🟠 Reduktion empfohlen |
+
+
+### Fazit
+Das Frontend erfüllt trotz der Komplexität die Anforderungen des Quality Gates. Sicherheitsrelevante Bugs wurden keine gefunden, jedoch identifizierte SonarQube insgesamt 15 Security Hotspots – die zum Teil durch Third-Party-Libraries oder experimentelle Features im Entwicklungsprozess bedingt sind.
+
+Die hohe Anzahl an Wartbarkeits-Issues (475) ist ebenfalls teilweise auf Dev-Muster, gewachsene Komponentenstruktur und fehlende automatische Linterroutinen zurückzuführen.
+
+#### Empfehlungen:
+
+* Security Hotspots evaluieren und ggf. auf sichere Patterns refactoren
+* Duplikate in UI-Komponenten erkennen und mit Komponentenlogik aufbrechen
+* Testabdeckung z. B. mit vitest oder jest einführen und mit Istanbul coverage reporten
+
+---
+
+### Hinweis zur Projektkomplexität
+
+Da das WISS Forum ein eher grosses Projekt ist, sind manche Metriken wie fehlende Tests oder Security Hinweise nicht überraschend. Vieles (z. B. hardcodierte IPs oder `csrf.disabled()`) ist bewusst so gewählt – fürs Entwickeln praktisch, aber natürlich nicht für die Prod gedacht. Das wird dann entsprechend angepasst.
+
+
