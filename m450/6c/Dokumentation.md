@@ -35,7 +35,7 @@ mvn clean verify sonar:sonar \
   -Dsonar.token=<TOKEN> # e.g. sqp_b8f79fcc...
 ```
 
-Da ich die SolarQube analyse auf der Kali VM gemacht habe und nicht auf Windows gab es ein Chrome Driver version missmatch bei der Ausführung der Selenium Tests und habe daher einfach die zuvor erstellten Selenium Tests gelöscht -- nur temporär.
+Da ich die SonarQube analyse auf der Kali VM gemacht habe und nicht auf Windows gab es ein Chrome Driver version missmatch bei der Ausführung der Selenium Tests und habe daher einfach die zuvor erstellten Selenium Tests gelöscht -- nur temporär.
 
 
 
@@ -59,11 +59,11 @@ Da ich die SolarQube analyse auf der Kali VM gemacht habe und nicht auf Windows 
 
 ### Fazit
 
-Das Backend hat die SonarQube-Prüfung erfolgreich bestanden. Besonders positiv hervorzuheben ist die Wartbarkeit und der fehlende Duplicate-Code.
-Jedoch besteht dringender Handlungsbedarf bei der Testabdeckung und der Behandlung sicherheitsrelevanter Hotspots.
+Das Backend hat die SonarQube-Prüfung erfolgreich bestanden. Besonders positiv hervorzuheben sind die gute Wartbarkeit des Codes sowie das vollständige Fehlen von Duplikaten.
 
-Aber die meisten hostpots oder issues etc waren wegen development gründen (e.g. Hardcoded IP-Adressen oder `csrf.disabled()`).
-Das meiste war mir schon bewusst und ich werde es in production lösen.
+Verbesserungspotenzial besteht insbesondere bei der Testabdeckung und den identifizierten sicherheitsrelevanten Hotspots. Viele dieser Findings entstanden jedoch bewusst im Rahmen der Entwicklungsphase -- etwa durch hardcodierte IP-Adressen oder das temporäre Deaktivieren von CSRF-Schutzmechanismen.
+
+Diese Konfigurationen sind mir bekannt und werden beim Übergang in die produktive Umgebung entsprechend angepasst und abgesichert.
 
 **Empfehlungen:**
 
