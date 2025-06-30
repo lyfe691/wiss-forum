@@ -22,7 +22,7 @@ public class FileStorageService {
     @Autowired
     private FileRepository fileRepository;
 
-    @Value("${app.file-storage.base-url:http://localhost:8080/api/files}")
+    @Value("${app.file-storage.base-url}")
     private String baseUrl;
 
     public String storeFile(MultipartFile file, String userId) {

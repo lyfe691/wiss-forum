@@ -29,7 +29,7 @@ export function getAvatarUrl(userId: string, avatar?: string): string {
   if (avatar) {
     return avatar;
   }
-  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`;
+  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${userId}`;
 }
 
 /**

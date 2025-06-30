@@ -189,8 +189,6 @@ export function Navbar() {
                             {user?.displayName ? getInitials(user.displayName) : 'U'}
                           </AvatarFallback>
                         </Avatar>
-                        {/* Online status indicator */}
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
                       </div>
                       <div className="hidden sm:flex flex-col items-start">
                         <span className="text-sm font-medium max-w-[120px] truncate leading-tight">
