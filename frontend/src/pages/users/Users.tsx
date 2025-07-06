@@ -7,10 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { formatDistanceToNow } from 'date-fns';
-import { AlertCircle, ArrowRight } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { PaginationControls } from '@/components/PaginationControls';
 import {
   Breadcrumb,
@@ -149,50 +148,41 @@ export function Users() {
             {getCurrentPageUsers().map((user) => (
               <Card 
                 key={user._id || user.username} 
-                className="overflow-hidden h-full border border-border/60 transition-all duration-200 hover:shadow-md hover:border-border group"
+                className="overflow-hidden border border-border/60 group transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1"
               >
-                <Link to={`/users/${user.username}`} className="block h-full">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start gap-4">
-                      <Avatar className="h-14 w-14 border ring-2 ring-background group-hover:ring-primary/10 transition-all duration-200">
-                        <AvatarImage 
-                          src={getAvatarUrl(user._id, user.avatar)} 
-                          alt={user.displayName || user.username} 
-                        />
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                          {getInitials(user.displayName || user.username)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-base font-medium group-hover:text-primary transition-colors">
-                          {user.displayName || user.username}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">@{user.username}</p>
-                        <Badge className={`mt-2 font-normal px-2 py-0.5 text-xs ${getRoleBadgeColor(user.role)}`}>
-                          {formatRoleName(user.role)}
-                        </Badge>
-                      </div>
+                <Link to={`/users/${user.username}`} className="flex flex-col h-full text-center p-4">
+                  <div className="flex-grow">
+                    <Avatar className="h-20 w-20 mx-auto mb-4 border-2 group-hover:border-primary/50 transition-colors">
+                      <AvatarImage 
+                        src={getAvatarUrl(user._id, user.avatar)} 
+                        alt={user.displayName || user.username} 
+                      />
+                      <AvatarFallback className="text-2xl bg-muted">
+                        {getInitials(user.displayName || user.username)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors truncate" title={user.displayName || user.username}>
+                      {user.displayName || user.username}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">@{user.username}</p>
+                    <div className="mt-2">
+                      <Badge className={`font-normal text-xs px-2 py-0.5 ${getRoleBadgeColor(user.role)}`}>
+                        {formatRoleName(user.role)}
+                      </Badge>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-3">
-                    {user.bio ? (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{user.bio}</p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">No bio provided</p>
-                    )}
-                    <div className="flex justify-between items-center mt-4 pt-2 border-t border-border/40">
-                      <p className="text-xs text-muted-foreground">
-                        Member since {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
-                      </p>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-7 w-7 rounded-full text-muted-foreground hover:text-primary"
-                      >
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Button>
+                    <div className="h-[40px] mt-3">
+                      {user.bio ? (
+                        <p className="text-sm text-muted-foreground line-clamp-2" title={user.bio}>{user.bio}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">No bio provided.</p>
+                      )}
                     </div>
-                  </CardContent>
+                  </div>
+                  <div className="mt-auto pt-3 border-t w-full">
+                    <p className="text-xs text-muted-foreground">
+                      Joined {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
+                    </p>
+                  </div>
                 </Link>
               </Card>
             ))}
