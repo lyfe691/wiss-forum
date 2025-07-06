@@ -351,43 +351,41 @@ export function AdminDashboard() {
           <div className="grid gap-4">
             {analyticsData?.topPerformers.slice(0, 5).map((performer, index) => (
               <Link to={`/users/${performer.username}`} key={performer.username}>
-              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted transition-all duration-300 cursor-pointer">
-                <div className="flex items-center space-x-3">
-                  <Badge variant="secondary" className="text-xs">
-                    #{index + 1}
-                  </Badge>
-                   <Link to={`/users/${performer.username}`}>
-                     <Avatar className="h-8 w-8 hover:ring-2 hover:ring-foreground/20 transition-all cursor-pointer">
-                       <AvatarImage src={getAvatarUrl(performer._id, performer.avatar)} alt={performer.displayName || performer.username} />
-                       <AvatarFallback className="bg-primary/10 text-primary">
-                         {getInitials(performer.displayName || performer.username)}
-                       </AvatarFallback>
-                     </Avatar>
-                   </Link>
+                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted transition-all duration-300 cursor-pointer">
+                  <div className="flex items-center space-x-3">
+                    <Badge variant="secondary" className="text-xs">
+                      #{index + 1}
+                    </Badge>
+                    <Avatar className="h-8 w-8 hover:ring-2 hover:ring-foreground/20 transition-all cursor-pointer">
+                      <AvatarImage src={getAvatarUrl(performer._id, performer.avatar)} alt={performer.displayName || performer.username} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {getInitials(performer.displayName || performer.username)}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="font-medium hover:text-primary transition-colors">
-                       {performer.displayName}
-                     <p className="text-sm text-muted-foreground">@{performer.username}</p>
-                   </div>
+                      {performer.displayName}
+                      <p className="text-sm text-muted-foreground">@{performer.username}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm">
+                    <div className="text-center">
+                      <div className="font-semibold">{performer.totalScore}</div>
+                      <div className="text-muted-foreground">Score</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold">{performer.topicsCreated}</div>
+                      <div className="text-muted-foreground">Topics</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold">{performer.postsCreated}</div>
+                      <div className="text-muted-foreground">Posts</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold">{performer.likesReceived}</div>
+                      <div className="text-muted-foreground">Likes</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-4 text-sm">
-                  <div className="text-center">
-                    <div className="font-semibold">{performer.totalScore}</div>
-                    <div className="text-muted-foreground">Score</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-semibold">{performer.topicsCreated}</div>
-                    <div className="text-muted-foreground">Topics</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-semibold">{performer.postsCreated}</div>
-                    <div className="text-muted-foreground">Posts</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-semibold">{performer.likesReceived}</div>
-                    <div className="text-muted-foreground">Likes</div>
-                  </div>
-                </div>
-              </div>
               </Link>
             ))}
           </div>

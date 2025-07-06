@@ -335,12 +335,17 @@ describe('AdminDashboard', () => {
       renderComponent(<AdminDashboard />);
 
       await waitFor(() => {
-        // check usernames are clickable links
-        const johnLink = screen.getByRole('link', { name: 'John Doe' });
-        expect(johnLink).toHaveAttribute('href', '/users/john_doe');
+        // check that performer cards are clickable links
+        const performerLinks = screen.getAllByRole('link');
+        const johnLink = performerLinks.find(link => link.getAttribute('href') === '/users/john_doe');
+        const janeLink = performerLinks.find(link => link.getAttribute('href') === '/users/jane_smith');
         
-        const janeLink = screen.getByRole('link', { name: 'Jane Smith' });
-        expect(janeLink).toHaveAttribute('href', '/users/jane_smith');
+        expect(johnLink).toBeInTheDocument();
+        expect(janeLink).toBeInTheDocument();
+        
+        // verify the links contain the performer names
+        expect(johnLink).toHaveTextContent('John Doe');
+        expect(janeLink).toHaveTextContent('Jane Smith');
       });
     });
 

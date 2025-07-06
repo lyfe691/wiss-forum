@@ -76,6 +76,10 @@ public class AdminAccessTest extends BaseSeleniumTest {
         boolean headingFound = driver.getPageSource().contains("Admin Dashboard");
         assertTrue(headingFound, "Admin Dashboard title should be visible");
 
+        // === Step 7: validate top performers list ===
+        boolean topPerformersList = driver.getPageSource().contains("Top Performers");
+        assertTrue(topPerformersList, "Top Performers list should be visible");
+
         System.out.println("✓ Admin Dashboard rendered successfully for promoted user.");
         Thread.sleep(5000);
     }
