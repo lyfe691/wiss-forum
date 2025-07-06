@@ -58,7 +58,7 @@ public class TopicController {
     }
 
     // get topics by category (id or slug)
-    @GetMapping("/by-category/{id}")
+    @GetMapping("/category/{id}")
     public ResponseEntity<?> getTopicsByCategory(@PathVariable String id, Pageable pageable) {
         try {
             Category category = categoryService.getCategoryByIdOrSlug(id);
