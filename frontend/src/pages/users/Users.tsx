@@ -204,6 +204,7 @@ export function Users() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
+                isZeroBased={false}
               />
             </div>
           )}
