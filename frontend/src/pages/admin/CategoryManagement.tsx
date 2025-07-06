@@ -478,7 +478,7 @@ export function CategoryManagement() {
             Organize and structure forum categories
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 sm:flex-row flex-col sm:shrink-0">
           <Button variant="outline" onClick={() => navigate('/admin')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard

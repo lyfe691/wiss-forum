@@ -182,12 +182,15 @@ export function AdminDashboard() {
             Comprehensive insights into your forum's performance
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 sm:flex-row flex-col sm:shrink-0">
           <Button variant="outline" asChild>
             <Link to="/admin/users">Manage Users</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link to="/admin/categories">Manage Categories</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/admin-tool">Admin Tools</Link>
           </Button>
           <Button variant="outline" onClick={() => navigate('/')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -198,7 +201,7 @@ export function AdminDashboard() {
 
       {/* Overview Statistics */}
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-5 mb-8">
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <Users className="mr-2 h-4 w-4 text-blue-500" />
@@ -211,7 +214,7 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <FileText className="mr-2 h-4 w-4 text-green-500" />
@@ -224,7 +227,7 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <MessageSquare className="mr-2 h-4 w-4 text-purple-500" />
@@ -237,7 +240,7 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <Award className="mr-2 h-4 w-4 text-orange-500" />
@@ -250,7 +253,7 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <Target className="mr-2 h-4 w-4 text-red-500" />
@@ -347,26 +350,22 @@ export function AdminDashboard() {
         <CardContent>
           <div className="grid gap-4">
             {analyticsData?.topPerformers.slice(0, 5).map((performer, index) => (
-              <div key={performer.username} className="flex items-center justify-between p-4 border rounded-lg">
+              <Link to={`/users/${performer.username}`} key={performer.username}>
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted transition-all duration-300 cursor-pointer">
                 <div className="flex items-center space-x-3">
                   <Badge variant="secondary" className="text-xs">
                     #{index + 1}
                   </Badge>
-                                     <Link to={`/users/${performer.username}`}>
-                     <Avatar className="h-8 w-8 hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer">
+                   <Link to={`/users/${performer.username}`}>
+                     <Avatar className="h-8 w-8 hover:ring-2 hover:ring-foreground/20 transition-all cursor-pointer">
                        <AvatarImage src={getAvatarUrl(performer._id, performer.avatar)} alt={performer.displayName || performer.username} />
                        <AvatarFallback className="bg-primary/10 text-primary">
                          {getInitials(performer.displayName || performer.username)}
                        </AvatarFallback>
                      </Avatar>
                    </Link>
-                    <div>
-                     <Link 
-                       to={`/users/${performer.username}`}
-                       className="font-medium hover:text-primary transition-colors"
-                     >
+                    <div className="font-medium hover:text-primary transition-colors">
                        {performer.displayName}
-                     </Link>
                      <p className="text-sm text-muted-foreground">@{performer.username}</p>
                    </div>
                 </div>
@@ -389,6 +388,7 @@ export function AdminDashboard() {
                   </div>
                 </div>
               </div>
+              </Link>
             ))}
           </div>
         </CardContent>
