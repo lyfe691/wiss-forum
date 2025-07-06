@@ -2,8 +2,8 @@ package ch.wiss.forum.service;
 
 import ch.wiss.forum.model.FileEntity;
 import ch.wiss.forum.repository.FileRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -17,12 +17,12 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FileStorageService {
 
-    @Autowired
-    private FileRepository fileRepository;
+    private final FileRepository fileRepository;
 
-    @Value("${app.file-storage.base-url}")
+    @Value("${app.file-storage.base-url:http://localhost:8080/api/files}")
     private String baseUrl;
 
     public String storeFile(MultipartFile file, String userId) {

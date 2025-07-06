@@ -32,25 +32,19 @@ public class CategoryController {
     
     // get all categories
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
-        List<Category> categories = categoryService.getAllCategories();
-        return ResponseEntity.ok(categories);
+    public List<Category> getAllCategories() {
+        return categoryService.getAllCategories();
     }
 
-    // get category by id
+    // This method handles fetching a category by its ID or slug.
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCategoryById(@PathVariable String id) {
+    public ResponseEntity<?> getCategoryByIdOrSlug(@PathVariable String id) {
         try {
-            Category category = categoryService.getCategoryById(id);
+            Category category = categoryService.getCategoryByIdOrSlug(id);
             return ResponseEntity.ok(category);
         } catch (RuntimeException e) {
-            try {
-                Category category = categoryService.getCategoryBySlug(id);
-                return ResponseEntity.ok(category);
-            } catch (RuntimeException slugEx) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new MessageResponse("Category not found: " + id));
-            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse(e.getMessage()));
         }
     }
 

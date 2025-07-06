@@ -34,7 +34,7 @@ public class FileController {
     
     private final FileStorageService fileStorageService;
     
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10MB
     private static final String[] ALLOWED_IMAGE_TYPES = {
         "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
     };

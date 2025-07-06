@@ -18,18 +18,17 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class AuthTokenFilter extends OncePerRequestFilter {
     
-    @Autowired
-    private JwtUtils jwtUtils;
-    
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
-    
-    @Autowired
-    private UserRepository userRepository;
+    private final JwtUtils jwtUtils;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final UserRepository userRepository;
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

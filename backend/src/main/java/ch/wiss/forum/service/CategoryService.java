@@ -114,4 +114,12 @@ public class CategoryService {
         
         categoryRepository.delete(category);
     }
+
+    public Category getCategoryByIdOrSlug(String idOrSlug) {
+        // First, try to find the category by its ID.
+        // If that fails, try to find it by its slug.
+        return categoryRepository.findById(idOrSlug)
+                .or(() -> categoryRepository.findBySlug(idOrSlug))
+                .orElseThrow(() -> new RuntimeException("Category not found with ID or slug: " + idOrSlug));
+    }
 } 

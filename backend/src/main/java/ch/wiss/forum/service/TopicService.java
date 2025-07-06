@@ -46,6 +46,12 @@ public class TopicService {
                 .orElseThrow(() -> new RuntimeException("Topic not found with slug: " + slug));
     }
     
+    public Topic getTopicByIdOrSlug(String idOrSlug) {
+        return topicRepository.findById(idOrSlug)
+                .or(() -> topicRepository.findBySlug(idOrSlug))
+                .orElseThrow(() -> new RuntimeException("Topic not found with ID or slug: " + idOrSlug));
+    }
+    
     public Topic createTopic(Topic topic, User currentUser) {
         // set creation metadata
         topic.setAuthor(currentUser);

@@ -31,10 +31,12 @@ import ch.wiss.forum.service.TopicService;
 import ch.wiss.forum.security.PermissionUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/topics")
 @RequiredArgsConstructor
+@Slf4j
 public class TopicController {
     
     private final TopicService topicService;
@@ -55,29 +57,15 @@ public class TopicController {
         return ResponseEntity.ok(topics);
     }
 
-    // get topics by category
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<?> getTopicsByCategory(
-            @PathVariable String categoryId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        
+    // get topics by category (id or slug)
+    @GetMapping("/by-category/{id}")
+    public ResponseEntity<?> getTopicsByCategory(@PathVariable String id, Pageable pageable) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-            
-            // first try to get by id
-            try {
-                Category category = categoryService.getCategoryById(categoryId);
-                Page<Topic> topicsPage = topicService.getTopicsByCategory(categoryId, pageable);
-                return ResponseEntity.ok(topicsPage.getContent());
-            } catch (Exception idError) {
-                // if not found by id, try by slug
-                Category category = categoryService.getCategoryBySlug(categoryId);
-                Page<Topic> topicsPage = topicService.getTopicsByCategory(category.getId(), pageable);
-                return ResponseEntity.ok(topicsPage.getContent());
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            Category category = categoryService.getCategoryByIdOrSlug(id);
+            Page<Topic> topicsPage = topicService.getTopicsByCategory(category.getId(), pageable);
+            return ResponseEntity.ok(topicsPage);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
         }
     }
 
@@ -102,26 +90,13 @@ public class TopicController {
 
     // get topic by id or slug
     @GetMapping("/{idOrSlug}")
-    public ResponseEntity<?> getTopicById(@PathVariable String idOrSlug) {
+    public ResponseEntity<?> getTopicByIdOrSlug(@PathVariable String idOrSlug) {
         try {
-            // check for null or invalid id
-            if (idOrSlug == null || idOrSlug.equals("null") || idOrSlug.equals("undefined") || idOrSlug.trim().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new MessageResponse("Topic not found: Invalid ID/slug"));
-            }
-            
-            try {
-                // first try to look up by id
-                Topic topic = topicService.getTopicById(idOrSlug);
-                return ResponseEntity.ok(topic);
-            } catch (Exception idError) {
-                // if id lookup fails, try to find by slug
-                Topic topic = topicService.getTopicBySlug(idOrSlug);
-                return ResponseEntity.ok(topic);
-            }
-        } catch (Exception e) {
+            Topic topic = topicService.getTopicByIdOrSlug(idOrSlug);
+            return ResponseEntity.ok(topic);
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new MessageResponse("Topic not found with ID or slug: " + idOrSlug));
+                    .body(new MessageResponse("Topic not found with ID or slug: " + idOrSlug));
         }
     }
 
@@ -210,8 +185,6 @@ public class TopicController {
                 .body(new MessageResponse("Failed to create topic: " + e.getMessage()));
         }
     }
-
-
 
     // delete topic
     @DeleteMapping("/{id}")
