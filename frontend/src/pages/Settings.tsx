@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 import { userAPI } from '@/lib/api';
 
 import { 
@@ -46,6 +47,7 @@ import { Theme } from '@/lib/theme';
 export function Settings() {
   const { user, refreshUser } = useAuth();
   const { theme, setTheme } = useTheme();
+  const location = useLocation();
   const [selectedTab, setSelectedTab] = useState('account');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,6 +69,11 @@ export function Settings() {
 
   // Fetch profile data like Profile page does
   useEffect(() => {
+    // Set initial tab based on navigation state
+    if (location.state?.tab) {
+      setSelectedTab(location.state.tab);
+    }
+    
     const fetchProfile = async () => {
       if (!user) return;
       
@@ -130,7 +137,7 @@ export function Settings() {
     };
     
     fetchProfile();
-  }, [user]);
+  }, [user, location.state]);
 
   // Form state handlers
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
