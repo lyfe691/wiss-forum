@@ -1,0 +1,25 @@
+git log --oneline --graph --all
+
+* 2790005 (HEAD -> main, origin/main, origin/HEAD) fix(m450; 8a): mention .gitignore
+* aeed464 feat(m450; 8a): test concept
+* 888a9ad rm ci for now
+* bf5c6cf chore: java ci to ver 21
+* 6885ed5 chore: rm JaCoCo plugin configuration from pom.xml
+* 3b8c468 chore: ci & joaco
+* 1b8031a fix: rm lint from ci and create new login test
+* 65162ea ci
+* 46a853d feat(tests): AuthContext tests
+* 2ae2d7f feat(tests): enhance api tests
+* 49d6647 refactor: remove bloat in profile.tsx - link to settings if a user wants to change their password
+* fdbb97b feat(tests): continue to expand the coverage
+* 7c57003 feat: api tests
+* 7865884 feat: update dependencies and add coverage configuration for Vitest, create new tests, rn at 3% coverage
+* 22d61c1 fix: admin dashboard tests
+* 834bf9a feat: re add the old selenium tests and create a new "AdminAccessTest" which tests the new admin dashboard
+* b558d82 feat: minor improvements
+* d551455 feat: add tests. Currently the test we have only focuses on the new admin dashboard.
+* de9991e feat: add comprehensive analytics in the admin dashboard
+* 7d05f2f refactor: enhance user card layout and styling in Users component
+* 1889b25 fix: pagination issue in users.tsx
+* f7ffc04 fix: update endpoint for fetching topics by category
+* b7215c7 fix(SonarQube; backend): ensure 0 reliability issues.
