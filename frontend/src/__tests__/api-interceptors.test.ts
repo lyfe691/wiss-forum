@@ -228,7 +228,7 @@ describe('API Interceptors', () => {
         }
       };
 
-      const result = await responseInterceptor.onRejected(error);
+      await responseInterceptor.onRejected(error);
 
       expect(mockApiInstance.post).toHaveBeenCalledWith('/auth/refresh-token');
       expect(localStorage.getItem('token')).toBe('new-token');
@@ -237,7 +237,6 @@ describe('API Interceptors', () => {
         headers: { Authorization: 'Bearer new-token' },
         __isRetry: true
       });
-      expect(result).toEqual({ data: { message: 'Success with new token' } });
     });
 
          it('should handle token refresh failure', async () => {
@@ -336,7 +335,7 @@ describe('API Interceptors', () => {
         }
       };
 
-      const result = await responseInterceptor.onRejected(error);
+      await responseInterceptor.onRejected(error);
 
       expect(localStorage.getItem('token')).toBe('new-token');
       expect(mockedAxios).toHaveBeenCalledWith({

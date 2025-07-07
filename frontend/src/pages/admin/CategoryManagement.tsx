@@ -52,7 +52,7 @@ import {
   MessageSquare, 
   CheckCircle2
 } from 'lucide-react';
-import axios from 'axios';
+
 import { Role, roleUtils } from '@/lib/types';
 
 interface Category {

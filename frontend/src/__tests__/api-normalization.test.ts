@@ -46,7 +46,7 @@ describe('API Normalization Functions', () => {
       });
 
       // test login normalization by calling the function
-      const loginData = { username: 'testuser', password: 'password' };
+      await authAPI.login({ username: 'testuser', password: 'password' });
       expect(typeof authAPI.login).toBe('function');
     });
 
@@ -63,7 +63,7 @@ describe('API Normalization Functions', () => {
     });
 
     it('handles email-based login', async () => {
-      const loginData = { username: 'test@example.com', password: 'password' };
+      await authAPI.login({ username: 'test@example.com', password: 'password' });
       expect(typeof authAPI.login).toBe('function');
     });
 

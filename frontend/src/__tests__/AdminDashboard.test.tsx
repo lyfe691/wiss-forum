@@ -24,7 +24,7 @@ vi.mock('@/lib/api', () => ({
 }));
 
 vi.mock('@/lib/utils', () => ({
-  getAvatarUrl: vi.fn((id, avatar) => `https://avatar.com/${id}`),
+  getAvatarUrl: vi.fn((id) => `https://avatar.com/${id}`),
   getInitials: vi.fn((name) => name?.charAt(0) || 'U'),
   cn: vi.fn((...args) => args.filter(Boolean).join(' ')),
   roleUtils: {
@@ -82,11 +82,11 @@ const mockAnalyticsData = {
     { role: 'ADMIN', count: 5 }
   ],
   topPerformers: [
-    { _id: '1', username: 'john_doe', displayName: 'John Doe', avatar: 'avatar1.jpg', totalScore: 850, level: 8, topicsCreated: 12, postsCreated: 45, likesReceived: 23 },
-    { _id: '2', username: 'jane_smith', displayName: 'Jane Smith', avatar: 'avatar2.jpg', totalScore: 720, level: 7, topicsCreated: 8, postsCreated: 32, likesReceived: 18 },
-    { _id: '3', username: 'mike_wilson', displayName: 'Mike Wilson', avatar: 'avatar3.jpg', totalScore: 680, level: 6, topicsCreated: 6, postsCreated: 28, likesReceived: 15 },
-    { _id: '4', username: 'sarah_jones', displayName: 'Sarah Jones', avatar: 'avatar4.jpg', totalScore: 620, level: 6, topicsCreated: 5, postsCreated: 22, likesReceived: 12 },
-    { _id: '5', username: 'alex_brown', displayName: 'Alex Brown', avatar: 'avatar5.jpg', totalScore: 580, level: 5, topicsCreated: 4, postsCreated: 18, likesReceived: 10 }
+    { _id: '1', username: 'john_doe', displayName: 'John Doe', avatar: null, totalScore: 850, level: 8, topicsCreated: 12, postsCreated: 45, likesReceived: 23 },
+    { _id: '2', username: 'jane_smith', displayName: 'Jane Smith', avatar: null, totalScore: 720, level: 7, topicsCreated: 8, postsCreated: 32, likesReceived: 18 },
+    { _id: '3', username: 'mike_wilson', displayName: 'Mike Wilson', avatar: null, totalScore: 680, level: 6, topicsCreated: 6, postsCreated: 28, likesReceived: 15 },
+    { _id: '4', username: 'sarah_jones', displayName: 'Sarah Jones', avatar: null, totalScore: 620, level: 6, topicsCreated: 5, postsCreated: 22, likesReceived: 12 },
+    { _id: '5', username: 'alex_brown', displayName: 'Alex Brown', avatar: null, totalScore: 580, level: 5, topicsCreated: 4, postsCreated: 18, likesReceived: 10 }
   ]
 };
 

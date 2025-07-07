@@ -54,7 +54,7 @@ import {
 import axios from 'axios';
 import { getRoleBadgeColor, formatRoleName, getAvatarUrl, getInitials } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Role, roleUtils } from '@/lib/types';
+import { Role } from '@/lib/types';
 
 interface UserData {
   _id: string;

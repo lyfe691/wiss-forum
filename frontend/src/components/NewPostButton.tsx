@@ -23,7 +23,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert as AlertComponent, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { categoriesAPI, authAPI } from '@/lib/api';
-import axios from 'axios';
 import { Role, roleUtils } from '@/lib/types';
 
 // ------------------------------------------------------------

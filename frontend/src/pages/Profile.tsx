@@ -78,7 +78,7 @@ interface ProfileFormData {
 }
 
 export function Profile() {
-  const { user, checkAuth, refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
