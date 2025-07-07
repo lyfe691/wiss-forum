@@ -70,7 +70,7 @@ describe('utils', () => {
 
     it('handles empty string avatar', () => {
       const result = getAvatarUrl('user123', '');
-      expect(result).toBe('https://api.dicebear.com/9.x/thumbs/svg?seed=user123'); // Empty string is falsy, so generates URL
+      expect(result).toBe('https://api.dicebear.com/9.x/thumbs/svg?seed=user123'); // empty string is falsy, so generates URL
     });
   });
 
@@ -122,7 +122,7 @@ describe('utils', () => {
     });
 
     it('handles unknown roles gracefully', () => {
-      expect(formatRoleName('unknown' as any)).toBe('Student'); // Unknown roles normalize to STUDENT
+      expect(formatRoleName('unknown' as any)).toBe('Student'); // unknown roles normalize to STUDENT
     });
 
     it('handles uppercase string inputs', () => {

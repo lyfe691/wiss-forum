@@ -1,6 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import axios from 'axios';
-import { Role } from '@/lib/types';
 import api, { 
   authAPI, 
   userAPI, 
@@ -11,7 +9,7 @@ import api, {
   usersAPI 
 } from '@/lib/api';
 
-// Mock axios
+// mock axios
 vi.mock('axios', () => ({
   default: {
     create: vi.fn(() => ({
@@ -35,7 +33,7 @@ vi.mock('axios', () => ({
   }
 }));
 
-// Mock localStorage
+// mock localStorage
 const mockLocalStorage = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -44,7 +42,7 @@ const mockLocalStorage = {
 };
 Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
-// Mock window.location
+// mock window.location
 Object.defineProperty(window, 'location', {
   value: { href: '' },
   writable: true,
