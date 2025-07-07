@@ -59,7 +59,7 @@ Sie können die Tests hier finden: [frontend tests](https://github.com/lyfe691/w
 
 ### 1.4 Technische Details
 
-* **LCOV-Pfad**: `coverage/lcov.info`
+* **LCOV-Pfad**: `coverage/lcov.info` (nicht commited, im gitignore)
 * **SonarQube Konfiguration**:
 
   ```bash
